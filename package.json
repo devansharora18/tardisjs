@@ -1,0 +1,52 @@
+{
+  "name": "tardisjs",
+  "version": "0.0.1",
+  "description": "Smaller on the outside. A ~5KB jQuery-inspired frontend framework.",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tardis": "./bin/tardis.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./runtime": {
+      "import": "./dist/runtime/index.mjs",
+      "require": "./dist/runtime/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "rollup -c --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "frontend",
+    "framework",
+    "jquery",
+    "blueprints",
+    "reactive",
+    "no-vdom",
+    "components",
+    "tardis",
+    "doctor-who"
+  ],
+  "author": "devansharora18",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.0.0",
+    "rollup": "^4.0.0",
+    "tslib": "^2.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "chokidar": "^3.0.0",
+    "commander": "^12.0.0"
+  }
+}
