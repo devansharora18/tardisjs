@@ -9,30 +9,34 @@ export type TokenType =
   | 'STYLE'
   | 'UI'
 
-  // style mode — tailwind or css
+  // style mode
   | 'STYLE_MODE'
 
   // values
-  | 'IDENT'       // Button, label, count, increment
-  | 'STRING'      // "click me"
-  | 'BOOLEAN'     // true | false
-  | 'NUMBER'      // 0, 42, 3.14
+  | 'IDENT'
+  | 'STRING'
+  | 'BOOLEAN'
+  | 'NUMBER'
 
   // punctuation
-  | 'COLON'       // :
-  | 'EQUALS'      // =
-  | 'PIPE'        // |
-  | 'DOT'         // .
-  | 'LBRACE'      // {
-  | 'RBRACE'      // }
-  | 'LPAREN'      // (
-  | 'RPAREN'      // )
-  | 'ARROW'       // =>
+  | 'COLON'
+  | 'EQUALS'
+  | 'PIPE'
+  | 'DOT'
+  | 'LBRACE'
+  | 'RBRACE'
+  | 'LPAREN'
+  | 'RPAREN'
+  | 'ARROW'
+  | 'COMMA'
 
-  // special
-  | 'RAW_JSX'     // entire ui block content — raw string
-  | 'NEWLINE'     // \n
-  | 'EOF'         // end of file
+  // raw chunks
+  | 'RAW_EXPR'
+  | 'RAW_JSX'
+
+  // structure
+  | 'NEWLINE'
+  | 'EOF'
 
 export type Token = {
   type: TokenType

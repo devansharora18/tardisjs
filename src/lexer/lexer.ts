@@ -6,8 +6,6 @@ export function lex(source: string): Token[] {
   let line = 1
   let col = 1
 
-  // ── helpers ──────────────────────────────────────────────────────────────
-
   function peek(offset = 0): string {
     return source[i + offset] ?? ''
   }
@@ -37,10 +35,8 @@ export function lex(source: string): Token[] {
     }
   }
 
-  // ── readers ───────────────────────────────────────────────────────────────
-
   function readString(): string {
-    advance() // consume opening "
+    advance()
     let value = ''
     while (i < source.length && peek() !== '"') {
       if (peek() === '\\' && peek(1) === '"') {
@@ -51,7 +47,7 @@ export function lex(source: string): Token[] {
         value += advance()
       }
     }
-    if (peek() === '"') advance() // consume closing "
+    if (peek() === '"') advance()
     return value
   }
 
@@ -72,12 +68,12 @@ export function lex(source: string): Token[] {
   }
 
   function readStyleMode(): string {
-    advance() // consume (
+    advance()
     let value = ''
     while (i < source.length && peek() !== ')') {
       value += advance()
     }
-    if (peek() === ')') advance() // consume )
+    if (peek() === ')') advance()
     return value.trim()
   }
 
@@ -94,11 +90,17 @@ export function lex(source: string): Token[] {
       if (ch === '\n') line++
       value += advance()
     }
-    if (peek() === '}') advance() // consume closing }
+    if (peek() === '}') advance()
     return value.trim()
   }
 
-  // ── main loop ─────────────────────────────────────────────────────────────
+  function readRawExpr(): string {
+    let value = ''
+    while (i < source.length && '*+-/><!=&%^~?'.includes(peek())) {
+      value += advance()
+    }
+    return value
+  }
 
   let lastKeyword: TokenType | null = null
 
@@ -108,7 +110,6 @@ export function lex(source: string): Token[] {
 
     if (i >= source.length) break
 
-    // capture position BEFORE consuming any characters
     const startLine = line
     const startCol = col
 
@@ -142,6 +143,7 @@ export function lex(source: string): Token[] {
     if (ch === '.') { advance(); emit('DOT', '.'); continue }
     if (ch === '(') { advance(); emit('LPAREN', '('); continue }
     if (ch === ')') { advance(); emit('RPAREN', ')'); continue }
+    if (ch === ',') { advance(); emit('COMMA', ','); continue }
 
     if (ch === '=') {
       if (peek(1) === '>') {
@@ -151,6 +153,12 @@ export function lex(source: string): Token[] {
         advance()
         emit('EQUALS', '=')
       }
+      continue
+    }
+
+    if ('*+-/><!=&%^~?'.includes(ch)) {
+      const raw = readRawExpr()
+      emit('RAW_EXPR', raw)
       continue
     }
 
@@ -186,7 +194,6 @@ export function lex(source: string): Token[] {
       continue
     }
 
-    // unknown character — skip
     advance()
   }
 
