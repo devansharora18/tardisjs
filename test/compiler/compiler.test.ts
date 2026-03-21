@@ -599,3 +599,268 @@ describe('compiler', () => {
   })
 
 })
+
+// ── ui compiler ───────────────────────────────────────────────────────────
+
+describe('ui compiler', () => {
+
+  describe('basic elements', () => {
+    it('compiles a simple div', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui { <div>hello</div> }
+        }
+      `)
+      expect(out).toContain("createElement('div')")
+      expect(out).toContain("createTextNode")
+    })
+
+    it('compiles a self-closing element', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui { <input /> }
+        }
+      `)
+      expect(out).toContain("createElement('input')")
+    })
+
+    it('compiles nested elements', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui {
+            <div>
+              <h1>title</h1>
+              <p>body</p>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("createElement('div')")
+      expect(out).toContain("createElement('h1')")
+      expect(out).toContain("createElement('p')")
+    })
+
+    it('wraps ui in an IIFE', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('(() => {')
+      expect(out).toContain('_root')
+    })
+  })
+
+  describe('static attributes', () => {
+    it('compiles static class attribute', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui { <div class="my-card">hello</div> }
+        }
+      `)
+      expect(out).toContain('className')
+      expect(out).toContain('my-card')
+    })
+
+    it('compiles static non-class attribute', () => {
+      const out = compileSource(`
+        blueprint Input {
+          ui { <input placeholder="search" /> }
+        }
+      `)
+      expect(out).toContain("setAttribute('placeholder'")
+      expect(out).toContain('search')
+    })
+  })
+
+  describe('reactive bindings', () => {
+    it('compiles reactive text binding', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          ui { <h1>{state.count}</h1> }
+        }
+      `)
+      expect(out).toContain('$runtime.bind(')
+      expect(out).toContain('textContent')
+      expect(out).toContain('_state.count')
+    })
+
+    it('compiles reactive class binding', () => {
+      const out = compileSource(`
+        blueprint Button {
+          style(tailwind) { base: "px-4 py-2" }
+          ui { <button class={base}>click</button> }
+        }
+      `)
+      expect(out).toContain('$runtime.bindClass(')
+    })
+
+    it('compiles reactive attribute binding', () => {
+      const out = compileSource(`
+        blueprint Input {
+          state { isDisabled: boolean = false }
+          ui { <input disabled={state.isDisabled} /> }
+        }
+      `)
+      expect(out).toContain('$runtime.bindAttr(')
+      expect(out).toContain('_state.isDisabled')
+    })
+
+    it('rewrites state refs in reactive bindings', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          ui { <h1>{state.count}</h1> }
+        }
+      `)
+      expect(out).toContain('_state.count')
+      expect(out).not.toMatch(/(?<![_a-zA-Z])state\./)
+    })
+  })
+
+  describe('event handlers', () => {
+    it('compiles @click handler', () => {
+      const out = compileSource(`
+        blueprint Button {
+          methods { increment: () => $update(state.count, 1) }
+          ui { <button @click={methods.increment}>click</button> }
+        }
+      `)
+      expect(out).toContain("addEventListener('click'")
+      expect(out).toContain('_methods.increment')
+    })
+
+    it('compiles @input handler', () => {
+      const out = compileSource(`
+        blueprint Input {
+          state { value: string = "" }
+          ui { <input @input={(e) => $update(state.value, e.target.value)} /> }
+        }
+      `)
+      expect(out).toContain("addEventListener('input'")
+    })
+
+    it('rewrites refs in event handlers', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          ui { <button @click={() => $update(state.count, state.count + 1)}>+</button> }
+        }
+      `)
+      expect(out).toContain('_state.count')
+    })
+  })
+
+  describe('$if directive', () => {
+    it('compiles $if into $runtime.if call', () => {
+      const out = compileSource(`
+        blueprint Modal {
+          state { open: boolean = false }
+          ui {
+            $if(state.open) {
+              <div>modal content</div>
+            }
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.if(')
+      expect(out).toContain('_state.open')
+    })
+  })
+
+  describe('$each directive', () => {
+    it('compiles $each into $runtime.each call', () => {
+      const out = compileSource(`
+        blueprint List {
+          state { items: array = [] }
+          ui {
+            $each(state.items, (item) => {
+              <div>{item}</div>
+            })
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.each(')
+      expect(out).toContain('_state.items')
+    })
+  })
+
+  describe('component usage', () => {
+    it('compiles PascalCase tag as component', () => {
+      const out = compileSource(`
+        blueprint Home {
+          ui {
+            <div>
+              <Button label="click me" />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("$runtime.component('Button'")
+    })
+
+    it('passes props to components', () => {
+      const out = compileSource(`
+        blueprint Home {
+          ui {
+            <Button label="click me" />
+          }
+        }
+      `)
+      expect(out).toContain('label:')
+      expect(out).toContain('click me')
+    })
+  })
+
+  describe('full ui integration', () => {
+    it('compiles a complete counter ui without errors', () => {
+      expect(() => compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          methods {
+            increment: () => $update(state.count, state.count + 1)
+            decrement: () => $update(state.count, state.count - 1)
+          }
+          style(tailwind) {
+            base: "flex flex-col gap-4"
+            btn.primary: "bg-indigo-500 text-white px-4 py-2"
+            btn.danger: "bg-red-500 text-white px-4 py-2"
+          }
+          ui {
+            <div class={base}>
+              <h1>{state.count}</h1>
+              <button class={btn.primary} @click={methods.increment}>+</button>
+              <button class={btn.danger} @click={methods.decrement}>-</button>
+            </div>
+          }
+        }
+      `)).not.toThrow()
+    })
+
+    it('compiled counter contains all expected runtime calls', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          methods { increment: () => $update(state.count, state.count + 1) }
+          style(tailwind) { base: "flex gap-4" }
+          ui {
+            <div class={base}>
+              <h1>{state.count}</h1>
+              <button @click={methods.increment}>+</button>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("createElement('div')")
+      expect(out).toContain("createElement('h1')")
+      expect(out).toContain("createElement('button')")
+      expect(out).toContain('$runtime.bind(')
+      expect(out).toContain('$runtime.bindClass(')
+      expect(out).toContain("addEventListener('click'")
+      expect(out).toContain('_state.count')
+      expect(out).toContain('_methods.increment')
+    })
+  })
+
+})
