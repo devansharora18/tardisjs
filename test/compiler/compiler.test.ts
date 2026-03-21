@@ -3,7 +3,6 @@ import { lex } from '../../src/lexer/lexer'
 import { parse } from '../../src/parser/parser'
 import { compile } from '../../src/compiler/compiler'
 
-// helper — lex, parse, compile in one step
 function compileSource(source: string): string {
   return compile(parse(lex(source), 'test.tardis'))
 }
@@ -231,7 +230,7 @@ describe('compiler', () => {
         }
       `)
       expect(out).toContain('_state.count')
-      expect(out).not.toContain('state.count')
+      expect(out).not.toMatch(/(?<![_a-zA-Z])state\./)
     })
 
     it('rewrites props.x to _props.x in computed expr', () => {
@@ -295,7 +294,7 @@ describe('compiler', () => {
         }
       `)
       expect(out).toContain('_state.count')
-      expect(out).not.toContain('state.count')
+      expect(out).not.toMatch(/(?<![_a-zA-Z])state\./)
     })
 
     it('preserves method params', () => {
@@ -509,7 +508,7 @@ describe('compiler', () => {
           ui { <div /> }
         }
       `)
-      expect(out).not.toMatch(/[^_]state\./)
+      expect(out).not.toMatch(/(?<![_a-zA-Z])state\./)
     })
 
     it('rewrites props. to _props. everywhere', () => {
@@ -520,7 +519,7 @@ describe('compiler', () => {
           ui { <div /> }
         }
       `)
-      expect(out).not.toMatch(/[^_]props\./)
+      expect(out).not.toMatch(/(?<![_a-zA-Z])props\./)
     })
 
     it('rewrites methods. to _methods. everywhere', () => {

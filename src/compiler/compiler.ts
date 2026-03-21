@@ -51,8 +51,11 @@ export function compile(ast: BlueprintNode): string {
   }
 
   // register component instance
-  lines.push(`  $runtime.register('${ast.name}', { state: _state, methods: _methods })`)
-  lines.push(``)
+  const registrations = []
+  if (ast.state.length > 0) registrations.push('state: _state')
+  if (ast.methods.length > 0) registrations.push('methods: _methods')
+	lines.push(`  $runtime.register('${ast.name}', { ${registrations.join(', ')} })`)
+	lines.push(``)
 
   lines.push(`  return $runtime.placeholder('${ast.name}')`)
 
@@ -233,8 +236,8 @@ function compileStyle(style: StyleNode): string {
 
 function rewriteRefs(expr: string): string {
   return expr
-    .replace(/\bstate\./g, '_state.')
-    .replace(/\bprops\./g, '_props.')
-    .replace(/\bcomputed\./g, '_computed.')
-    .replace(/\bmethods\./g, '_methods.')
+    .replace(/(?<![_a-zA-Z])state\./g, '_state.')
+    .replace(/(?<![_a-zA-Z])props\./g, '_props.')
+    .replace(/(?<![_a-zA-Z])computed\./g, '_computed.')
+    .replace(/(?<![_a-zA-Z])methods\./g, '_methods.')
 }
