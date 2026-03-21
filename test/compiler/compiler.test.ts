@@ -1,5 +1,602 @@
-import { describe, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
+import { lex } from '../../src/lexer/lexer'
+import { parse } from '../../src/parser/parser'
+import { compile } from '../../src/compiler/compiler'
+
+// helper — lex, parse, compile in one step
+function compileSource(source: string): string {
+  return compile(parse(lex(source), 'test.tardis'))
+}
 
 describe('compiler', () => {
-  it.todo('tokenizes blueprint')
+
+  // ── file header ───────────────────────────────────────────────────────────
+
+  describe('file header', () => {
+    it('includes do not edit comment', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('do not edit')
+    })
+
+    it('imports from tardisjs/runtime', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain("import { $runtime } from 'tardisjs/runtime'")
+    })
+
+    it('exports the component function', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('export function Button')
+    })
+  })
+
+  // ── props type ────────────────────────────────────────────────────────────
+
+  describe('props type', () => {
+    it('generates props type for string prop', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { label: string = "click me" }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('type ButtonProps')
+      expect(out).toContain('label?: string')
+    })
+
+    it('generates props type for number prop', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          props { initial: number = 0 }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('initial?: number')
+    })
+
+    it('generates props type for boolean prop', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { disabled: boolean = false }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('disabled?: boolean')
+    })
+
+    it('generates props type for function prop', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { onClick: function }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('onClick?:')
+    })
+
+    it('generates props type for union type', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { variant: "primary" | "ghost" = "primary" }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('"primary" | "ghost"')
+    })
+
+    it('generates empty props type when no props', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('type ButtonProps')
+    })
+  })
+
+  // ── props defaults ────────────────────────────────────────────────────────
+
+  describe('props defaults', () => {
+    it('generates _props with string default', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { label: string = "click me" }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_props')
+      expect(out).toContain('"click me"')
+    })
+
+    it('generates _props with number default', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          props { initial: number = 0 }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('initial: 0')
+    })
+
+    it('generates _props with boolean default', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { disabled: boolean = false }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('disabled: false')
+    })
+
+    it('spreads passed props over defaults', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { label: string = "click" }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('...props')
+    })
+  })
+
+  // ── state ─────────────────────────────────────────────────────────────────
+
+  describe('state', () => {
+    it('generates $runtime.state() call', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('$runtime.state(')
+      expect(out).toContain('count: 0')
+    })
+
+    it('generates multiple state entries', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state {
+            count: number = 0
+            loading: boolean = false
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('count: 0')
+      expect(out).toContain('loading: false')
+    })
+
+    it('uses _props reference for state default referencing props', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          props { initial: number = 0 }
+          state { count: number = props.initial }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_props.initial')
+    })
+
+    it('assigns state to _state variable', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('const _state =')
+    })
+
+    it('omits state block when no state declared', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toContain('$runtime.state(')
+    })
+  })
+
+  // ── computed ──────────────────────────────────────────────────────────────
+
+  describe('computed', () => {
+    it('generates _computed object with getters', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          computed { doubled: state.count * 2 }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('const _computed =')
+      expect(out).toContain('get doubled()')
+    })
+
+    it('rewrites state.x to _state.x in computed expr', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          computed { doubled: state.count * 2 }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_state.count')
+      expect(out).not.toContain('state.count')
+    })
+
+    it('rewrites props.x to _props.x in computed expr', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          props { max: number = 100 }
+          computed { isOverMax: state.count > props.max }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_props.max')
+    })
+
+    it('generates multiple computed getters', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          computed {
+            doubled: state.count * 2
+            isHigh: state.count >= 10
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('get doubled()')
+      expect(out).toContain('get isHigh()')
+    })
+
+    it('omits computed block when none declared', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toContain('_computed')
+    })
+  })
+
+  // ── methods ───────────────────────────────────────────────────────────────
+
+  describe('methods', () => {
+    it('generates _methods object', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          methods {
+            increment: () => $update(state.count, state.count + 1)
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('const _methods =')
+      expect(out).toContain('increment:')
+    })
+
+    it('rewrites state.x to _state.x in method body', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          methods {
+            increment: () => $update(state.count, state.count + 1)
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_state.count')
+      expect(out).not.toContain('state.count')
+    })
+
+    it('preserves method params', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          methods {
+            incrementBy: (n) => $update(state.count, state.count + n)
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('incrementBy: (n) =>')
+    })
+
+    it('preserves multiple method params', () => {
+      const out = compileSource(`
+        blueprint Form {
+          methods {
+            setField: (key, value) => $update(state.fields, key)
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('(key, value) =>')
+    })
+
+    it('generates multiple methods', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          methods {
+            increment: () => $update(state.count, state.count + 1)
+            decrement: () => $update(state.count, state.count - 1)
+            reset: () => $reset(state)
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('increment:')
+      expect(out).toContain('decrement:')
+      expect(out).toContain('reset:')
+    })
+
+    it('omits methods block when none declared', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toContain('_methods')
+    })
+  })
+
+  // ── events ────────────────────────────────────────────────────────────────
+
+  describe('events', () => {
+    it('generates $runtime.events() for onMount', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          events {
+            onMount: () => console.log("mounted")
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('$runtime.events(')
+      expect(out).toContain('onMount:')
+    })
+
+    it('generates onDestroy handler', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          events {
+            onDestroy: () => console.log("destroyed")
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('onDestroy:')
+    })
+
+    it('rewrites state refs in events', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          events {
+            onMount: () => console.log(state.count)
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_state.count')
+    })
+
+    it('omits events block when none declared', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toContain('$runtime.events(')
+    })
+  })
+
+  // ── style ─────────────────────────────────────────────────────────────────
+
+  describe('style', () => {
+    it('generates $runtime.styles() for tailwind mode', () => {
+      const out = compileSource(`
+        blueprint Button {
+          style(tailwind) {
+            base: "px-4 py-2 rounded-md"
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('$runtime.styles("tailwind"')
+      expect(out).toContain('"base": "px-4 py-2 rounded-md"')
+    })
+
+    it('generates $runtime.styles() for css mode', () => {
+      const out = compileSource(`
+        blueprint Card {
+          style(css) {
+            base: "background: white; border-radius: 12px;"
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('$runtime.styles("css"')
+    })
+
+    it('includes dotted style keys', () => {
+      const out = compileSource(`
+        blueprint Button {
+          style(tailwind) {
+            base: "px-4 py-2"
+            variant.primary: "bg-indigo-500 text-white"
+            disabled.true: "opacity-50"
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('"variant.primary"')
+      expect(out).toContain('"disabled.true"')
+    })
+
+    it('passes _props and _state to styles call', () => {
+      const out = compileSource(`
+        blueprint Button {
+          style(tailwind) {
+            base: "px-4 py-2"
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_props, _state')
+    })
+
+    it('assigns styles to _styles variable', () => {
+      const out = compileSource(`
+        blueprint Button {
+          style(tailwind) {
+            base: "px-4 py-2"
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('const _styles =')
+    })
+
+    it('omits style block when none declared', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toContain('$runtime.styles(')
+    })
+  })
+
+  // ── runtime registration ──────────────────────────────────────────────────
+
+  describe('runtime registration', () => {
+    it('registers component with $runtime.register', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain("$runtime.register('Button'")
+    })
+
+    it('registers with correct component name', () => {
+      const out = compileSource(`
+        blueprint MyCounter {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain("$runtime.register('MyCounter'")
+    })
+  })
+
+  // ── ref rewriting ─────────────────────────────────────────────────────────
+
+  describe('ref rewriting', () => {
+    it('rewrites state. to _state. everywhere', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          state { count: number = 0 }
+          computed { doubled: state.count * 2 }
+          methods { increment: () => $update(state.count, state.count + 1) }
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toMatch(/[^_]state\./)
+    })
+
+    it('rewrites props. to _props. everywhere', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props { label: string = "click" }
+          computed { upperLabel: props.label }
+          ui { <div /> }
+        }
+      `)
+      expect(out).not.toMatch(/[^_]props\./)
+    })
+
+    it('rewrites methods. to _methods. everywhere', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          methods {
+            increment: () => $update(state.count, 1)
+            doubleIncrement: () => methods.increment()
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('_methods.increment()')
+    })
+  })
+
+  // ── full blueprint integration ────────────────────────────────────────────
+
+  describe('full blueprint integration', () => {
+    it('compiles a complete Counter blueprint without errors', () => {
+      expect(() => compileSource(`
+        blueprint Counter {
+          props {
+            initial: number = 0
+            label: string = "Count"
+          }
+          state {
+            count: number = props.initial
+            loading: boolean = false
+          }
+          computed {
+            doubled: state.count * 2
+            isHigh: state.count >= 10
+          }
+          methods {
+            increment: () => $update(state.count, state.count + 1)
+            decrement: () => $update(state.count, state.count - 1)
+            reset: () => $reset(state)
+          }
+          events {
+            onMount: () => console.log("mounted")
+          }
+          style(tailwind) {
+            base: "flex flex-col items-center gap-4"
+            btn.primary: "bg-indigo-500 text-white px-4 py-2 rounded"
+          }
+          ui {
+            <div class={base}>
+              <h1>{props.label}: {state.count}</h1>
+              <button @click={methods.increment}>+</button>
+            </div>
+          }
+        }
+      `)).not.toThrow()
+    })
+
+    it('compiled output contains all sections', () => {
+      const out = compileSource(`
+        blueprint Counter {
+          props { initial: number = 0 }
+          state { count: number = props.initial }
+          computed { doubled: state.count * 2 }
+          methods { increment: () => $update(state.count, state.count + 1) }
+          events { onMount: () => console.log("mounted") }
+          style(tailwind) { base: "flex gap-4" }
+          ui { <div>{state.count}</div> }
+        }
+      `)
+      expect(out).toContain('const _props =')
+      expect(out).toContain('const _state =')
+      expect(out).toContain('const _computed =')
+      expect(out).toContain('const _methods =')
+      expect(out).toContain('$runtime.events(')
+      expect(out).toContain('const _styles =')
+      expect(out).toContain("$runtime.register('Counter'")
+    })
+  })
+
 })
