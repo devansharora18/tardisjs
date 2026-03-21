@@ -57,7 +57,7 @@ export function compile(ast: BlueprintNode): string {
 	lines.push(`  $runtime.register('${ast.name}', { ${registrations.join(', ')} })`)
 	lines.push(``)
 
-  lines.push(`  return $runtime.placeholder('${ast.name}')`)
+	lines.push(compileUI(ast.ui.raw, ast.name))
 
   lines.push(`}`)
 
@@ -240,4 +240,256 @@ function rewriteRefs(expr: string): string {
     .replace(/(?<![_a-zA-Z])props\./g, '_props.')
     .replace(/(?<![_a-zA-Z])computed\./g, '_computed.')
     .replace(/(?<![_a-zA-Z])methods\./g, '_methods.')
+}
+
+// ── ui compiler ────────────────────────────────────────────────────────────
+
+export function compileUI(raw: string, componentName: string): string {
+  const lines: string[] = []
+  lines.push(`  // ui`)
+  lines.push(`  const _root = (() => {`)
+  lines.push(compileUINode(raw.trim(), 2))
+  lines.push(`  })()`)
+  lines.push(`  return _root`)
+  return lines.join('\n')
+}
+
+function compileUINode(raw: string, depth: number): string {
+  const indent = '  '.repeat(depth)
+  const lines: string[] = []
+
+  // handle $if
+  const ifMatch = raw.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/)
+  if (ifMatch) {
+    const condition = rewriteRefs(ifMatch[1].trim())
+    const inner = compileUINode(ifMatch[2].trim(), depth + 1)
+    lines.push(`${indent}$runtime.if(() => ${condition}, () => {`)
+    lines.push(inner)
+    lines.push(`${indent}})`)
+    return lines.join('\n')
+  }
+
+  // handle $each
+  const eachMatch = raw.match(/^\$each\((.+?),\s*\((\w+)\)\s*=>\s*\{([\s\S]*)\}\s*\)/)
+  if (eachMatch) {
+    const arrayRef = rewriteRefs(eachMatch[1].trim())
+    const itemVar = eachMatch[2]
+    const inner = compileUINode(eachMatch[3].trim(), depth + 1)
+    lines.push(`${indent}$runtime.each(() => ${arrayRef}, (${itemVar}) => {`)
+    lines.push(inner)
+    lines.push(`${indent}})`)
+    return lines.join('\n')
+  }
+
+  // handle $show
+  const showMatch = raw.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/)
+  if (showMatch) {
+    const condition = rewriteRefs(showMatch[1].trim())
+    const inner = compileUINode(showMatch[2].trim(), depth + 1)
+    lines.push(`${indent}$runtime.show(() => ${condition}, () => {`)
+    lines.push(inner)
+    lines.push(`${indent}})`)
+    return lines.join('\n')
+  }
+
+  // handle {} chain syntax
+  const chainMatch = raw.match(/^\{([\s\S]+?)\}((?:\s*\.\w+\([^)]*\))+)/)
+  if (chainMatch) {
+    const innerEl = chainMatch[1].trim()
+    const chainStr = chainMatch[2].trim()
+    const elCode = compileElement(innerEl, depth)
+    const chains = parseChains(chainStr)
+    lines.push(`${indent}const _chained = (() => {`)
+    lines.push(elCode)
+    lines.push(`${indent}})()`)
+    for (const chain of chains) {
+      const handler = rewriteRefs(chain.handler)
+      lines.push(`${indent}$runtime.chain(_chained, '${chain.event}', ${handler})`)
+    }
+    lines.push(`${indent}return _chained`)
+    return lines.join('\n')
+  }
+
+  // regular element
+  return compileElement(raw, depth)
+}
+
+function compileElement(raw: string, depth: number): string {
+  const indent = '  '.repeat(depth)
+  const lines: string[] = []
+
+  // parse opening tag
+  const tagMatch = raw.match(/^<(\w+)((?:\s+[^>]*)?)>([\s\S]*)<\/\1>$/) ||
+                   raw.match(/^<(\w+)((?:\s+[^>]*)?)\s*\/>$/)
+
+  if (!tagMatch) {
+    // text node or expression
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+      const expr = rewriteRefs(raw.slice(1, -1).trim())
+      lines.push(`${indent}$runtime.text(() => ${expr})`)
+    } else {
+      lines.push(`${indent}$runtime.text(${JSON.stringify(raw.trim())})`)
+    }
+    return lines.join('\n')
+  }
+
+  const tag = tagMatch[1]
+  const attrsRaw = tagMatch[2] || ''
+  const children = tagMatch[3] || ''
+
+  // check if this is a component (PascalCase) or DOM element
+  const isComponent = /^[A-Z]/.test(tag)
+
+  if (isComponent) {
+    const props = compileComponentProps(attrsRaw)
+    lines.push(`${indent}$runtime.component('${tag}', { ${props} })`)
+    return lines.join('\n')
+  }
+
+  // DOM element
+  lines.push(`${indent}const _el_${depth} = document.createElement('${tag}')`)
+
+  // handle attributes
+  const attrs = parseAttributes(attrsRaw)
+  for (const attr of attrs) {
+    if (attr.name.startsWith('@')) {
+      // event handler
+      const event = attr.name.slice(1)
+      const handler = rewriteRefs(attr.value)
+      lines.push(`${indent}_el_${depth}.addEventListener('${event}', ${handler})`)
+    } else if (attr.name === 'class') {
+      if (isReactive(attr.value)) {
+        const expr = rewriteRefs(stripBraces(attr.value))
+        lines.push(`${indent}$runtime.bindClass(_el_${depth}, () => _styles ? $runtime.resolveStyles(_styles, ${expr}) : ${expr})`)
+      } else {
+        lines.push(`${indent}_el_${depth}.className = ${JSON.stringify(attr.value)}`)
+      }
+    } else if (isReactive(attr.value)) {
+      const expr = rewriteRefs(stripBraces(attr.value))
+      lines.push(`${indent}$runtime.bindAttr(_el_${depth}, '${attr.name}', () => ${expr})`)
+    } else {
+      lines.push(`${indent}_el_${depth}.setAttribute('${attr.name}', ${JSON.stringify(attr.value)})`)
+    }
+  }
+
+  // handle children
+  if (children.trim()) {
+    const childParts = splitChildren(children)
+    for (const child of childParts) {
+      const childTrimmed = child.trim()
+      if (!childTrimmed) continue
+
+      if (childTrimmed.startsWith('{') && childTrimmed.endsWith('}') && !childTrimmed.startsWith('{<')) {
+        // reactive text binding
+        const expr = rewriteRefs(childTrimmed.slice(1, -1).trim())
+        lines.push(`${indent}const _text_${depth} = document.createTextNode('')`)
+        lines.push(`${indent}$runtime.bind(_text_${depth}, 'textContent', () => String(${expr}))`)
+        lines.push(`${indent}_el_${depth}.appendChild(_text_${depth})`)
+      } else if (childTrimmed.startsWith('<') || childTrimmed.startsWith('$') || childTrimmed.startsWith('{<')) {
+        // child element or directive
+        lines.push(`${indent}{`)
+        lines.push(compileUINode(childTrimmed, depth + 1))
+        lines.push(`${indent}  _el_${depth}.appendChild(_el_${depth + 1} ?? _text_${depth + 1} ?? document.createTextNode(''))`)
+        lines.push(`${indent}}`)
+      } else {
+        // static text
+        lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(childTrimmed)}))`)
+      }
+    }
+  }
+
+  lines.push(`${indent}return _el_${depth}`)
+  return lines.join('\n')
+}
+
+// ── attribute parser ───────────────────────────────────────────────────────
+
+function parseAttributes(raw: string): Array<{ name: string; value: string }> {
+  const attrs: Array<{ name: string; value: string }> = []
+  // match name="value", name={expr}, or bare @event={handler}
+  const re = /([@\w-]+)=(?:"([^"]*)"|\{([^}]*)\})/g
+  let m
+  while ((m = re.exec(raw)) !== null) {
+    attrs.push({
+      name: m[1],
+      value: m[2] !== undefined ? m[2] : `{${m[3]}}`
+    })
+  }
+  return attrs
+}
+
+// ── chain parser ───────────────────────────────────────────────────────────
+
+function parseChains(raw: string): Array<{ event: string; handler: string }> {
+  const chains: Array<{ event: string; handler: string }> = []
+  const re = /\.(\w+)\(([^)]*)\)/g
+  let m
+  while ((m = re.exec(raw)) !== null) {
+    const methodName = m[1]
+    const handler = m[2]
+    // map chain method names to DOM events
+    const eventMap: Record<string, string> = {
+      click: 'click',
+      hover: 'mouseenter',
+      blur: 'blur',
+      focus: 'focus',
+      keydown: 'keydown',
+      keyup: 'keyup',
+      change: 'change',
+      submit: 'submit',
+      scroll: 'scroll',
+      drag: 'dragstart',
+      mount: '__mount',
+      destroy: '__destroy',
+    }
+    chains.push({
+      event: eventMap[methodName] ?? methodName,
+      handler: handler.trim(),
+    })
+  }
+  return chains
+}
+
+// ── component props compiler ───────────────────────────────────────────────
+
+function compileComponentProps(raw: string): string {
+  const attrs = parseAttributes(raw)
+  return attrs.map(a => {
+    if (isReactive(a.value)) {
+      const expr = rewriteRefs(stripBraces(a.value))
+      return `${a.name}: () => ${expr}`
+    }
+    return `${a.name}: ${JSON.stringify(a.value)}`
+  }).join(', ')
+}
+
+// ── helpers ────────────────────────────────────────────────────────────────
+
+function isReactive(value: string): boolean {
+  return value.startsWith('{') && value.endsWith('}')
+}
+
+function stripBraces(value: string): string {
+  return value.slice(1, -1).trim()
+}
+
+// split children at top level — don't split inside nested tags or braces
+function splitChildren(raw: string): string[] {
+  const parts: string[] = []
+  let depth = 0
+  let current = ''
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]
+    if (ch === '<' || ch === '{') depth++
+    if (ch === '>' || ch === '}') depth--
+    current += ch
+    if (depth === 0 && (raw[i + 1] === '<' || raw[i + 1] === '$' || i === raw.length - 1)) {
+      if (current.trim()) parts.push(current.trim())
+      current = ''
+    }
+  }
+
+  if (current.trim()) parts.push(current.trim())
+  return parts
 }
