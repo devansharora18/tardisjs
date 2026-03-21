@@ -1,495 +1,636 @@
-import { BlueprintNode, PropNode, StateNode, ComputedNode, MethodNode, StyleNode, PropType } from '../parser/types'
+import {
+	BlueprintNode,
+	PropNode,
+	StateNode,
+	ComputedNode,
+	MethodNode,
+	StyleNode,
+	PropType,
+} from "../parser/types";
 
 export function compile(ast: BlueprintNode): string {
-  const lines: string[] = []
+	const lines: string[] = [];
 
-  // ── file header ──────────────────────────────────────────────────────────
-  lines.push(`// generated from ${ast.name}.tardis — do not edit`)
-  lines.push(`// edit the .tardis source file instead`)
-  lines.push(`import { $runtime } from 'tardisjs/runtime'`)
-  lines.push(``)
+	lines.push(`// generated from ${ast.name}.tardis — do not edit`);
+	lines.push(`// edit the .tardis source file instead`);
+	lines.push(`import { $runtime } from 'tardisjs/runtime'`);
+	lines.push(``);
 
-  // ── props type ────────────────────────────────────────────────────────────
-  lines.push(compilePropsType(ast.name, ast.props))
-  lines.push(``)
+	lines.push(compilePropsType(ast.name, ast.props));
+	lines.push(``);
 
-  // ── component function ────────────────────────────────────────────────────
-  lines.push(`export function ${ast.name}(props: ${ast.name}Props = {}) {`)
+	lines.push(`export function ${ast.name}(props: ${ast.name}Props = {}) {`);
 
-  // props with defaults
-  lines.push(compilePropsDefaults(ast.props))
-  lines.push(``)
+	lines.push(compilePropsDefaults(ast.props));
+	lines.push(``);
 
-  // state
-  if (ast.state.length > 0) {
-    lines.push(compileState(ast.state))
-    lines.push(``)
-  }
+	if (ast.state.length > 0) {
+		lines.push(compileState(ast.state));
+		lines.push(``);
+	}
 
-  // computed
-  if (ast.computed.length > 0) {
-    lines.push(compileComputed(ast.computed))
-    lines.push(``)
-  }
+	if (ast.computed.length > 0) {
+		lines.push(compileComputed(ast.computed));
+		lines.push(``);
+	}
 
-  // methods
-  if (ast.methods.length > 0) {
-    lines.push(compileMethods(ast.methods))
-    lines.push(``)
-  }
+	if (ast.methods.length > 0) {
+		lines.push(compileMethods(ast.methods));
+		lines.push(``);
+	}
 
-  // events
-  if (ast.events.onMount || ast.events.onDestroy || ast.events.onUpdate) {
-    lines.push(compileEvents(ast))
-    lines.push(``)
-  }
+	if (ast.events.onMount || ast.events.onDestroy || ast.events.onUpdate) {
+		lines.push(compileEvents(ast));
+		lines.push(``);
+	}
 
-  // style
-  if (ast.style) {
-    lines.push(compileStyle(ast.style))
-    lines.push(``)
-  }
+	if (ast.style) {
+		lines.push(compileStyle(ast.style));
+		lines.push(``);
+	}
 
-  // register component instance
-  const registrations = []
-  if (ast.state.length > 0) registrations.push('state: _state')
-  if (ast.methods.length > 0) registrations.push('methods: _methods')
-	lines.push(`  $runtime.register('${ast.name}', { ${registrations.join(', ')} })`)
-	lines.push(``)
+	const registrations: string[] = [];
+	if (ast.state.length > 0) registrations.push("state: _state");
+	if (ast.methods.length > 0) registrations.push("methods: _methods");
+	lines.push(
+		`  $runtime.register('${ast.name}', { ${registrations.join(", ")} })`,
+	);
+	lines.push(``);
 
-	lines.push(compileUI(ast.ui.raw, ast.name))
+	lines.push(compileUI(ast.ui.raw, ast.name));
+	lines.push(`}`);
 
-  lines.push(`}`)
-
-  return lines.join('\n')
+	return lines.join("\n");
 }
 
 // ── props type ─────────────────────────────────────────────────────────────
 
 function compilePropsType(name: string, props: PropNode[]): string {
-  if (props.length === 0) {
-    return `type ${name}Props = Record<string, never>`
-  }
-
-  const fields = props.map(p => {
-    const tsType = propTypeToTS(p.type)
-    const optional = p.default !== null || p.type === 'function' ? '?' : ''
-    return `  ${p.name}${optional}: ${tsType}`
-  })
-
-  return `type ${name}Props = {\n${fields.join('\n')}\n}`
+	if (props.length === 0) {
+		return `type ${name}Props = Record<string, never>`;
+	}
+	const fields = props.map((p) => {
+		const tsType = propTypeToTS(p.type);
+		const optional = p.default !== null || p.type === "function" ? "?" : "";
+		return `  ${p.name}${optional}: ${tsType}`;
+	});
+	return `type ${name}Props = {\n${fields.join("\n")}\n}`;
 }
 
 function propTypeToTS(type: PropType): string {
-  if (Array.isArray(type)) {
-    // union type — ["primary", "ghost"] → "primary" | "ghost"
-    return type.map(v => `"${v}"`).join(' | ')
-  }
-  switch (type) {
-    case 'string':   return 'string'
-    case 'number':   return 'number'
-    case 'boolean':  return 'boolean'
-    case 'array':    return 'unknown[]'
-    case 'object':   return 'Record<string, unknown>'
-    case 'function': return '(...args: unknown[]) => unknown'
-    default:         return 'unknown'
-  }
+	if (Array.isArray(type)) {
+		return type.map((v) => `"${v}"`).join(" | ");
+	}
+	switch (type) {
+		case "string":
+			return "string";
+		case "number":
+			return "number";
+		case "boolean":
+			return "boolean";
+		case "array":
+			return "unknown[]";
+		case "object":
+			return "Record<string, unknown>";
+		case "function":
+			return "(...args: unknown[]) => unknown";
+		default:
+			return "unknown";
+	}
 }
 
 // ── props defaults ─────────────────────────────────────────────────────────
 
 function compilePropsDefaults(props: PropNode[]): string {
-  if (props.length === 0) {
-    return `  const _props = { ...props }`
-  }
-
-  const defaults = props
-    .filter(p => p.default !== null)
-    .map(p => {
-      const val = formatDefault(p.default, p.type)
-      return `    ${p.name}: ${val}`
-    })
-
-  if (defaults.length === 0) {
-    return `  const _props = { ...props }`
-  }
-
-  return [
-    `  const _props = {`,
-    defaults.join(',\n'),
-    `    ...props`,
-    `  }`,
-  ].join('\n')
+	if (props.length === 0) {
+		return `  const _props = { ...props }`;
+	}
+	const defaults = props
+		.filter((p) => p.default !== null)
+		.map((p) => `    ${p.name}: ${formatDefault(p.default, p.type)}`);
+	if (defaults.length === 0) {
+		return `  const _props = { ...props }`;
+	}
+	return [
+		`  const _props = {`,
+		defaults.join(",\n"),
+		`    ...props`,
+		`  }`,
+	].join("\n");
 }
 
-function formatDefault(val: string | number | boolean | null, type: PropType): string {
-  if (val === null) return 'undefined'
-  if (typeof val === 'number') return String(val)
-  if (typeof val === 'boolean') return String(val)
-  if (val === '[]') return '[]'
-  if (val === '{}') return '{}'
-  // expression reference like props.initial — use as-is but prefix with _
-  if (typeof val === 'string' && val.startsWith('props.')) {
-    return val.replace('props.', '_props.')
-  }
-  if (typeof val === 'string' && val.startsWith('state.')) {
-    return val.replace('state.', '_state.')
-  }
-  // plain string default
-  if (Array.isArray(type) || type === 'string') {
-    return `"${val}"`
-  }
-  return String(val)
+function formatDefault(
+	val: string | number | boolean | null,
+	type: PropType,
+): string {
+	if (val === null) return "undefined";
+	if (typeof val === "number") return String(val);
+	if (typeof val === "boolean") return String(val);
+	if (val === "[]") return "[]";
+	if (val === "{}") return "{}";
+	if (typeof val === "string" && val.startsWith("props."))
+		return val.replace("props.", "_props.");
+	if (typeof val === "string" && val.startsWith("state."))
+		return val.replace("state.", "_state.");
+	if (Array.isArray(type) || type === "string") return `"${val}"`;
+	return String(val);
 }
 
 // ── state ──────────────────────────────────────────────────────────────────
 
 function compileState(state: StateNode[]): string {
-  const entries = state.map(s => {
-    const val = formatDefault(s.default, s.type)
-    return `    ${s.name}: ${val}`
-  })
-
-  return [
-    `  const _state = $runtime.state({`,
-    entries.join(',\n'),
-    `  })`,
-  ].join('\n')
+	const entries = state.map(
+		(s) => `    ${s.name}: ${formatDefault(s.default, s.type)}`,
+	);
+	return [
+		`  const _state = $runtime.state({`,
+		entries.join(",\n"),
+		`  })`,
+	].join("\n");
 }
 
 // ── computed ───────────────────────────────────────────────────────────────
 
 function compileComputed(computed: ComputedNode[]): string {
-  const getters = computed.map(c => {
-    // replace state.x with _state.x and props.x with _props.x
-    const expr = rewriteRefs(c.expr)
-    return `    get ${c.name}() { return ${expr} }`
-  })
-
-  return [
-    `  const _computed = {`,
-    getters.join(',\n'),
-    `  }`,
-  ].join('\n')
+	const getters = computed.map((c) => {
+		const expr = rewriteRefs(c.expr);
+		return `    get ${c.name}() { return ${expr} }`;
+	});
+	return [`  const _computed = {`, getters.join(",\n"), `  }`].join("\n");
 }
 
 // ── methods ────────────────────────────────────────────────────────────────
 
 function compileMethods(methods: MethodNode[]): string {
-  const fns = methods.map(m => {
-    const params = m.params.join(', ')
-    const body = rewriteRefs(m.body)
-    return `    ${m.name}: (${params}) => ${body}`
-  })
-
-  return [
-    `  const _methods = {`,
-    fns.join(',\n'),
-    `  }`,
-  ].join('\n')
+	const fns = methods.map((m) => {
+		const params = m.params.join(", ");
+		const body = rewriteRefs(m.body);
+		return `    ${m.name}: (${params}) => ${body}`;
+	});
+	return [`  const _methods = {`, fns.join(",\n"), `  }`].join("\n");
 }
 
 // ── events ─────────────────────────────────────────────────────────────────
 
 function compileEvents(ast: BlueprintNode): string {
-  const lines: string[] = []
-
-  lines.push(`  $runtime.events({`)
-
-  if (ast.events.onMount) {
-    const body = rewriteRefs(ast.events.onMount)
-    lines.push(`    onMount: () => { ${body} },`)
-  }
-
-  if (ast.events.onDestroy) {
-    const body = rewriteRefs(ast.events.onDestroy)
-    lines.push(`    onDestroy: () => { ${body} },`)
-  }
-
-  if (ast.events.onUpdate) {
-    const body = rewriteRefs(ast.events.onUpdate)
-    lines.push(`    onUpdate: () => { ${body} },`)
-  }
-
-  lines.push(`  })`)
-
-  return lines.join('\n')
+	const lines: string[] = [];
+	lines.push(`  $runtime.events({`);
+	if (ast.events.onMount)
+		lines.push(`    onMount: () => { ${rewriteRefs(ast.events.onMount)} },`);
+	if (ast.events.onDestroy)
+		lines.push(
+			`    onDestroy: () => { ${rewriteRefs(ast.events.onDestroy)} },`,
+		);
+	if (ast.events.onUpdate)
+		lines.push(`    onUpdate: () => { ${rewriteRefs(ast.events.onUpdate)} },`);
+	lines.push(`  })`);
+	return lines.join("\n");
 }
 
 // ── style ──────────────────────────────────────────────────────────────────
 
 function compileStyle(style: StyleNode): string {
-  const rules = style.rules.map(r => {
-    return `    "${r.key}": "${r.value}"`
-  })
-
-  return [
-    `  const _styles = $runtime.styles("${style.mode}", {`,
-    rules.join(',\n'),
-    `  }, _props, _state)`,
-  ].join('\n')
+	const rules = style.rules.map((r) => `    "${r.key}": "${r.value}"`);
+	return [
+		`  const _styles = $runtime.styles("${style.mode}", {`,
+		rules.join(",\n"),
+		`  }, _props, _state)`,
+	].join("\n");
 }
 
 // ── ref rewriter ───────────────────────────────────────────────────────────
-// rewrites state.x → _state.x, props.x → _props.x
-// computed.x → _computed.x, methods.x → _methods.x
 
 function rewriteRefs(expr: string): string {
-  return expr
-    .replace(/(?<![_a-zA-Z])state\./g, '_state.')
-    .replace(/(?<![_a-zA-Z])props\./g, '_props.')
-    .replace(/(?<![_a-zA-Z])computed\./g, '_computed.')
-    .replace(/(?<![_a-zA-Z])methods\./g, '_methods.')
+	return expr
+		.replace(/(?<![_a-zA-Z])state\./g, "_state.")
+		.replace(/(?<![_a-zA-Z])props\./g, "_props.")
+		.replace(/(?<![_a-zA-Z])computed\./g, "_computed.")
+		.replace(/(?<![_a-zA-Z])methods\./g, "_methods.");
 }
 
 // ── ui compiler ────────────────────────────────────────────────────────────
 
 export function compileUI(raw: string, componentName: string): string {
-  const lines: string[] = []
-  lines.push(`  // ui`)
-  lines.push(`  const _root = (() => {`)
-  lines.push(compileUINode(raw.trim(), 2))
-  lines.push(`  })()`)
-  lines.push(`  return _root`)
-  return lines.join('\n')
+	const lines: string[] = [];
+	lines.push(`  // ui`);
+	lines.push(`  const _root = (() => {`);
+	lines.push(compileUINode(raw.trim(), 2));
+	lines.push(`  })()`);
+	lines.push(`  return _root`);
+	return lines.join("\n");
 }
 
 function compileUINode(raw: string, depth: number): string {
-  const indent = '  '.repeat(depth)
-  const lines: string[] = []
+	const indent = "  ".repeat(depth);
+	const lines: string[] = [];
 
-  // handle $if
-  const ifMatch = raw.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/)
-  if (ifMatch) {
-    const condition = rewriteRefs(ifMatch[1].trim())
-    const inner = compileUINode(ifMatch[2].trim(), depth + 1)
-    lines.push(`${indent}$runtime.if(() => ${condition}, () => {`)
-    lines.push(inner)
-    lines.push(`${indent}})`)
-    return lines.join('\n')
-  }
+	// $if
+	const ifMatch = raw.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/);
+	if (ifMatch) {
+		const condition = rewriteRefs(ifMatch[1].trim());
+		const inner = compileUINode(ifMatch[2].trim(), depth + 1);
+		lines.push(`${indent}$runtime.if(() => ${condition}, () => {`);
+		lines.push(inner);
+		lines.push(`${indent}})`);
+		return lines.join("\n");
+	}
 
-  // handle $each
-  const eachMatch = raw.match(/^\$each\((.+?),\s*\((\w+)\)\s*=>\s*\{([\s\S]*)\}\s*\)/)
-  if (eachMatch) {
-    const arrayRef = rewriteRefs(eachMatch[1].trim())
-    const itemVar = eachMatch[2]
-    const inner = compileUINode(eachMatch[3].trim(), depth + 1)
-    lines.push(`${indent}$runtime.each(() => ${arrayRef}, (${itemVar}) => {`)
-    lines.push(inner)
-    lines.push(`${indent}})`)
-    return lines.join('\n')
-  }
+	// $each
+	const eachMatch = raw.match(
+		/^\$each\((.+?),\s*\((\w+)\)\s*=>\s*\{([\s\S]*)\}\s*\)/,
+	);
+	if (eachMatch) {
+		const arrayRef = rewriteRefs(eachMatch[1].trim());
+		const itemVar = eachMatch[2];
+		const inner = compileUINode(eachMatch[3].trim(), depth + 1);
+		lines.push(`${indent}$runtime.each(() => ${arrayRef}, (${itemVar}) => {`);
+		lines.push(inner);
+		lines.push(`${indent}})`);
+		return lines.join("\n");
+	}
 
-  // handle $show
-  const showMatch = raw.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/)
-  if (showMatch) {
-    const condition = rewriteRefs(showMatch[1].trim())
-    const inner = compileUINode(showMatch[2].trim(), depth + 1)
-    lines.push(`${indent}$runtime.show(() => ${condition}, () => {`)
-    lines.push(inner)
-    lines.push(`${indent}})`)
-    return lines.join('\n')
-  }
+	// $show
+	const showMatch = raw.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/);
+	if (showMatch) {
+		const condition = rewriteRefs(showMatch[1].trim());
+		const inner = compileUINode(showMatch[2].trim(), depth + 1);
+		lines.push(`${indent}$runtime.show(() => ${condition}, () => {`);
+		lines.push(inner);
+		lines.push(`${indent}})`);
+		return lines.join("\n");
+	}
 
-  // handle {} chain syntax
-  const chainMatch = raw.match(/^\{([\s\S]+?)\}((?:\s*\.\w+\([^)]*\))+)/)
-  if (chainMatch) {
-    const innerEl = chainMatch[1].trim()
-    const chainStr = chainMatch[2].trim()
-    const elCode = compileElement(innerEl, depth)
-    const chains = parseChains(chainStr)
-    lines.push(`${indent}const _chained = (() => {`)
-    lines.push(elCode)
-    lines.push(`${indent}})()`)
-    for (const chain of chains) {
-      const handler = rewriteRefs(chain.handler)
-      lines.push(`${indent}$runtime.chain(_chained, '${chain.event}', ${handler})`)
-    }
-    lines.push(`${indent}return _chained`)
-    return lines.join('\n')
-  }
+	// {} chain syntax
+	const chainMatch = raw.match(/^\{([\s\S]+?)\}((?:\s*\.\w+\([^)]*\))+)/);
+	if (chainMatch) {
+		const innerEl = chainMatch[1].trim();
+		const chainStr = chainMatch[2].trim();
+		const elCode = compileElement(innerEl, depth);
+		const chains = parseChains(chainStr);
+		lines.push(`${indent}const _chained = (() => {`);
+		lines.push(elCode);
+		lines.push(`${indent}})()`);
+		for (const chain of chains) {
+			lines.push(
+				`${indent}$runtime.chain(_chained, '${chain.event}', ${rewriteRefs(chain.handler)})`,
+			);
+		}
+		lines.push(`${indent}return _chained`);
+		return lines.join("\n");
+	}
 
-  // regular element
   return compileElement(raw, depth)
 }
 
 function compileElement(raw: string, depth: number): string {
-  const indent = '  '.repeat(depth)
-  const lines: string[] = []
+	const indent = "  ".repeat(depth);
+	const lines: string[] = [];
+	const trimmed = raw.trim();
 
-  // parse opening tag
-  const tagMatch = raw.match(/^<(\w+)((?:\s+[^>]*)?)>([\s\S]*)<\/\1>$/) ||
-                   raw.match(/^<(\w+)((?:\s+[^>]*)?)\s*\/>$/)
+	// self-closing tag — find end accounting for braces
+	const selfCloseEnd = findSelfCloseEnd(trimmed);
+	if (selfCloseEnd >= 0) {
+		const tagStr = trimmed.slice(0, selfCloseEnd + 1);
+		const tagNameMatch = tagStr.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
+		if (tagNameMatch) {
+			const tag = tagNameMatch[1];
+			const attrsRaw = tagStr.slice(tag.length + 1, -2).trim(); // between name and />
+			if (/^[A-Z]/.test(tag)) {
+				lines.push(
+					`${indent}$runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
+				);
+				return lines.join("\n");
+			}
+			lines.push(
+				`${indent}const _el_${depth} = document.createElement('${tag}')`,
+			);
+			for (const attr of parseAttributes(attrsRaw)) {
+				lines.push(...compileAttr(attr, depth, indent));
+			}
+			lines.push(`${indent}return _el_${depth}`);
+			return lines.join("\n");
+		}
+	}
 
-  if (!tagMatch) {
-    // text node or expression
-    if (raw.startsWith('{') && raw.endsWith('}')) {
-      const expr = rewriteRefs(raw.slice(1, -1).trim())
-      lines.push(`${indent}$runtime.text(() => ${expr})`)
+	// opening tag — find end accounting for braces
+	const openTagEndIdx = findOpenTagEnd(trimmed);
+	if (openTagEndIdx < 0) {
+		// plain text or expression
+		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+			lines.push(
+				`${indent}$runtime.text(() => ${rewriteRefs(trimmed.slice(1, -1).trim())})`,
+			);
+		} else {
+			lines.push(`${indent}$runtime.text(${JSON.stringify(trimmed)})`);
+		}
+		return lines.join("\n");
+	}
+
+	const openTagStr = trimmed.slice(0, openTagEndIdx + 1);
+	const tagNameMatch = openTagStr.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
+	if (!tagNameMatch) {
+		lines.push(`${indent}$runtime.text(${JSON.stringify(trimmed)})`);
+		return lines.join("\n");
+	}
+
+	const tag = tagNameMatch[1];
+	const attrsRaw = openTagStr.slice(tag.length + 1, -1).trim();
+
+	if (/^[A-Z]/.test(tag)) {
+		lines.push(
+			`${indent}$runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
+		);
+		return lines.join("\n");
+	}
+
+	const innerContent = findInnerContent(trimmed, tag, openTagEndIdx + 1);
+
+	lines.push(`${indent}const _el_${depth} = document.createElement('${tag}')`);
+	for (const attr of parseAttributes(attrsRaw)) {
+		lines.push(...compileAttr(attr, depth, indent));
+	}
+
+	const children = splitChildren(innerContent);
+	for (const child of children) {
+		const ct = child.trim();
+		if (!ct) continue;
+
+    if (ct.startsWith('{') && ct.endsWith('}') && !ct.startsWith('{<')) {
+      const expr = rewriteRefs(ct.slice(1, -1).trim())
+      lines.push(`${indent}const _text_${depth} = document.createTextNode('')`)
+      lines.push(`${indent}$runtime.bind(_text_${depth}, 'textContent', () => String(${expr}))`)
+      lines.push(`${indent}_el_${depth}.appendChild(_text_${depth})`)
+    } else if (ct.startsWith('<') || ct.startsWith('$') || ct.startsWith('{<')) {
+      lines.push(`${indent}{`)
+      lines.push(compileUINode(ct, depth + 1))
+      lines.push(`${indent}  _el_${depth}.appendChild(_el_${depth + 1} ?? _text_${depth + 1} ?? document.createTextNode(''))`)
+      lines.push(`${indent}}`)
     } else {
-      lines.push(`${indent}$runtime.text(${JSON.stringify(raw.trim())})`)
-    }
-    return lines.join('\n')
-  }
-
-  const tag = tagMatch[1]
-  const attrsRaw = tagMatch[2] || ''
-  const children = tagMatch[3] || ''
-
-  // check if this is a component (PascalCase) or DOM element
-  const isComponent = /^[A-Z]/.test(tag)
-
-  if (isComponent) {
-    const props = compileComponentProps(attrsRaw)
-    lines.push(`${indent}$runtime.component('${tag}', { ${props} })`)
-    return lines.join('\n')
-  }
-
-  // DOM element
-  lines.push(`${indent}const _el_${depth} = document.createElement('${tag}')`)
-
-  // handle attributes
-  const attrs = parseAttributes(attrsRaw)
-  for (const attr of attrs) {
-    if (attr.name.startsWith('@')) {
-      // event handler
-      const event = attr.name.slice(1)
-      const handler = rewriteRefs(attr.value)
-      lines.push(`${indent}_el_${depth}.addEventListener('${event}', ${handler})`)
-    } else if (attr.name === 'class') {
-      if (isReactive(attr.value)) {
-        const expr = rewriteRefs(stripBraces(attr.value))
-        lines.push(`${indent}$runtime.bindClass(_el_${depth}, () => _styles ? $runtime.resolveStyles(_styles, ${expr}) : ${expr})`)
-      } else {
-        lines.push(`${indent}_el_${depth}.className = ${JSON.stringify(attr.value)}`)
-      }
-    } else if (isReactive(attr.value)) {
-      const expr = rewriteRefs(stripBraces(attr.value))
-      lines.push(`${indent}$runtime.bindAttr(_el_${depth}, '${attr.name}', () => ${expr})`)
-    } else {
-      lines.push(`${indent}_el_${depth}.setAttribute('${attr.name}', ${JSON.stringify(attr.value)})`)
+      lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(ct)}))`)
     }
   }
 
-  // handle children
-  if (children.trim()) {
-    const childParts = splitChildren(children)
-    for (const child of childParts) {
-      const childTrimmed = child.trim()
-      if (!childTrimmed) continue
+	lines.push(`${indent}return _el_${depth}`);
+	return lines.join("\n");
+}
 
-      if (childTrimmed.startsWith('{') && childTrimmed.endsWith('}') && !childTrimmed.startsWith('{<')) {
-        // reactive text binding
-        const expr = rewriteRefs(childTrimmed.slice(1, -1).trim())
-        lines.push(`${indent}const _text_${depth} = document.createTextNode('')`)
-        lines.push(`${indent}$runtime.bind(_text_${depth}, 'textContent', () => String(${expr}))`)
-        lines.push(`${indent}_el_${depth}.appendChild(_text_${depth})`)
-      } else if (childTrimmed.startsWith('<') || childTrimmed.startsWith('$') || childTrimmed.startsWith('{<')) {
-        // child element or directive
-        lines.push(`${indent}{`)
-        lines.push(compileUINode(childTrimmed, depth + 1))
-        lines.push(`${indent}  _el_${depth}.appendChild(_el_${depth + 1} ?? _text_${depth + 1} ?? document.createTextNode(''))`)
-        lines.push(`${indent}}`)
-      } else {
-        // static text
-        lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(childTrimmed)}))`)
-      }
-    }
-  }
-
-  lines.push(`${indent}return _el_${depth}`)
-  return lines.join('\n')
+function compileAttr(
+	attr: { name: string; value: string },
+	depth: number,
+	indent: string,
+): string[] {
+	const lines: string[] = [];
+	if (attr.name.startsWith("@")) {
+		const event = attr.name.slice(1);
+		const handler = rewriteRefs(
+			isReactive(attr.value) ? stripBraces(attr.value) : attr.value,
+		);
+		lines.push(
+			`${indent}_el_${depth}.addEventListener('${event}', ${handler})`,
+		);
+	} else if (attr.name === "class") {
+		if (isReactive(attr.value)) {
+			const expr = rewriteRefs(stripBraces(attr.value));
+			lines.push(
+				`${indent}$runtime.bindClass(_el_${depth}, () => _styles ? $runtime.resolveStyles(_styles, ${expr}) : ${expr})`,
+			);
+		} else {
+			lines.push(
+				`${indent}_el_${depth}.className = ${JSON.stringify(attr.value)}`,
+			);
+		}
+	} else if (isReactive(attr.value)) {
+		const expr = rewriteRefs(stripBraces(attr.value));
+		lines.push(
+			`${indent}$runtime.bindAttr(_el_${depth}, '${attr.name}', () => ${expr})`,
+		);
+	} else {
+		lines.push(
+			`${indent}_el_${depth}.setAttribute('${attr.name}', ${JSON.stringify(attr.value)})`,
+		);
+	}
+	return lines;
 }
 
 // ── attribute parser ───────────────────────────────────────────────────────
 
 function parseAttributes(raw: string): Array<{ name: string; value: string }> {
-  const attrs: Array<{ name: string; value: string }> = []
-  // match name="value", name={expr}, or bare @event={handler}
-  const re = /([@\w-]+)=(?:"([^"]*)"|\{([^}]*)\})/g
-  let m
-  while ((m = re.exec(raw)) !== null) {
-    attrs.push({
-      name: m[1],
-      value: m[2] !== undefined ? m[2] : `{${m[3]}}`
-    })
-  }
-  return attrs
+	const attrs: Array<{ name: string; value: string }> = [];
+	let i = 0;
+
+	while (i < raw.length) {
+		while (i < raw.length && /\s/.test(raw[i])) i++;
+		if (i >= raw.length) break;
+
+		let name = "";
+		while (i < raw.length && !/[\s=]/.test(raw[i])) name += raw[i++];
+		if (!name) {
+			i++;
+			continue;
+		}
+
+		while (i < raw.length && /\s/.test(raw[i])) i++;
+		if (raw[i] !== "=") continue;
+		i++;
+
+		while (i < raw.length && /\s/.test(raw[i])) i++;
+
+		if (raw[i] === '"') {
+			i++;
+			let value = "";
+			while (i < raw.length && raw[i] !== '"') value += raw[i++];
+			i++;
+			attrs.push({ name, value });
+		} else if (raw[i] === "{") {
+			let depth = 0;
+			let expr = "";
+			while (i < raw.length) {
+				const ch = raw[i];
+				if (ch === "{") depth++;
+				if (ch === "}") {
+					depth--;
+					if (depth === 0) {
+						expr += ch;
+						i++;
+						break;
+					}
+				}
+				expr += ch;
+				i++;
+			}
+			attrs.push({ name, value: expr });
+		}
+	}
+
+	return attrs;
 }
 
 // ── chain parser ───────────────────────────────────────────────────────────
 
 function parseChains(raw: string): Array<{ event: string; handler: string }> {
-  const chains: Array<{ event: string; handler: string }> = []
-  const re = /\.(\w+)\(([^)]*)\)/g
-  let m
-  while ((m = re.exec(raw)) !== null) {
-    const methodName = m[1]
-    const handler = m[2]
-    // map chain method names to DOM events
-    const eventMap: Record<string, string> = {
-      click: 'click',
-      hover: 'mouseenter',
-      blur: 'blur',
-      focus: 'focus',
-      keydown: 'keydown',
-      keyup: 'keyup',
-      change: 'change',
-      submit: 'submit',
-      scroll: 'scroll',
-      drag: 'dragstart',
-      mount: '__mount',
-      destroy: '__destroy',
-    }
-    chains.push({
-      event: eventMap[methodName] ?? methodName,
-      handler: handler.trim(),
-    })
-  }
-  return chains
+	const chains: Array<{ event: string; handler: string }> = [];
+	const re = /\.(\w+)\(([^)]*)\)/g;
+	let m;
+	const eventMap: Record<string, string> = {
+		click: "click",
+		hover: "mouseenter",
+		blur: "blur",
+		focus: "focus",
+		keydown: "keydown",
+		keyup: "keyup",
+		change: "change",
+		submit: "submit",
+		scroll: "scroll",
+		drag: "dragstart",
+		mount: "__mount",
+		destroy: "__destroy",
+	};
+	while ((m = re.exec(raw)) !== null) {
+		chains.push({ event: eventMap[m[1]] ?? m[1], handler: m[2].trim() });
+	}
+	return chains;
 }
 
 // ── component props compiler ───────────────────────────────────────────────
 
 function compileComponentProps(raw: string): string {
-  const attrs = parseAttributes(raw)
-  return attrs.map(a => {
-    if (isReactive(a.value)) {
-      const expr = rewriteRefs(stripBraces(a.value))
-      return `${a.name}: () => ${expr}`
-    }
-    return `${a.name}: ${JSON.stringify(a.value)}`
-  }).join(', ')
+	return parseAttributes(raw)
+		.map((a) => {
+			if (isReactive(a.value))
+				return `${a.name}: () => ${rewriteRefs(stripBraces(a.value))}`;
+			return `${a.name}: ${JSON.stringify(a.value)}`;
+		})
+		.join(", ");
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
 function isReactive(value: string): boolean {
-  return value.startsWith('{') && value.endsWith('}')
+	return value.startsWith("{") && value.endsWith("}");
 }
 
 function stripBraces(value: string): string {
-  return value.slice(1, -1).trim()
+	return value.slice(1, -1).trim();
 }
 
-// split children at top level — don't split inside nested tags or braces
+// find end index of opening tag > accounting for {} inside attribute values
+function findOpenTagEnd(raw: string): number {
+	const end = findFirstTagEnd(raw);
+	if (end < 0) return -1;
+	return isSelfClosingTag(raw, end) ? -1 : end;
+}
+
+// find end index of self-closing tag /> accounting for {} inside attribute values
+function findSelfCloseEnd(raw: string): number {
+	const end = findFirstTagEnd(raw);
+	if (end < 0) return -1;
+	return isSelfClosingTag(raw, end) ? end : -1;
+}
+
+function findFirstTagEnd(raw: string): number {
+	if (!raw.startsWith("<")) return -1;
+
+	let i = 1;
+	let bracesDepth = 0;
+	let quote: '"' | "'" | null = null;
+
+	while (i < raw.length) {
+		const ch = raw[i];
+
+		if (quote) {
+			if (ch === quote) quote = null;
+			i++;
+			continue;
+		}
+
+		if (ch === '"' || ch === "'") {
+			quote = ch;
+		} else if (ch === "{") {
+			bracesDepth++;
+		} else if (ch === "}") {
+			bracesDepth--;
+		} else if (ch === ">" && bracesDepth === 0) {
+			return i;
+		}
+
+		i++;
+	}
+
+	return -1;
+}
+
+function isSelfClosingTag(raw: string, end: number): boolean {
+	let i = end - 1;
+	while (i >= 0 && /\s/.test(raw[i])) i--;
+	return raw[i] === "/";
+}
+
+function findInnerContent(raw: string, tag: string, startFrom: number): string {
+	let depth = 1;
+	let i = startFrom;
+
+	while (i < raw.length && depth > 0) {
+		if (
+			raw.startsWith(`<${tag}`, i) &&
+			/[\s>/]/.test(raw[i + tag.length + 1] ?? "")
+		) {
+			depth++;
+			i += tag.length + 2;
+		} else if (raw.startsWith(`</${tag}>`, i)) {
+			depth--;
+			if (depth === 0) break;
+			i += tag.length + 3;
+		} else {
+			i++;
+		}
+	}
+
+	return raw.slice(startFrom, i).trim();
+}
+
 function splitChildren(raw: string): string[] {
-  const parts: string[] = []
-  let depth = 0
-  let current = ''
+	const parts: string[] = [];
+	let depth = 0;
+	let current = "";
+	let i = 0;
 
-  for (let i = 0; i < raw.length; i++) {
-    const ch = raw[i]
-    if (ch === '<' || ch === '{') depth++
-    if (ch === '>' || ch === '}') depth--
-    current += ch
-    if (depth === 0 && (raw[i + 1] === '<' || raw[i + 1] === '$' || i === raw.length - 1)) {
-      if (current.trim()) parts.push(current.trim())
-      current = ''
-    }
-  }
+	while (i < raw.length) {
+		const ch = raw[i];
 
-  if (current.trim()) parts.push(current.trim())
-  return parts
+		if (ch === "<") {
+			if (raw[i + 1] === "/") {
+				if (depth === 0) {
+					if (current.trim()) parts.push(current.trim());
+					current = "";
+					while (i < raw.length && raw[i] !== ">") i++;
+					i++;
+					continue;
+				}
+				depth--;
+			} else if (raw[i + 1] !== "!") {
+				depth++;
+			}
+		}
+
+		if (ch === "{") depth++;
+		if (ch === "}") depth--;
+
+		current += ch;
+		i++;
+
+		if (depth === 0 && current.trim()) {
+			const next = raw.slice(i).trimStart();
+			if (
+				next.startsWith("<") ||
+				next.startsWith("$") ||
+				next.startsWith("{")
+			) {
+				parts.push(current.trim());
+				current = "";
+			}
+		}
+	}
+
+	if (current.trim()) parts.push(current.trim());
+	return parts.filter(Boolean);
 }
