@@ -164,7 +164,8 @@ export function resolveStyles(
 export function text(value: string | (() => string)): Text {
   const node = document.createTextNode('')
   if (typeof value === 'function') {
-    function update() { node.textContent = value() }
+    const valueFn = value
+    function update() { node.textContent = valueFn() }
     update()
     ;(node as unknown as { __update?: () => void }).__update = update
   } else {

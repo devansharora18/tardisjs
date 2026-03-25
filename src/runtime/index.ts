@@ -74,7 +74,8 @@ export const $runtime = {
   component(name: string, props: Record<string, unknown>): HTMLElement {
     // looks up the component factory from a global registry
     // populated when components are imported
-    const factory = (window as Record<string, unknown>)[`__tardis_${name}`] as
+    const globalRegistry = window as unknown as Record<string, unknown>
+    const factory = globalRegistry[`__tardis_${name}`] as
       | ((props: Record<string, unknown>) => HTMLElement)
       | undefined
     if (factory) return factory(props)
