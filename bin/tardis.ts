@@ -117,6 +117,15 @@ function replaceRuntimeImport(code: string): string {
 	return code.replace(/from\s+['"]tardisjs\/runtime['"]/g, "from '/tardis-runtime.js'")
 }
 
+let typescriptModulePromise: Promise<typeof import('typescript')> | null = null
+
+async function getTypeScriptModule(): Promise<typeof import('typescript')> {
+	if (!typescriptModulePromise) {
+		typescriptModulePromise = import('typescript')
+	}
+	return typescriptModulePromise
+}
+
 async function pathExists(targetPath: string): Promise<boolean> {
 	try {
 		await fsp.access(targetPath)
@@ -185,11 +194,19 @@ async function loadConfig(cwd: string): Promise<TardisConfig> {
 	}
 }
 
-function compileFile(source: string, filePath: string): { code: string; componentName: string } {
+async function compileFile(source: string, filePath: string): Promise<{ code: string; componentName: string }> {
 	const ast = parse(lex(source), path.basename(filePath))
 	const output = compile(ast)
+	const ts = await getTypeScriptModule()
+	const transpiled = ts.transpileModule(output, {
+		compilerOptions: {
+			target: ts.ScriptTarget.ES2020,
+			module: ts.ModuleKind.ES2020,
+			moduleResolution: ts.ModuleResolutionKind.Bundler,
+		},
+	}).outputText
 	return {
-		code: replaceRuntimeImport(output),
+		code: replaceRuntimeImport(transpiled),
 		componentName: ast.name,
 	}
 }
@@ -253,7 +270,7 @@ async function writeRuntimeModules(outDir: string): Promise<void> {
 		const runtimeFiles = (await fsp.readdir(runtimeSrcDir)).filter((f) => f.endsWith('.ts'))
 		await ensureDir(runtimeOutDir)
 
-		const ts = await import('typescript')
+		const ts = await getTypeScriptModule()
 		for (const file of runtimeFiles) {
 			const srcPath = path.join(runtimeSrcDir, file)
 			const raw = await fsp.readFile(srcPath, 'utf8')
@@ -330,7 +347,7 @@ async function collectArtifacts(cwd: string, config: TardisConfig): Promise<{
 
 	for (const file of pageFiles) {
 		const source = await fsp.readFile(file, 'utf8')
-		const compiled = compileFile(source, file)
+		const compiled = await compileFile(source, file)
 		const rel = toPosix(path.relative(pagesDir, file)).replace(/\.tardis$/, '.js')
 		const outPath = path.join('pages', rel)
 		pageArtifacts.push({
@@ -348,7 +365,7 @@ async function collectArtifacts(cwd: string, config: TardisConfig): Promise<{
 
 	for (const file of componentFiles) {
 		const source = await fsp.readFile(file, 'utf8')
-		const compiled = compileFile(source, file)
+		const compiled = await compileFile(source, file)
 		const rel = toPosix(path.relative(componentsDir, file)).replace(/\.tardis$/, '.js')
 		const outPath = path.join('components', rel)
 		componentArtifacts.push({

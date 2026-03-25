@@ -1,0 +1,14 @@
+blueprint SlugPage {
+  ui {
+    <main>
+      <h1>Dynamic route</h1>
+      <p>You are viewing: {$runtime.params.slug}</p>
+
+      <nav>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/another-slug">Another slug</a>
+      </nav>
+    </main>
+  }
+}

@@ -1,0 +1,28 @@
+blueprint Home {
+  state {
+    clicks: number = 0
+  }
+
+  methods {
+    increment: () => $update(state.clicks, state.clicks + 1)
+  }
+
+  ui {
+    <main>
+      <h1>tardisjs demo</h1>
+      <p>smaller on the outside.</p>
+
+      <nav>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/hello-tardis">Dynamic page</a>
+      </nav>
+
+      <section>
+        <h2>Reactive counter</h2>
+        <p>Clicks: {state.clicks}</p>
+        <button @click={methods.increment}>Click me</button>
+      </section>
+    </main>
+  }
+}
