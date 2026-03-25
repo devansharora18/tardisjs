@@ -1,0 +1,18 @@
+blueprint TodoApp {
+  state {
+    count: number = 0
+  }
+
+  methods {
+    increment: () => $update(state.count, state.count + 1)
+  }
+
+  ui {
+    <section>
+      <h2>TodoApp Component</h2>
+      <p>Placeholder reusable component.</p>
+      <p>Count: {state.count}</p>
+      <button @click={methods.increment}>Increment</button>
+    </section>
+  }
+}

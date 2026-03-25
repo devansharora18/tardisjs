@@ -372,7 +372,37 @@ function compileElement(raw: string, depth: number): string {
 			lines.push(`${indent}})()`)
 			lines.push(`${indent}if (${childVar} instanceof Node) _el_${depth}.appendChild(${childVar})`)
     } else {
-      lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(ct)}))`)
+			const interpolationRe = /\{([^{}]+)\}/g
+			let cursor = 0
+			let interpolationIndex = 0
+			let hasInterpolation = false
+			let match: RegExpExecArray | null
+
+			while ((match = interpolationRe.exec(ct)) !== null) {
+				hasInterpolation = true
+				const textBefore = ct.slice(cursor, match.index)
+				if (textBefore) {
+					lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(textBefore)}))`)
+				}
+
+				const textVar = `_text_${depth}_${childIndex}_${interpolationIndex}`
+				const expr = rewriteRefs(match[1].trim())
+				lines.push(`${indent}const ${textVar} = document.createTextNode('')`)
+				lines.push(`${indent}$runtime.bind(${textVar}, 'textContent', () => String(${expr}))`)
+				lines.push(`${indent}_el_${depth}.appendChild(${textVar})`)
+
+				cursor = match.index + match[0].length
+				interpolationIndex++
+			}
+
+			if (hasInterpolation) {
+				const tail = ct.slice(cursor)
+				if (tail) {
+					lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(tail)}))`)
+				}
+			} else {
+				lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(ct)}))`)
+			}
     }
 		childIndex++
   }

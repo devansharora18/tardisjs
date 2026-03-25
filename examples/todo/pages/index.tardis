@@ -1,0 +1,44 @@
+blueprint TodoHome {
+  state {
+    task1: boolean = false
+    task2: boolean = false
+    task3: boolean = false
+  }
+
+  computed {
+    doneCount: state.task1 + state.task2 + state.task3
+  }
+
+  methods {
+    toggleTask1: () => $toggle(state.task1)
+    toggleTask2: () => $toggle(state.task2)
+    toggleTask3: () => $toggle(state.task3)
+  }
+
+  ui {
+    <main>
+      <h1>Todo Demo</h1>
+      <p>A minimal todo checklist built with tardisjs.</p>
+
+      <p>Done: {computed.doneCount} / 3</p>
+
+      <ul>
+        <li>
+          <button @click={methods.toggleTask1}>Toggle</button>
+          <span> - Buy milk </span>
+          <strong>{state.task1 ? " (done)" : ""}</strong>
+        </li>
+        <li>
+          <button @click={methods.toggleTask2}>Toggle</button>
+          <span> - Read docs </span>
+          <strong>{state.task2 ? " (done)" : ""}</strong>
+        </li>
+        <li>
+          <button @click={methods.toggleTask3}>Toggle</button>
+          <span> - Ship demo </span>
+          <strong>{state.task3 ? " (done)" : ""}</strong>
+        </li>
+      </ul>
+    </main>
+  }
+}
