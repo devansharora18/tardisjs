@@ -40,11 +40,13 @@
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.0.0",
+    "@types/ws": "^8.18.1",
     "jsdom": "^29.0.1",
     "rollup": "^4.0.0",
     "tslib": "^2.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "ws": "^8.20.0"
   },
   "dependencies": {
     "chokidar": "^3.0.0",

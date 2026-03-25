@@ -15,6 +15,7 @@ export { register, unregister, getAll, getById, getByClass, getByPropValue, getB
 export type { ComponentInstance } from './registry'
 
 export { $, DOMSelection, ComponentSelection } from './selector'
+export { createRouter, $navigate, $back, $forward, $params } from './router'
 
 export { registerEvents, flushMountCallbacks, flushDestroyCallbacks } from './events'
 
@@ -29,10 +30,15 @@ import { createStyles } from './styles'
 import { register, unregister, getAll, getById } from './registry'
 import { registerEvents, flushMountCallbacks } from './events'
 import { $ } from './selector'
+import { $navigate, $back, $forward, $params } from './router'
 
 export const $runtime = {
   // selector
   $,
+  params: $params,
+  navigate: $navigate,
+  back: $back,
+  forward: $forward,
   // state
   state: createState,
   update: $update,
