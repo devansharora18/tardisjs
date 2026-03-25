@@ -5,6 +5,7 @@ export type ReactiveState = Record<string, StateValue>
 
 // internal dep map — keyed by state object identity
 const depMap = new WeakMap<object, Map<string, Set<() => void>>>()
+let activeEffect: (() => void) | null = null
 
 let batchQueue: Set<() => void> | null = null
 
@@ -28,6 +29,10 @@ export function createState(initial: Record<string, StateValue>): ReactiveState 
 
   const proxy = new Proxy(raw, {
     get(target, key: string) {
+      if (activeEffect) {
+        if (!deps.has(key)) deps.set(key, new Set())
+        deps.get(key)!.add(activeEffect)
+      }
       return target[key]
     },
     set(target, key: string, value: StateValue) {
@@ -57,6 +62,16 @@ export function registerDep(
   if (deps) {
     if (!deps.has(key)) deps.set(key, new Set())
     deps.get(key)!.add(updater)
+  }
+}
+
+export function withEffect<T>(effect: () => void, fn: () => T): T {
+  const prev = activeEffect
+  activeEffect = effect
+  try {
+    return fn()
+  } finally {
+    activeEffect = prev
   }
 }
 

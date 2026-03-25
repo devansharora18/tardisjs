@@ -1,6 +1,6 @@
 // src/runtime/render.ts
 
-import { ReactiveState, registerDep } from './state'
+import { withEffect } from './state'
 
 // ── $if ────────────────────────────────────────────────────────────────────
 
@@ -102,7 +102,7 @@ export function bind(
   valueFn: () => unknown
 ): void {
   function update() {
-    const val = valueFn()
+    const val = withEffect(update, valueFn)
     if (prop === 'textContent') {
       el.textContent = String(val ?? '')
     } else if (prop in el) {
@@ -125,7 +125,7 @@ export function bindClass(
   classFn: () => string
 ): void {
   function update() {
-    el.className = classFn()
+    el.className = withEffect(update, classFn)
   }
   update()
   ;(el as unknown as { __updateClass?: () => void }).__updateClass = update
@@ -139,7 +139,7 @@ export function bindAttr(
   valueFn: () => unknown
 ): void {
   function update() {
-    const val = valueFn()
+    const val = withEffect(update, valueFn)
     if (val === null || val === undefined || val === false) {
       el.removeAttribute(attr)
     } else {
@@ -165,7 +165,7 @@ export function text(value: string | (() => string)): Text {
   const node = document.createTextNode('')
   if (typeof value === 'function') {
     const valueFn = value
-    function update() { node.textContent = valueFn() }
+    function update() { node.textContent = withEffect(update, valueFn) }
     update()
     ;(node as unknown as { __update?: () => void }).__update = update
   } else {

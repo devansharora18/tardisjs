@@ -1,0 +1,16 @@
+blueprint Counter {
+  state {
+    count: number = 0
+  }
+
+  methods {
+    increment: () => $update(state.count, state.count + 1)
+  }
+
+  ui {
+    <div>
+      <p>Count: {state.count}</p>
+      <button @click={methods.increment}>Increment</button>
+    </div>
+  }
+}

@@ -201,11 +201,15 @@ function compileStyle(style: StyleNode): string {
 // ── ref rewriter ───────────────────────────────────────────────────────────
 
 function rewriteRefs(expr: string): string {
-	return expr
+	const rewritten = expr
 		.replace(/(?<![_a-zA-Z])state\./g, "_state.")
 		.replace(/(?<![_a-zA-Z])props\./g, "_props.")
 		.replace(/(?<![_a-zA-Z])computed\./g, "_computed.")
 		.replace(/(?<![_a-zA-Z])methods\./g, "_methods.");
+
+	return rewritten
+		.replace(/\$update\(\s*_state\.([a-zA-Z_$][\w$]*)\s*,/g, "$runtime.update(_state, '$1',")
+		.replace(/\$toggle\(\s*_state\.([a-zA-Z_$][\w$]*)\s*\)/g, "$runtime.toggle(_state, '$1')");
 }
 
 // ── ui compiler ────────────────────────────────────────────────────────────
@@ -229,7 +233,7 @@ function compileUINode(raw: string, depth: number): string {
 	if (ifMatch) {
 		const condition = rewriteRefs(ifMatch[1].trim());
 		const inner = compileUINode(ifMatch[2].trim(), depth + 1);
-		lines.push(`${indent}$runtime.if(() => ${condition}, () => {`);
+		lines.push(`${indent}return $runtime.if(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
 		return lines.join("\n");
@@ -243,7 +247,7 @@ function compileUINode(raw: string, depth: number): string {
 		const arrayRef = rewriteRefs(eachMatch[1].trim());
 		const itemVar = eachMatch[2];
 		const inner = compileUINode(eachMatch[3].trim(), depth + 1);
-		lines.push(`${indent}$runtime.each(() => ${arrayRef}, (${itemVar}) => {`);
+		lines.push(`${indent}return $runtime.each(() => ${arrayRef}, (${itemVar}) => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
 		return lines.join("\n");
@@ -254,7 +258,7 @@ function compileUINode(raw: string, depth: number): string {
 	if (showMatch) {
 		const condition = rewriteRefs(showMatch[1].trim());
 		const inner = compileUINode(showMatch[2].trim(), depth + 1);
-		lines.push(`${indent}$runtime.show(() => ${condition}, () => {`);
+		lines.push(`${indent}return $runtime.show(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
 		return lines.join("\n");
@@ -318,10 +322,10 @@ function compileElement(raw: string, depth: number): string {
 		// plain text or expression
 		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
 			lines.push(
-				`${indent}$runtime.text(() => ${rewriteRefs(trimmed.slice(1, -1).trim())})`,
+				`${indent}return $runtime.text(() => ${rewriteRefs(trimmed.slice(1, -1).trim())})`,
 			);
 		} else {
-			lines.push(`${indent}$runtime.text(${JSON.stringify(trimmed)})`);
+			lines.push(`${indent}return $runtime.text(${JSON.stringify(trimmed)})`);
 		}
 		return lines.join("\n");
 	}
@@ -329,7 +333,7 @@ function compileElement(raw: string, depth: number): string {
 	const openTagStr = trimmed.slice(0, openTagEndIdx + 1);
 	const tagNameMatch = openTagStr.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
 	if (!tagNameMatch) {
-		lines.push(`${indent}$runtime.text(${JSON.stringify(trimmed)})`);
+		lines.push(`${indent}return $runtime.text(${JSON.stringify(trimmed)})`);
 		return lines.join("\n");
 	}
 
@@ -338,7 +342,7 @@ function compileElement(raw: string, depth: number): string {
 
 	if (/^[A-Z]/.test(tag)) {
 		lines.push(
-			`${indent}$runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
+			`${indent}return $runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
 		);
 		return lines.join("\n");
 	}
@@ -351,6 +355,7 @@ function compileElement(raw: string, depth: number): string {
 	}
 
 	const children = splitChildren(innerContent);
+	let childIndex = 0;
 	for (const child of children) {
 		const ct = child.trim();
 		if (!ct) continue;
@@ -361,13 +366,15 @@ function compileElement(raw: string, depth: number): string {
       lines.push(`${indent}$runtime.bind(_text_${depth}, 'textContent', () => String(${expr}))`)
       lines.push(`${indent}_el_${depth}.appendChild(_text_${depth})`)
     } else if (ct.startsWith('<') || ct.startsWith('$') || ct.startsWith('{<')) {
-      lines.push(`${indent}{`)
-      lines.push(compileUINode(ct, depth + 1))
-      lines.push(`${indent}  _el_${depth}.appendChild(_el_${depth + 1} ?? _text_${depth + 1} ?? document.createTextNode(''))`)
-      lines.push(`${indent}}`)
+			const childVar = `_child_${depth}_${childIndex}`
+			lines.push(`${indent}const ${childVar} = (() => {`)
+			lines.push(compileUINode(ct, depth + 1))
+			lines.push(`${indent}})()`)
+			lines.push(`${indent}if (${childVar} instanceof Node) _el_${depth}.appendChild(${childVar})`)
     } else {
       lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(ct)}))`)
     }
+		childIndex++
   }
 
 	lines.push(`${indent}return _el_${depth}`);
