@@ -14,6 +14,8 @@ export type { StylesObject, StyleMode } from './styles'
 export { register, unregister, getAll, getById, getByClass, getByPropValue, getByStateValue, clearRegistry } from './registry'
 export type { ComponentInstance } from './registry'
 
+export { $, DOMSelection, ComponentSelection } from './selector'
+
 export { registerEvents, flushMountCallbacks, flushDestroyCallbacks } from './events'
 
 // ── $runtime object ────────────────────────────────────────────────────────
@@ -26,8 +28,11 @@ import { $if, $each, $show, $portal, bind, bindClass, bindAttr, resolveStyles, t
 import { createStyles } from './styles'
 import { register, unregister, getAll, getById } from './registry'
 import { registerEvents, flushMountCallbacks } from './events'
+import { $ } from './selector'
 
 export const $runtime = {
+  // selector
+  $,
   // state
   state: createState,
   update: $update,
