@@ -1,0 +1,26 @@
+blueprint CounterDemo {
+	state {
+		count: number = 0
+	}
+	methods {
+		increment: () => $update(state.count, state.count + 1)
+		decrement: () => $update(state.count, state.count - 1)
+		reset: () => $update(state.count, 0)
+	}
+	ui {
+		<div class="demo-widget">
+			<div class="demo-header">
+				<span class="demo-label">Live Demo</span>
+				<span class="demo-sublabel">This counter is running on tardisjs right now</span>
+			</div>
+			<div class="demo-body">
+				<div class="demo-value">{state.count}</div>
+				<div class="demo-controls">
+					<button class="demo-btn" @click={methods.decrement}>-</button>
+					<button class="demo-btn demo-btn-accent" @click={methods.increment}>+</button>
+					<button class="demo-btn" @click={methods.reset}>Reset</button>
+				</div>
+			</div>
+		</div>
+	}
+}
