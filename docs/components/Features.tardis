@@ -1,0 +1,51 @@
+blueprint Features {
+	ui {
+		<section id="features" class="py-32 px-6">
+			<div class="max-w-6xl mx-auto">
+				<div class="text-center mb-20 reveal">
+					<p class="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-4">Features</p>
+					<h2 class="text-4xl md:text-5xl font-bold tracking-tight mb-5">Built different.</h2>
+					<p class="text-lg text-slate-400 max-w-xl mx-auto">Every design decision optimized for simplicity, performance, and developer experience.</p>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+					<div class="feature-card group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-indigo-500/30 transition-all duration-500 hover:-translate-y-1 reveal">
+						<div class="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-5 text-indigo-400 font-bold text-sm font-mono group-hover:bg-indigo-500/20 transition-colors">5K</div>
+						<h3 class="text-lg font-semibold mb-2.5 text-white">Tiny Runtime</h3>
+						<p class="text-slate-400 text-sm leading-relaxed">The entire runtime ships in ~5KB. No bloat, no tree-shaking needed. Just the essentials for reactive UI.</p>
+					</div>
+
+					<div class="feature-card group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/30 transition-all duration-500 hover:-translate-y-1 reveal">
+						<div class="w-11 h-11 rounded-xl bg-violet-500/10 flex items-center justify-center mb-5 text-violet-400 font-bold text-sm font-mono group-hover:bg-violet-500/20 transition-colors">//</div>
+						<h3 class="text-lg font-semibold mb-2.5 text-white">No Virtual DOM</h3>
+						<p class="text-slate-400 text-sm leading-relaxed">Direct DOM manipulation powered by Proxy-based reactivity. No diffing, no reconciliation overhead.</p>
+					</div>
+
+					<div class="feature-card group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-blue-500/30 transition-all duration-500 hover:-translate-y-1 reveal">
+						<div class="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center mb-5 text-blue-400 font-bold text-sm font-mono group-hover:bg-blue-500/20 transition-colors">.t</div>
+						<h3 class="text-lg font-semibold mb-2.5 text-white">Blueprint Syntax</h3>
+						<p class="text-slate-400 text-sm leading-relaxed">Define components in .tardis files with a clean, declarative syntax. Props, state, computed, methods, and UI in one place.</p>
+					</div>
+
+					<div class="feature-card group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-500 hover:-translate-y-1 reveal">
+						<div class="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-5 text-emerald-400 font-bold text-sm font-mono group-hover:bg-emerald-500/20 transition-colors">0</div>
+						<h3 class="text-lg font-semibold mb-2.5 text-white">Zero Imports</h3>
+						<p class="text-slate-400 text-sm leading-relaxed">No import statements needed in your components. The compiler handles all wiring. Just write your blueprint and go.</p>
+					</div>
+
+					<div class="feature-card group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-amber-500/30 transition-all duration-500 hover:-translate-y-1 reveal">
+						<div class="w-11 h-11 rounded-xl bg-amber-500/10 flex items-center justify-center mb-5 text-amber-400 font-bold text-sm font-mono group-hover:bg-amber-500/20 transition-colors">/p</div>
+						<h3 class="text-lg font-semibold mb-2.5 text-white">File-based Routing</h3>
+						<p class="text-slate-400 text-sm leading-relaxed">Your pages directory maps to URL routes automatically. Dynamic routes with bracket syntax like [slug].tardis.</p>
+					</div>
+
+					<div class="feature-card group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-rose-500/30 transition-all duration-500 hover:-translate-y-1 reveal">
+						<div class="w-11 h-11 rounded-xl bg-rose-500/10 flex items-center justify-center mb-5 text-rose-400 font-bold text-sm font-mono group-hover:bg-rose-500/20 transition-colors">$</div>
+						<h3 class="text-lg font-semibold mb-2.5 text-white">jQuery-Powered</h3>
+						<p class="text-slate-400 text-sm leading-relaxed">Use jQuery directly in your script blocks. Familiar DOM manipulation meets modern reactive state management.</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	}
+}

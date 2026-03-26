@@ -1,0 +1,16 @@
+blueprint Footer {
+	ui {
+		<footer class="py-16 px-6 border-t border-white/[0.05]">
+			<div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+				<div class="flex items-center gap-3">
+					<span class="text-sm font-semibold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">tardisjs</span>
+					<span class="text-slate-600 text-sm">Smaller on the outside.</span>
+				</div>
+				<div class="flex items-center gap-8">
+					<a href="https://github.com/devansharora18/tardisjs" class="text-sm text-slate-500 hover:text-slate-300 transition-colors">GitHub</a>
+					<a href="https://github.com/devansharora18/tardisjs/blob/main/LICENSE" class="text-sm text-slate-500 hover:text-slate-300 transition-colors">MIT License</a>
+				</div>
+			</div>
+		</footer>
+	}
+}

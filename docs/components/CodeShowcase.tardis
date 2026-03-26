@@ -1,0 +1,91 @@
+blueprint CodeShowcase {
+	ui {
+		<section class="py-32 px-6 relative overflow-hidden">
+			<div class="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-950/5 to-transparent"></div>
+			<div class="relative max-w-6xl mx-auto">
+				<div class="text-center mb-16 reveal">
+					<p class="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-4">Compilation</p>
+					<h2 class="text-4xl md:text-5xl font-bold tracking-tight mb-5">Write less. Ship more.</h2>
+					<p class="text-lg text-slate-400 max-w-xl mx-auto">A .tardis blueprint compiles to optimized vanilla JavaScript. What you write vs what ships.</p>
+				</div>
+
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 reveal">
+					<div class="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
+						<div class="flex items-center gap-2 px-5 py-3.5 bg-white/[0.03] border-b border-white/[0.06]">
+							<div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+							<div class="w-3 h-3 rounded-full bg-amber-500/70"></div>
+							<div class="w-3 h-3 rounded-full bg-emerald-500/70"></div>
+							<span class="ml-3 text-xs text-slate-500 font-mono">Counter.tardis</span>
+						</div>
+						<div id="code-tardis" class="code-block p-6 overflow-x-auto min-h-[380px]"></div>
+					</div>
+
+					<div class="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
+						<div class="flex items-center gap-2 px-5 py-3.5 bg-white/[0.03] border-b border-white/[0.06]">
+							<div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+							<div class="w-3 h-3 rounded-full bg-amber-500/70"></div>
+							<div class="w-3 h-3 rounded-full bg-emerald-500/70"></div>
+							<span class="ml-3 text-xs text-slate-500 font-mono">Counter.js (compiled)</span>
+						</div>
+						<div id="code-compiled" class="code-block p-6 overflow-x-auto min-h-[380px]"></div>
+					</div>
+				</div>
+			</div>
+		</section>
+	}
+
+	script {
+		var tardisCode = [
+			'<span class="code-keyword">blueprint</span> <span class="code-fn">Counter</span> <span class="code-punct">{</span>',
+			'  <span class="code-keyword">state</span> <span class="code-punct">{</span>',
+			'    count<span class="code-punct">:</span> <span class="code-type">number</span> <span class="code-punct">=</span> <span class="code-string">0</span>',
+			'  <span class="code-punct">}</span>',
+			'',
+			'  <span class="code-keyword">methods</span> <span class="code-punct">{</span>',
+			'    increment<span class="code-punct">:</span> <span class="code-punct">()</span> <span class="code-punct">=&gt;</span>',
+			'      <span class="code-fn">$update</span><span class="code-punct">(</span><span class="code-prop">state</span><span class="code-punct">.</span><span class="code-prop">count</span><span class="code-punct">,</span> <span class="code-prop">state</span><span class="code-punct">.</span><span class="code-prop">count</span> <span class="code-punct">+</span> <span class="code-string">1</span><span class="code-punct">)</span>',
+			'    decrement<span class="code-punct">:</span> <span class="code-punct">()</span> <span class="code-punct">=&gt;</span>',
+			'      <span class="code-fn">$update</span><span class="code-punct">(</span><span class="code-prop">state</span><span class="code-punct">.</span><span class="code-prop">count</span><span class="code-punct">,</span> <span class="code-prop">state</span><span class="code-punct">.</span><span class="code-prop">count</span> <span class="code-punct">-</span> <span class="code-string">1</span><span class="code-punct">)</span>',
+			'  <span class="code-punct">}</span>',
+			'',
+			'  <span class="code-keyword">style</span><span class="code-punct">(</span><span class="code-string">tailwind</span><span class="code-punct">)</span> <span class="code-punct">{</span>',
+			'    base<span class="code-punct">:</span> <span class="code-string">"flex flex-col items-center gap-4"</span>',
+			'    btn<span class="code-punct">:</span> <span class="code-string">"px-4 py-2 bg-indigo-500 rounded"</span>',
+			'  <span class="code-punct">}</span>',
+			'',
+			'  <span class="code-keyword">ui</span> <span class="code-punct">{</span>',
+			'    <span class="code-punct">&lt;</span><span class="code-fn">div</span> class<span class="code-punct">={</span>base<span class="code-punct">}&gt;</span>',
+			'      <span class="code-punct">&lt;</span><span class="code-fn">h1</span><span class="code-punct">&gt;</span>Count: <span class="code-punct">{</span><span class="code-prop">state</span><span class="code-punct">.</span><span class="code-prop">count</span><span class="code-punct">}</span><span class="code-punct">&lt;/</span><span class="code-fn">h1</span><span class="code-punct">&gt;</span>',
+			'      <span class="code-punct">&lt;</span><span class="code-fn">button</span> @click<span class="code-punct">={</span>methods.increment<span class="code-punct">}&gt;</span>+<span class="code-punct">&lt;/</span><span class="code-fn">button</span><span class="code-punct">&gt;</span>',
+			'    <span class="code-punct">&lt;/</span><span class="code-fn">div</span><span class="code-punct">&gt;</span>',
+			'  <span class="code-punct">}</span>',
+			'<span class="code-punct">}</span>'
+		].join('\n')
+
+		var compiledCode = [
+			'<span class="code-comment">// generated from Counter.tardis</span>',
+			'<span class="code-keyword">import</span> <span class="code-punct">{</span> <span class="code-fn">$runtime</span> <span class="code-punct">}</span> <span class="code-keyword">from</span> <span class="code-string">\'tardisjs/runtime\'</span>',
+			'',
+			'<span class="code-keyword">export function</span> <span class="code-fn">Counter</span><span class="code-punct">(</span>props <span class="code-punct">=</span> <span class="code-punct">{})</span> <span class="code-punct">{</span>',
+			'  <span class="code-keyword">const</span> _state <span class="code-punct">=</span> <span class="code-fn">$runtime.state</span><span class="code-punct">({</span>',
+			'    count<span class="code-punct">:</span> <span class="code-string">0</span>',
+			'  <span class="code-punct">})</span>',
+			'',
+			'  <span class="code-keyword">const</span> _methods <span class="code-punct">=</span> <span class="code-punct">{</span>',
+			'    increment<span class="code-punct">:</span> <span class="code-punct">()</span> <span class="code-punct">=&gt;</span>',
+			'      <span class="code-fn">$runtime.update</span><span class="code-punct">(</span>_state<span class="code-punct">,</span> <span class="code-string">\'count\'</span><span class="code-punct">,</span>',
+			'        _state<span class="code-punct">.</span>count <span class="code-punct">+</span> <span class="code-string">1</span><span class="code-punct">)</span>',
+			'  <span class="code-punct">}</span>',
+			'',
+			'  <span class="code-comment">// Direct DOM — no virtual DOM</span>',
+			'  <span class="code-keyword">const</span> el <span class="code-punct">=</span> <span class="code-fn">document.createElement</span><span class="code-punct">(</span><span class="code-string">\'div\'</span><span class="code-punct">)</span>',
+			'  <span class="code-fn">$runtime.bindClass</span><span class="code-punct">(</span>el<span class="code-punct">,</span> <span class="code-punct">() =&gt;</span> <span class="code-punct">...)</span>',
+			'  <span class="code-comment">// reactive children wired up</span>',
+			'  <span class="code-keyword">return</span> el',
+			'<span class="code-punct">}</span>'
+		].join('\n')
+
+		$('#code-tardis').html(tardisCode)
+		$('#code-compiled').html(compiledCode)
+	}
+}

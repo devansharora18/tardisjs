@@ -1,0 +1,230 @@
+/* ── Base ─────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #020617;
+}
+
+/* ── Hero gradient text ──────────────────────────────────────────────── */
+
+.hero-gradient-text {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 25%, #c084fc 50%, #818cf8 75%, #6366f1 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ── Entrance animations ─────────────────────────────────────────────── */
+
+.animate-fade-in {
+  opacity: 0;
+  animation: fade-in 1s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fade-in-up 1s ease-out forwards;
+  animation-delay: 0.15s;
+}
+
+.animate-fade-in-up-d2 {
+  opacity: 0;
+  animation: fade-in-up 1s ease-out forwards;
+  animation-delay: 0.35s;
+}
+
+.animate-fade-in-up-d3 {
+  opacity: 0;
+  animation: fade-in-up 1s ease-out forwards;
+  animation-delay: 0.55s;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Background orbs ─────────────────────────────────────────────────── */
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-float-d {
+  animation: float 8s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.12; transform: translateX(-50%) scale(1); }
+  50%      { opacity: 0.22; transform: translateX(-50%) scale(1.15); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-30px); }
+}
+
+/* ── Scroll reveal (intersection observer powered) ───────────────────── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Feature card glow on hover ──────────────────────────────────────── */
+
+.feature-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(99, 102, 241, 0.06), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────────── */
+
+.code-block {
+  white-space: pre;
+  tab-size: 2;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  color: #94a3b8;
+}
+
+/* Code syntax coloring (applied by init.js) */
+.code-keyword { color: #c084fc; }
+.code-string  { color: #34d399; }
+.code-fn      { color: #60a5fa; }
+.code-comment { color: #475569; font-style: italic; }
+.code-type    { color: #fbbf24; }
+.code-prop    { color: #f472b6; }
+.code-punct   { color: #64748b; }
+
+/* ── Counter demo pulse ──────────────────────────────────────────────── */
+
+.counter-display {
+  transition: transform 0.15s ease-out;
+}
+
+.counter-display:active {
+  transform: scale(0.97);
+}
+
+/* ── Navbar glass ────────────────────────────────────────────────────── */
+
+.glass-nav {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ── Stats counter animation ─────────────────────────────────────────── */
+
+.stat-number {
+  background: linear-gradient(to bottom, #f8fafc, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Terminal cursor blink ───────────────────────────────────────────── */
+
+.cursor-blink::after {
+  content: '\2588';
+  animation: blink 1.2s step-end infinite;
+  color: #818cf8;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+/* ── Glow ring for CTA ───────────────────────────────────────────────── */
+
+.glow-ring {
+  box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+}
+
+/* ── Grid pattern for hero background ────────────────────────────────── */
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 70%);
+}

@@ -8,6 +8,7 @@ export type TokenType =
   | 'EVENTS'
   | 'STYLE'
   | 'UI'
+  | 'SCRIPT'
 
   // style mode
   | 'STYLE_MODE'
@@ -54,6 +55,7 @@ export const KEYWORDS: Record<string, TokenType> = {
   events: 'EVENTS',
   style: 'STYLE',
   ui: 'UI',
+  script: 'SCRIPT',
   true: 'BOOLEAN',
   false: 'BOOLEAN',
 }

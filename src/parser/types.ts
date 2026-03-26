@@ -65,6 +65,12 @@ export type UINode = {
   col: number
 }
 
+export type ScriptNode = {
+  raw: string    // raw JavaScript from the script block
+  line: number
+  col: number
+}
+
 export type BlueprintNode = {
   name: string
   props: PropNode[]
@@ -74,6 +80,7 @@ export type BlueprintNode = {
   events: EventsNode
   style: StyleNode | null
   ui: UINode
+  script: ScriptNode | null
   line: number
   col: number
 }

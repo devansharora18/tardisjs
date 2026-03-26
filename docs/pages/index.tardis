@@ -1,0 +1,37 @@
+blueprint Landing {
+	ui {
+		<div class="min-h-screen bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
+			<Navbar />
+			<Hero />
+			<Features />
+			<CodeShowcase />
+			<CounterDemo />
+			<Stats />
+			<GetStarted />
+			<Footer />
+		</div>
+	}
+
+	script {
+		// Scroll reveal using jQuery
+		var $reveals = $($el).find('.reveal')
+		if ($reveals.length) {
+			var observer = new IntersectionObserver(function(entries) {
+				entries.forEach(function(entry) {
+					if (entry.isIntersecting) {
+						$(entry.target).addClass('visible')
+						observer.unobserve(entry.target)
+					}
+				})
+			}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' })
+			$reveals.each(function() { observer.observe(this) })
+		}
+
+		// Feature card mouse glow using jQuery
+		$($el).find('.feature-card').on('mousemove', function(e) {
+			var rect = this.getBoundingClientRect()
+			this.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px')
+			this.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px')
+		})
+	}
+}

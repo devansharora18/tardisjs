@@ -10,6 +10,7 @@ import {
   StyleNode,
   StyleRule,
   UINode,
+  ScriptNode,
   PropType,
 } from './types'
 
@@ -450,6 +451,18 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
     }
   }
 
+  function parseScript(): ScriptNode {
+    const scriptTok = expect('SCRIPT')
+    skipNewlines()
+    const rawTok = expect('RAW_JSX')
+
+    return {
+      raw: rawTok.value,
+      line: scriptTok.line,
+      col: scriptTok.col,
+    }
+  }
+
   // ── main blueprint parser ──────────────────────────────────────────────
 
   skipNewlines()
@@ -468,6 +481,7 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
   let events: EventsNode = { onMount: null, onDestroy: null, onUpdate: null }
   let style: StyleNode | null = null
   let ui: UINode | null = null
+  let script: ScriptNode | null = null
 
   while (!check('RBRACE') && !check('EOF')) {
     skipNewlines()
@@ -482,9 +496,10 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
     if (check('EVENTS'))   { events   = parseEvents();   skipNewlines(); continue }
     if (check('STYLE'))    { style    = parseStyle();    skipNewlines(); continue }
     if (check('UI'))       { ui       = parseUI();       skipNewlines(); continue }
+    if (check('SCRIPT'))   { script   = parseScript();   skipNewlines(); continue }
 
     throw new TardisError(
-      `Unexpected token "${tok.value}" — expected a section keyword (props, state, computed, methods, events, style, ui)`,
+      `Unexpected token "${tok.value}" — expected a section keyword (props, state, computed, methods, events, style, ui, script)`,
       file,
       tok.line,
       tok.col
@@ -511,6 +526,7 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
     events,
     style,
     ui,
+    script,
     line: blueprintTok.line,
     col: blueprintTok.col,
   }

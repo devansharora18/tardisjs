@@ -57,7 +57,8 @@ export function compile(ast: BlueprintNode): string {
 	);
 	lines.push(``);
 
-	lines.push(compileUI(ast.ui.raw, ast.name));
+	const scriptCode = ast.script ? compileScript(ast) : undefined;
+	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode));
 	lines.push(`}`);
 
 	return lines.join("\n");
@@ -214,14 +215,34 @@ function rewriteRefs(expr: string): string {
 
 // ── ui compiler ────────────────────────────────────────────────────────────
 
-export function compileUI(raw: string, componentName: string): string {
+export function compileUI(raw: string, componentName: string, scriptCode?: string): string {
 	const lines: string[] = [];
 	lines.push(`  // ui`);
 	lines.push(`  const _root = (() => {`);
 	lines.push(compileUINode(raw.trim(), 2));
 	lines.push(`  })()`);
+	if (scriptCode) {
+		lines.push(``);
+		lines.push(scriptCode);
+	}
 	lines.push(`  return _root`);
 	return lines.join("\n");
+}
+
+function compileScript(ast: BlueprintNode): string {
+	const lines: string[] = [];
+	lines.push(`  // script`);
+	lines.push(`  requestAnimationFrame(() => {`);
+	lines.push(`    const $el = _root`);
+	lines.push(`    const props = _props`);
+	if (ast.state.length > 0) lines.push(`    const state = _state`);
+	if (ast.methods.length > 0) lines.push(`    const methods = _methods`);
+	if (ast.computed.length > 0) lines.push(`    const computed = _computed`);
+	for (const line of ast.script!.raw.split('\n')) {
+		lines.push(`    ${line}`);
+	}
+	lines.push(`  })`);
+	return lines.join('\n');
 }
 
 function compileUINode(raw: string, depth: number): string {
@@ -301,7 +322,7 @@ function compileElement(raw: string, depth: number): string {
 			const attrsRaw = tagStr.slice(tag.length + 1, -2).trim(); // between name and />
 			if (/^[A-Z]/.test(tag)) {
 				lines.push(
-					`${indent}$runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
+					`${indent}return $runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
 				);
 				return lines.join("\n");
 			}

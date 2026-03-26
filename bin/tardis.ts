@@ -231,8 +231,18 @@ async function compileFile(source: string, filePath: string): Promise<{ code: st
 	}
 }
 
-function buildClientIndexHtml(routes: RouteModule[], devMode: boolean, config?: TardisConfig): string {
+function buildClientIndexHtml(routes: RouteModule[], devMode: boolean, config?: TardisConfig, componentArtifacts?: CompiledArtifact[]): string {
 	const imports: string[] = ["import { createRouter } from '/tardis-runtime.js'"]
+	const componentRegs: string[] = []
+
+	if (componentArtifacts && componentArtifacts.length > 0) {
+		for (const artifact of componentArtifacts) {
+			const importPath = `/${toPosix(artifact.outputPath)}`
+			imports.push(`import { ${artifact.componentName} } from '${importPath}'`)
+			componentRegs.push(`      window.__tardis_${artifact.componentName} = ${artifact.componentName}`)
+		}
+	}
+
 	const routeEntries: string[] = []
 
 	routes.forEach((route, idx) => {
@@ -259,6 +269,10 @@ function buildClientIndexHtml(routes: RouteModule[], devMode: boolean, config?: 
 		? '\n' + (config?.head ?? []).map(h => `\t\t${h}`).join('\n')
 		: ''
 
+	const componentRegBlock = componentRegs.length > 0
+		? '\n' + componentRegs.join('\n') + '\n'
+		: ''
+
 	return `<!doctype html>
 <html lang="en">
 	<head>
@@ -270,7 +284,7 @@ function buildClientIndexHtml(routes: RouteModule[], devMode: boolean, config?: 
 		<div id="app"></div>
 		<script type="module">
 ${imports.map((line) => `      ${line}`).join('\n')}
-
+${componentRegBlock}
 			const routes = [
 ${routeEntries.join(',\n')}
 			]
@@ -441,7 +455,7 @@ export async function buildProject(cwd = process.cwd()): Promise<BuildResult> {
 		await copyDirRecursive(staticSrcDir, outDir)
 	}
 
-	await fsp.writeFile(path.join(outDir, 'index.html'), buildClientIndexHtml(routes, false, config), 'utf8')
+	await fsp.writeFile(path.join(outDir, 'index.html'), buildClientIndexHtml(routes, false, config, componentArtifacts), 'utf8')
 
 	const timeMs = Date.now() - start
 	const outputBytes = await getDirectorySizeBytes(outDir)
@@ -501,7 +515,7 @@ async function createDevAssets(cwd: string, config: TardisConfig): Promise<Map<s
 
 	await fsp.rm(tempOut, { recursive: true, force: true })
 
-	assets.set('/index.html', buildClientIndexHtml(routes, true, config))
+	assets.set('/index.html', buildClientIndexHtml(routes, true, config, componentArtifacts))
 	return assets
 }
 

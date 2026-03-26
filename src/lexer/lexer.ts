@@ -127,7 +127,7 @@ export function lex(source: string): Token[] {
 
     if (ch === '{') {
       advance()
-      if (lastKeyword === 'UI') {
+      if (lastKeyword === 'UI' || lastKeyword === 'SCRIPT') {
         const raw = readRawBlock()
         emit('RAW_JSX', raw)
         lastKeyword = null
