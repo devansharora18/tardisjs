@@ -6,7 +6,8 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "bin": {
-    "tardis": "./bin/tardis.js"
+    "tardis": "./bin/tardis.js",
+    "create-tardis-app": "./bin/create-tardis-app.js"
   },
   "exports": {
     ".": {

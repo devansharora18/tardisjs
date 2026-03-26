@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import http from 'node:http'
+import net from 'node:net'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Command } from 'commander'
 import chokidar from 'chokidar'
@@ -56,11 +57,11 @@ const STARTER_INDEX = `blueprint Home {
 		btn: "px-6 py-3 bg-indigo-500 text-white rounded-xl font-semibold"
 	}
 	ui {
-		<div class={base}>
+		<div class={"base"}>
 			<h1>tardisjs</h1>
 			<p>smaller on the outside.</p>
 			<p>count: {state.count}</p>
-			<button class={btn} @click={methods.increment}>click me</button>
+			<button class={"btn"} @click={methods.increment}>click me</button>
 		</div>
 	}
 }
@@ -79,7 +80,7 @@ const STARTER_BUTTON = `blueprint Button {
 		variant.danger: "bg-red-500 text-white hover:bg-red-600"
 	}
 	ui {
-		<button class={base} @click={props.onClick}>{props.label}</button>
+		<button class={"base"} @click={props.onClick}>{props.label}</button>
 	}
 }
 `
@@ -430,6 +431,52 @@ export async function initProject(cwd = process.cwd()): Promise<void> {
 	console.log('✨ Tardis project initialized')
 }
 
+export async function createTardisApp(projectName: string, cwd = process.cwd()): Promise<void> {
+	const normalizedName = projectName.trim()
+	if (!normalizedName) {
+		throw new CLIError('TardisError: project name is required\n  Usage: create-tardis-app <project-name>')
+	}
+
+	const targetDir = path.resolve(cwd, normalizedName)
+	if (await pathExists(targetDir)) {
+		throw new CLIError(`TardisError: directory already exists\n  ${targetDir}`)
+	}
+
+	await ensureDir(targetDir)
+	await initProject(targetDir)
+
+	const packageJsonPath = path.join(targetDir, 'package.json')
+	if (await pathExists(packageJsonPath)) {
+		const raw = await fsp.readFile(packageJsonPath, 'utf8')
+		const pkg = JSON.parse(raw) as Record<string, unknown>
+		pkg.name = normalizedName
+		await fsp.writeFile(packageJsonPath, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8')
+	}
+
+	console.log(`\n✅ Created ${normalizedName}`)
+	console.log(`\nNext steps:`)
+	console.log(`  cd ${normalizedName}`)
+	console.log(`  npm install`)
+	console.log(`  npm run dev`)
+}
+
+async function findAvailablePort(preferredPort: number): Promise<number> {
+	function check(port: number): Promise<boolean> {
+		return new Promise((resolve) => {
+			const tester = net.createServer()
+			tester.once('error', () => resolve(false))
+			tester.once('listening', () => {
+				tester.close(() => resolve(true))
+			})
+			tester.listen(port)
+		})
+	}
+
+	if (await check(preferredPort)) return preferredPort
+	if (await check(preferredPort + 1)) return preferredPort + 1
+	throw new CLIError(`TardisError: no open port found\n  Tried ${preferredPort} and ${preferredPort + 1}`)
+}
+
 export async function buildProject(cwd = process.cwd()): Promise<BuildResult> {
 	const start = Date.now()
 	const config = await loadConfig(cwd)
@@ -521,7 +568,8 @@ async function createDevAssets(cwd: string, config: TardisConfig): Promise<Map<s
 
 export async function devServer(cwd = process.cwd()): Promise<void> {
 	const config = await loadConfig(cwd)
-	const port = config.port ?? 3000
+	const preferredPort = config.port ?? 3000
+	const port = await findAvailablePort(preferredPort)
 	let assets = await createDevAssets(cwd, config)
 
 	const server = http.createServer(async (req, res) => {
@@ -594,6 +642,9 @@ export async function devServer(cwd = process.cwd()): Promise<void> {
 	})
 
 	server.listen(port, () => {
+		if (port !== preferredPort) {
+			console.log(`⚠️  Port ${preferredPort} in use, using ${port} instead`)
+		}
 		console.log(`🚀 Dev server running at http://localhost:${port}`)
 	})
 
