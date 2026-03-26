@@ -17,6 +17,9 @@ interface TardisConfig {
 	components: string
 	outDir: string
 	port?: number
+	title?: string
+	head?: string[]
+	staticDir?: string
 }
 
 interface BuildResult {
@@ -139,6 +142,20 @@ async function ensureDir(dirPath: string): Promise<void> {
 	await fsp.mkdir(dirPath, { recursive: true })
 }
 
+async function copyDirRecursive(src: string, dest: string): Promise<void> {
+	const entries = await fsp.readdir(src, { withFileTypes: true })
+	for (const entry of entries) {
+		const srcPath = path.join(src, entry.name)
+		const destPath = path.join(dest, entry.name)
+		if (entry.isDirectory()) {
+			await ensureDir(destPath)
+			await copyDirRecursive(srcPath, destPath)
+		} else {
+			await fsp.copyFile(srcPath, destPath)
+		}
+	}
+}
+
 async function listTardisFiles(dirPath: string): Promise<string[]> {
 	if (!(await pathExists(dirPath))) return []
 
@@ -191,6 +208,9 @@ async function loadConfig(cwd: string): Promise<TardisConfig> {
 		components: cfg.components ?? './components',
 		outDir: cfg.outDir ?? './dist',
 		port: cfg.port ?? 3000,
+		title: cfg.title,
+		head: cfg.head ?? [],
+		staticDir: cfg.staticDir ?? './public',
 	}
 }
 
@@ -211,7 +231,7 @@ async function compileFile(source: string, filePath: string): Promise<{ code: st
 	}
 }
 
-function buildClientIndexHtml(routes: RouteModule[], devMode: boolean): string {
+function buildClientIndexHtml(routes: RouteModule[], devMode: boolean, config?: TardisConfig): string {
 	const imports: string[] = ["import { createRouter } from '/tardis-runtime.js'"]
 	const routeEntries: string[] = []
 
@@ -235,12 +255,16 @@ function buildClientIndexHtml(routes: RouteModule[], devMode: boolean): string {
 `
 		: ''
 
+	const headContent = (config?.head ?? []).length > 0
+		? '\n' + (config?.head ?? []).map(h => `\t\t${h}`).join('\n')
+		: ''
+
 	return `<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>tardis app</title>
+		<title>${config?.title ?? 'tardis app'}</title>${headContent}
 	</head>
 	<body>
 		<div id="app"></div>
@@ -410,7 +434,14 @@ export async function buildProject(cwd = process.cwd()): Promise<BuildResult> {
 	}
 
 	await writeRuntimeModules(outDir)
-	await fsp.writeFile(path.join(outDir, 'index.html'), buildClientIndexHtml(routes, false), 'utf8')
+
+	// Copy static files from staticDir
+	const staticSrcDir = path.resolve(cwd, config.staticDir ?? 'public')
+	if (await pathExists(staticSrcDir)) {
+		await copyDirRecursive(staticSrcDir, outDir)
+	}
+
+	await fsp.writeFile(path.join(outDir, 'index.html'), buildClientIndexHtml(routes, false, config), 'utf8')
 
 	const timeMs = Date.now() - start
 	const outputBytes = await getDirectorySizeBytes(outDir)
@@ -428,6 +459,13 @@ function contentType(filePath: string): string {
 	if (filePath.endsWith('.js')) return 'application/javascript; charset=utf-8'
 	if (filePath.endsWith('.json')) return 'application/json; charset=utf-8'
 	if (filePath.endsWith('.css')) return 'text/css; charset=utf-8'
+	if (filePath.endsWith('.svg')) return 'image/svg+xml'
+	if (filePath.endsWith('.png')) return 'image/png'
+	if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) return 'image/jpeg'
+	if (filePath.endsWith('.gif')) return 'image/gif'
+	if (filePath.endsWith('.ico')) return 'image/x-icon'
+	if (filePath.endsWith('.woff2')) return 'font/woff2'
+	if (filePath.endsWith('.woff')) return 'font/woff'
 	return 'text/plain; charset=utf-8'
 }
 
@@ -463,7 +501,7 @@ async function createDevAssets(cwd: string, config: TardisConfig): Promise<Map<s
 
 	await fsp.rm(tempOut, { recursive: true, force: true })
 
-	assets.set('/index.html', buildClientIndexHtml(routes, true))
+	assets.set('/index.html', buildClientIndexHtml(routes, true, config))
 	return assets
 }
 
@@ -488,6 +526,19 @@ export async function devServer(cwd = process.cwd()): Promise<void> {
 			res.end('Not found')
 			return
 		}
+
+		// Try static files from staticDir
+		const staticDir = path.resolve(cwd, config.staticDir ?? 'public')
+		const staticFilePath = path.join(staticDir, normalizedPath)
+		try {
+			const fileStat = await fsp.stat(staticFilePath)
+			if (fileStat.isFile()) {
+				const body = await fsp.readFile(staticFilePath)
+				res.writeHead(200, { 'Content-Type': contentType(normalizedPath) })
+				res.end(body)
+				return
+			}
+		} catch {}
 
 		const fallback = assets.get('/index.html') ?? ''
 		res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })

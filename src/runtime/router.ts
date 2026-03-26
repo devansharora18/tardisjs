@@ -139,7 +139,7 @@ export function createRouter(
 		if (!anchor) return
 
 		const href = anchor.getAttribute('href')
-		if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return
+		if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#')) return
 		if (anchor.target && anchor.target !== '_self') return
 
 		const nextPath = normalizePath(href)

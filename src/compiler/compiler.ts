@@ -645,7 +645,9 @@ function splitChildren(raw: string): string[] {
 				}
 				depth--;
 			} else if (raw[i + 1] !== "!") {
-				depth++;
+				if (!isSelfClosingFrom(raw, i)) {
+					depth++;
+				}
 			}
 		}
 
@@ -670,4 +672,29 @@ function splitChildren(raw: string): string[] {
 
 	if (current.trim()) parts.push(current.trim());
 	return parts.filter(Boolean);
+}
+
+// look-ahead to determine if a tag starting at tagStart is self-closing (ends with />)
+function isSelfClosingFrom(raw: string, tagStart: number): boolean {
+	let j = tagStart + 1;
+	let inQuote: string | null = null;
+	let braceDepth = 0;
+	while (j < raw.length) {
+		const c = raw[j];
+		if (inQuote) {
+			if (c === inQuote) inQuote = null;
+		} else if (c === '"' || c === "'") {
+			inQuote = c;
+		} else if (c === "{") {
+			braceDepth++;
+		} else if (c === "}") {
+			braceDepth--;
+		} else if (c === ">" && braceDepth === 0) {
+			let k = j - 1;
+			while (k > tagStart && /\s/.test(raw[k])) k--;
+			return raw[k] === "/";
+		}
+		j++;
+	}
+	return false;
 }
