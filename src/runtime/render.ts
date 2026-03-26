@@ -153,10 +153,15 @@ export function bindAttr(
 // ── resolveStyles ──────────────────────────────────────────────────────────
 
 export function resolveStyles(
-  styles: Record<string, string>,
+  styles: Record<string, string> | { rules: Record<string, string> },
   key: string
 ): string {
-  return styles[key] ?? key
+  const maybeRules = (styles as { rules?: unknown }).rules
+  const styleMap: Record<string, string> =
+    maybeRules && typeof maybeRules === 'object' && !Array.isArray(maybeRules)
+      ? (maybeRules as Record<string, string>)
+      : (styles as Record<string, string>)
+  return styleMap[key] ?? key
 }
 
 // ── text ───────────────────────────────────────────────────────────────────
