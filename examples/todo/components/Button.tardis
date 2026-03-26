@@ -1,0 +1,14 @@
+blueprint Button {
+	props {
+		label: string = "Action"
+		variant: "primary" | "secondary" = "primary"
+		onClick: function
+	}
+	style(tailwind) {
+		primary: "inline-flex items-center justify-center rounded-lg border border-cyan-500 bg-cyan-500 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-cyan-400 active:translate-y-px active:bg-cyan-500"
+		secondary: "inline-flex items-center justify-center rounded-lg border border-zinc-600 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-cyan-400 hover:text-cyan-300 active:translate-y-px"
+	}
+	ui {
+		<button class={props.variant === "primary" ? "primary" : "secondary"} @click={props.onClick}>{props.label}</button>
+	}
+}

@@ -1,9 +1,0 @@
-blueprint Badge {
-  props {
-    label: string = "new"
-  }
-
-  ui {
-    <span>{props.label}</span>
-  }
-}

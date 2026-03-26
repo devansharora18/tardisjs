@@ -1,44 +1,98 @@
-blueprint TodoHome {
-  state {
-    task1: boolean = false
-    task2: boolean = false
-    task3: boolean = false
-  }
+blueprint Home {
+	state {
+		task1Done: boolean = false
+		task2Done: boolean = true
+		task3Done: boolean = false
+		filter: "all" | "open" | "done" = "all"
+	}
+	computed {
+		total: 3
+		done: (state.task1Done ? 1 : 0) + (state.task2Done ? 1 : 0) + (state.task3Done ? 1 : 0)
+		open: computed.total - computed.done
+	}
+	methods {
+		toggleTask1: () => $toggle(state.task1Done)
+		toggleTask2: () => $toggle(state.task2Done)
+		toggleTask3: () => $toggle(state.task3Done)
+		clearCompleted: () => ($update(state.task1Done, false), $update(state.task2Done, false), $update(state.task3Done, false))
+		markAllDone: () => ($update(state.task1Done, true), $update(state.task2Done, true), $update(state.task3Done, true))
+		setFilter: (value) => $update(state.filter, value)
+	}
+	style(tailwind) {
+		page: "min-h-screen bg-zinc-950 text-zinc-100 antialiased"
+		container: "mx-auto w-full max-w-3xl px-6 py-10"
+		title: "text-2xl font-semibold"
+		subtitle: "mt-2 text-sm text-zinc-400"
 
-  computed {
-    doneCount: state.task1 + state.task2 + state.task3
-  }
+		panel: "mt-6 rounded-xl border border-zinc-800 bg-zinc-900 p-4"
 
-  methods {
-    toggleTask1: () => $toggle(state.task1)
-    toggleTask2: () => $toggle(state.task2)
-    toggleTask3: () => $toggle(state.task3)
-  }
+		btnPrimary: "rounded-lg border border-cyan-500 bg-cyan-500 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-cyan-400 active:translate-y-px"
+		btnGhost: "rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 transition hover:border-cyan-400 hover:text-cyan-300 active:translate-y-px"
+		btnDanger: "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200 transition hover:bg-red-500/20 active:translate-y-px"
 
-  ui {
-    <main>
-      <h1>Todo Demo</h1>
-      <p>A minimal todo checklist built with tardisjs.</p>
+		toolbar: "mt-4 flex flex-wrap items-center justify-between gap-3"
+		filterGroup: "flex items-center gap-2"
+		meta: "text-xs text-zinc-400"
 
-      <p>Done: {computed.doneCount} / 3</p>
+		list: "mt-4 space-y-2"
+		item: "flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2"
+		hidden: "hidden"
+		itemTitle: "text-sm"
+		itemDone: "text-sm text-zinc-500 line-through"
+		itemActions: "flex items-center gap-2"
+		empty: "rounded-lg border border-dashed border-zinc-700 px-3 py-6 text-center text-sm text-zinc-500"
 
-      <ul>
-        <li>
-          <button @click={methods.toggleTask1}>Toggle</button>
-          <span> - Buy milk </span>
-          <strong>{state.task1 ? " (done)" : ""}</strong>
-        </li>
-        <li>
-          <button @click={methods.toggleTask2}>Toggle</button>
-          <span> - Read docs </span>
-          <strong>{state.task2 ? " (done)" : ""}</strong>
-        </li>
-        <li>
-          <button @click={methods.toggleTask3}>Toggle</button>
-          <span> - Ship demo </span>
-          <strong>{state.task3 ? " (done)" : ""}</strong>
-        </li>
-      </ul>
-    </main>
-  }
+		note: "mt-5 text-xs text-zinc-500"
+	}
+	ui {
+		<main class={"page"}>
+			<section class={"container"}>
+				<h1 class={"title"}>Todo App</h1>
+				<p class={"subtitle"}>Complete example with task state, filters, and progress tracking.</p>
+
+				<div class={"panel"}>
+					<div class={"toolbar"}>
+						<div class={"filterGroup"}>
+							<button class={"btnGhost"} @click={() => methods.setFilter("all")}>All</button>
+							<button class={"btnGhost"} @click={() => methods.setFilter("open")}>Open</button>
+							<button class={"btnGhost"} @click={() => methods.setFilter("done")}>Done</button>
+						</div>
+						<div class={"filterGroup"}>
+							<button class={"btnPrimary"} @click={methods.markAllDone}>Mark all done</button>
+							<button class={"btnDanger"} @click={methods.clearCompleted}>Reset done</button>
+						</div>
+					</div>
+
+					<p class={"meta"}>Total: {computed.total} · Open: {computed.open} · Done: {computed.done}</p>
+
+					<div class={"list"}>
+						<div class={state.filter === "all" || (state.filter === "open" && !state.task1Done) || (state.filter === "done" && state.task1Done) ? "item" : "hidden"}>
+							<p class={state.task1Done ? "itemDone" : "itemTitle"}>Read Tardis docs</p>
+							<div class={"itemActions"}>
+								<button class={"btnGhost"} @click={methods.toggleTask1}>{state.task1Done ? "Undo" : "Done"}</button>
+							</div>
+						</div>
+
+						<div class={state.filter === "all" || (state.filter === "open" && !state.task2Done) || (state.filter === "done" && state.task2Done) ? "item" : "hidden"}>
+							<p class={state.task2Done ? "itemDone" : "itemTitle"}>Build first blueprint</p>
+							<div class={"itemActions"}>
+								<button class={"btnGhost"} @click={methods.toggleTask2}>{state.task2Done ? "Undo" : "Done"}</button>
+							</div>
+						</div>
+
+						<div class={state.filter === "all" || (state.filter === "open" && !state.task3Done) || (state.filter === "done" && state.task3Done) ? "item" : "hidden"}>
+							<p class={state.task3Done ? "itemDone" : "itemTitle"}>Ship todo app</p>
+							<div class={"itemActions"}>
+								<button class={"btnGhost"} @click={methods.toggleTask3}>{state.task3Done ? "Undo" : "Done"}</button>
+							</div>
+						</div>
+
+						<div class={(state.filter === "open" && computed.open === 0) || (state.filter === "done" && computed.done === 0) ? "empty" : "hidden"}>No tasks in this filter.</div>
+					</div>
+
+					<p class={"note"}>Edit <code>examples/todo/pages/index.tardis</code> to customize this flow.</p>
+				</div>
+			</section>
+		</main>
+	}
 }
