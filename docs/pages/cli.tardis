@@ -1,0 +1,75 @@
+blueprint CliDocs {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Introduction</p>
+          <a class="docs-nav-link" href="/">Overview</a>
+          <a class="docs-nav-link" href="/getting-started">Getting Started</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Core</p>
+          <a class="docs-nav-link" href="/core-concepts">Core Concepts</a>
+          <a class="docs-nav-link" href="/api-reference">Runtime API</a>
+          <a class="docs-nav-link" href="/cli">CLI & Config</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="cli">CLI & Configuration</h1>
+          <p class="docs-lead">Operational reference for the tardis CLI and project configuration.</p>
+
+          <h2 id="commands">Commands</h2>
+          <h3>npx tardis init</h3>
+          <p>Scaffold a project in the current directory.</p>
+
+          <h3>npx tardis dev</h3>
+          <p>Compile blueprints, serve app, watch for file changes, and send browser reload notifications.</p>
+
+          <h3>npx tardis build</h3>
+          <p>Generate production output in <span class="docs-kbd">dist/</span>, including runtime assets and route bootstrap HTML.</p>
+
+          <h3>npx tardis preview</h3>
+          <p>Serve built output from <span class="docs-kbd">dist/</span> for local verification.</p>
+
+          <h2 id="config">tardis.config.js</h2>
+          <div class="docs-code">export default {
+  pages: './pages',
+  components: './components',
+  outDir: './dist',
+  port: 3000,
+}</div>
+
+          <h3>pages</h3>
+          <p>Directory used for file-based routing.</p>
+
+          <h3>components</h3>
+          <p>Directory for reusable blueprint components.</p>
+
+          <h3>outDir</h3>
+          <p>Build artifact output directory.</p>
+
+          <h3>port</h3>
+          <p>Development server port.</p>
+
+          <h2 id="errors">Common CLI errors</h2>
+          <ul>
+            <li><strong>no tardis.config.js found</strong> -> run init or add config file manually.</li>
+            <li><strong>Unknown type "sting"</strong> -> fix typo to <span class="docs-kbd">string</span>.</li>
+            <li><strong>EADDRINUSE</strong> -> existing process occupies configured port.</li>
+          </ul>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#cli">CLI</a>
+        <a href="#commands">Commands</a>
+        <a href="#config">Config</a>
+        <a href="#errors">Errors</a>
+      </aside>
+    </div>
+  }
+}

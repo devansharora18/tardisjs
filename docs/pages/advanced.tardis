@@ -1,0 +1,61 @@
+blueprint AdvancedDocs {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="advanced">Advanced Topics</h1>
+          <p class="docs-lead">Compiler internals, performance characteristics, and extension direction.</p>
+
+          <h2 id="compiler">Compiler architecture</h2>
+          <ul>
+            <li><strong>Lexer</strong>: tokenizes blueprint input.</li>
+            <li><strong>Parser</strong>: builds AST with section-level semantics.</li>
+            <li><strong>Compiler</strong>: rewrites refs and emits runtime-integrated DOM code.</li>
+          </ul>
+
+          <h2 id="performance">Performance model</h2>
+          <p>tardisjs performs direct DOM updates with dependency-based binding callbacks. This avoids full tree reconciliation and favors predictable micro-updates.</p>
+
+          <h2 id="debugging">Debug generated output</h2>
+          <ol>
+            <li>Build or run dev server.</li>
+            <li>Inspect emitted page module in browser at <span class="docs-kbd">/pages/*.js</span>.</li>
+            <li>Verify rewritten calls for updates and bindings.</li>
+            <li>Map behavior back to source blueprint sections.</li>
+          </ol>
+
+          <h2 id="testing">Testing approach</h2>
+          <p>Current test suites cover lexer, parser, compiler generation rules, runtime behavior, selector behavior, router behavior, and CLI workflows.</p>
+
+          <h2 id="roadmap">Extensibility roadmap</h2>
+          <ul>
+            <li>Plugin hooks for compile transforms</li>
+            <li>Static analysis and linting rules for blueprints</li>
+            <li>Richer diagnostics for UI parser edge cases</li>
+            <li>Build adapter targets for CDN and server environments</li>
+          </ul>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#advanced">Advanced</a>
+        <a href="#compiler">Compiler architecture</a>
+        <a href="#performance">Performance</a>
+        <a href="#debugging">Debugging</a>
+        <a href="#testing">Testing</a>
+        <a href="#roadmap">Roadmap</a>
+      </aside>
+    </div>
+  }
+}

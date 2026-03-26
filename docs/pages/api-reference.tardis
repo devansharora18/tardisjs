@@ -1,0 +1,72 @@
+blueprint ApiReference {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Introduction</p>
+          <a class="docs-nav-link" href="/">Overview</a>
+          <a class="docs-nav-link" href="/getting-started">Getting Started</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Core</p>
+          <a class="docs-nav-link" href="/core-concepts">Core Concepts</a>
+          <a class="docs-nav-link" href="/api-reference">Runtime API</a>
+          <a class="docs-nav-link" href="/cli">CLI & Config</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="api">Runtime API Reference</h1>
+          <p class="docs-lead">Reference for commonly used runtime functions available to compiled blueprints.</p>
+
+          <h2 id="state-api">State API</h2>
+          <h3>$update(stateRef, key, nextValue)</h3>
+          <p>Set a specific state key and trigger dependent bindings.</p>
+          <div class="docs-code">$update(state.count, state.count + 1)</div>
+
+          <h3>$toggle(stateRef, key)</h3>
+          <p>Toggle boolean state.</p>
+          <div class="docs-code">$toggle(state.open)</div>
+
+          <h3>$reset(stateObj, initial)</h3>
+          <p>Reset state object keys to provided defaults.</p>
+
+          <h2 id="router-api">Router API</h2>
+          <h3>$navigate(path)</h3>
+          <p>Navigate client-side without full page reload.</p>
+
+          <h3>$params</h3>
+          <p>Read active dynamic route params.</p>
+          <div class="docs-code">ui &#123; &lt;p&gt;Slug: &#123;$runtime.params.slug&#125;&lt;/p&gt; &#125;</div>
+
+          <h3>$back() / $forward()</h3>
+          <p>Proxy browser history traversal.</p>
+
+          <h2 id="render-api">Render helpers</h2>
+          <ul>
+            <li><strong>$if</strong>: conditional render block</li>
+            <li><strong>$each</strong>: list rendering</li>
+            <li><strong>$show</strong>: display toggle</li>
+            <li><strong>bind/bindAttr/bindClass</strong>: reactive DOM binding</li>
+          </ul>
+
+          <h2 id="selector-api">Selector utilities</h2>
+          <p>The <span class="docs-kbd">$()</span> selector supports DOM and component instance operations with chainable APIs for class, attributes, and component method invocation.</p>
+
+          <div class="docs-note">Treat selector utilities as imperative escape hatches. Prefer declarative UI and state-driven rendering for primary flows.</div>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#api">Runtime API</a>
+        <a href="#state-api">State API</a>
+        <a href="#router-api">Router API</a>
+        <a href="#render-api">Render helpers</a>
+        <a href="#selector-api">Selector</a>
+      </aside>
+    </div>
+  }
+}

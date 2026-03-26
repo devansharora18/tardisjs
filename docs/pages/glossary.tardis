@@ -1,0 +1,53 @@
+blueprint GlossaryDocs {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Reference</p>
+          <a class="docs-nav-link" href="/glossary">Glossary</a>
+          <a class="docs-nav-link" href="/contributing">Contributing</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="glossary">Glossary</h1>
+          <p class="docs-lead">Shared terminology used across the tardisjs codebase and documentation.</p>
+
+          <h2 id="terms">Terms</h2>
+          <ul>
+            <li><strong>Blueprint</strong>: A <span class="docs-kbd">.tardis</span> module defining component/page behavior and UI.</li>
+            <li><strong>AST</strong>: Abstract syntax tree created by parser from tokens.</li>
+            <li><strong>Reactive binding</strong>: Runtime callback bound to a DOM property derived from state.</li>
+            <li><strong>Route module</strong>: Compiled JS file emitted from a page blueprint.</li>
+            <li><strong>HMR channel</strong>: Development websocket endpoint used to signal reload.</li>
+            <li><strong>Selector API</strong>: Chainable utility layer for querying/acting on DOM and component instances.</li>
+          </ul>
+
+          <h2 id="versioning">Versioning policy</h2>
+          <p>Use semantic versioning. Treat parser/compiler output changes as potentially breaking when they alter generated behavior for valid blueprint inputs.</p>
+
+          <h2 id="changelog">Changelog format</h2>
+          <div class="docs-code">## [x.y.z] - YYYY-MM-DD
+### Added
+- ...
+### Changed
+- ...
+### Fixed
+- ...
+### Breaking
+- ...</div>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#glossary">Glossary</a>
+        <a href="#terms">Terms</a>
+        <a href="#versioning">Versioning</a>
+        <a href="#changelog">Changelog</a>
+      </aside>
+    </div>
+  }
+}

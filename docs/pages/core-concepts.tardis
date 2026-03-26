@@ -1,0 +1,94 @@
+blueprint CoreConcepts {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Introduction</p>
+          <a class="docs-nav-link" href="/">Overview</a>
+          <a class="docs-nav-link" href="/getting-started">Getting Started</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Core</p>
+          <a class="docs-nav-link" href="/core-concepts">Core Concepts</a>
+          <a class="docs-nav-link" href="/api-reference">Runtime API</a>
+          <a class="docs-nav-link" href="/cli">CLI & Config</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="core">Core Concepts</h1>
+          <p class="docs-lead">A blueprint is the unit of composition in tardisjs. Each blueprint can define state, computed values, methods, events, styles, and UI.</p>
+
+          <h2 id="blueprint">Blueprint anatomy</h2>
+          <div class="docs-code">blueprint ComponentName &#123;
+  props &#123; ... &#125;
+  state &#123; ... &#125;
+  computed &#123; ... &#125;
+  methods &#123; ... &#125;
+  events &#123; ... &#125;
+  style(tailwind) &#123; ... &#125;
+  ui &#123; ... &#125;
+&#125;</div>
+
+          <h2 id="state">State</h2>
+          <p>State is reactive and proxied by the runtime. UI bindings that read state keys are refreshed on updates.</p>
+          <div class="docs-code">state &#123;
+  open: boolean = false
+  count: number = 0
+&#125;</div>
+
+          <h2 id="computed">Computed</h2>
+          <p>Computed values are derived expressions. Use them for deterministic derived data instead of duplicating mutable state.</p>
+          <div class="docs-code">computed &#123;
+  doubled: state.count * 2
+&#125;</div>
+
+          <h2 id="methods">Methods</h2>
+          <p>Methods contain event handlers and business logic. Use runtime helpers for updates.</p>
+          <div class="docs-code">methods &#123;
+  increment: () => $update(state.count, state.count + 1)
+  toggleOpen: () => $toggle(state.open)
+&#125;</div>
+
+          <h2 id="events">Lifecycle events</h2>
+          <p>Use lifecycle events for imperative integration points.</p>
+          <ul>
+            <li><strong>onMount</strong>: run after component mount</li>
+            <li><strong>onDestroy</strong>: run during teardown</li>
+            <li><strong>onUpdate</strong>: run when update cycle executes</li>
+          </ul>
+
+          <h2 id="ui">UI syntax</h2>
+          <p>UI block supports HTML-like structure, reactive text expressions, event bindings, control helpers (`$if`, `$each`, `$show`), and component invocation.</p>
+          <div class="docs-code">ui &#123;
+  &lt;div&gt;
+    &lt;p&gt;Count: &#123;state.count&#125;&lt;/p&gt;
+    &lt;button @click=&#123;methods.increment&#125;&gt;+&lt;/button&gt;
+  &lt;/div&gt;
+&#125;</div>
+
+          <div class="docs-warn">Keep expressions simple and explicit. If behavior becomes complex, move logic into methods or computed sections.</div>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#core">Core Concepts</a>
+        <a href="#blueprint">Blueprint anatomy</a>
+        <a href="#state">State</a>
+        <a href="#computed">Computed</a>
+        <a href="#methods">Methods</a>
+        <a href="#events">Lifecycle events</a>
+        <a href="#ui">UI syntax</a>
+      </aside>
+    </div>
+  }
+}

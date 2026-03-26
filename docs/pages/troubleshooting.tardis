@@ -1,0 +1,61 @@
+blueprint Troubleshooting {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="troubleshooting">Troubleshooting</h1>
+          <p class="docs-lead">Common failure modes and direct fixes.</p>
+
+          <h2 id="table">Error matrix</h2>
+          <div class="docs-code">Error: no tardis.config.js found
+Cause: Config file missing in current working directory.
+Fix: Create tardis.config.js or run npx tardis init.
+
+Error: Unknown type "sting"
+Cause: Typo in blueprint type declaration.
+Fix: Change sting -> string.
+
+Error: EADDRINUSE: address already in use
+Cause: Port already occupied.
+Fix: kill process on port or change config port.
+
+Blank page with syntax error in /pages/index.js
+Cause: invalid generated code from unsupported syntax patterns.
+Fix: simplify expression or move logic into methods/computed.
+
+Count not updating after click
+Cause: using stale dev output or incorrect state update expression.
+Fix: restart dev server and verify emitted module contains $runtime.update(...) calls.</div>
+
+          <h2 id="workflow">Debug workflow</h2>
+          <ol>
+            <li>Check browser console first.</li>
+            <li>Open emitted module under <span class="docs-kbd">/pages/*.js</span>.</li>
+            <li>Confirm server cwd and target config.</li>
+            <li>Restart dev server if generated output appears stale.</li>
+            <li>Isolate with minimal blueprint reproduction.</li>
+          </ol>
+
+          <div class="docs-warn">If the output JavaScript contains malformed strings, invalid regex, or missing tokens, focus debugging on parser/compiler expression handling before runtime assumptions.</div>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#table">Error matrix</a>
+        <a href="#workflow">Debug workflow</a>
+      </aside>
+    </div>
+  }
+}

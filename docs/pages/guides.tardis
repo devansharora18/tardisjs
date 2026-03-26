@@ -1,0 +1,65 @@
+blueprint Guides {
+  ui {
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-brand">tardisjs</div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Introduction</p>
+          <a class="docs-nav-link" href="/">Overview</a>
+          <a class="docs-nav-link" href="/getting-started">Getting Started</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <article class="docs-content">
+          <h1 id="guides">Guides</h1>
+          <p class="docs-lead">Task-oriented tutorials for common product flows.</p>
+
+          <h2 id="counter">Build a counter</h2>
+          <ol>
+            <li>Define numeric state key.</li>
+            <li>Add increment/decrement methods with <span class="docs-kbd">$update</span>.</li>
+            <li>Bind state in UI text and button events.</li>
+          </ol>
+
+          <h2 id="todo">Build a todo checklist</h2>
+          <ol>
+            <li>Represent each task as boolean state, or model task collection in state object/array.</li>
+            <li>Use computed values for done/remaining counts.</li>
+            <li>Render list with <span class="docs-kbd">$each</span> when dynamic collections are required.</li>
+          </ol>
+
+          <h2 id="routing">Routing patterns</h2>
+          <div class="docs-code">pages/index.tardis      -> /
+pages/about.tardis      -> /about
+pages/[slug].tardis     -> /:slug
+pages/blog/[id].tardis  -> /blog/:id</div>
+
+          <h2 id="styling">Styling strategy</h2>
+          <p>Keep style tokens centralized and deterministic. Prefer reusable class keys over ad-hoc literal classes.</p>
+
+          <h2 id="fetch">Data fetching</h2>
+          <p>Use runtime fetch helper and lifecycle events to coordinate load phases. Keep network side effects in methods or event hooks, not inline render expressions.</p>
+
+          <div class="docs-note">Each guide intentionally separates <strong>state shape</strong>, <strong>methods</strong>, and <strong>UI bindings</strong>. This pattern scales best as files grow.</div>
+        </article>
+      </main>
+
+      <aside class="docs-toc">
+        <h4>On This Page</h4>
+        <a href="#guides">Guides</a>
+        <a href="#counter">Counter</a>
+        <a href="#todo">Todo</a>
+        <a href="#routing">Routing</a>
+        <a href="#styling">Styling</a>
+        <a href="#fetch">Data fetching</a>
+      </aside>
+    </div>
+  }
+}

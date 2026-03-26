@@ -386,7 +386,13 @@ function compileElement(raw: string, depth: number): string {
       lines.push(`${indent}const _text_${depth} = document.createTextNode('')`)
       lines.push(`${indent}$runtime.bind(_text_${depth}, 'textContent', () => String(${expr}))`)
       lines.push(`${indent}_el_${depth}.appendChild(_text_${depth})`)
-    } else if (ct.startsWith('<') || ct.startsWith('$') || ct.startsWith('{<')) {
+		} else if (
+			ct.startsWith('<') ||
+			ct.startsWith('{<') ||
+			ct.startsWith('$if(') ||
+			ct.startsWith('$each(') ||
+			ct.startsWith('$show(')
+		) {
 			const childVar = `_child_${depth}_${childIndex}`
 			lines.push(`${indent}const ${childVar} = (() => {`)
 			lines.push(compileUINode(ct, depth + 1))
