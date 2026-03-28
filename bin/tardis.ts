@@ -802,10 +802,18 @@ export async function runCLI(argv = process.argv): Promise<void> {
 	}
 }
 
-if (process.argv[1] && fs.existsSync(process.argv[1])) {
-	const current = pathToFileURL(process.argv[1]).href
-	if (import.meta.url === current) {
-		runCLI()
+function isDirectExecution(): boolean {
+	try {
+		if (!process.argv[1] || !fs.existsSync(process.argv[1])) return false
+		const argvRealPath = fs.realpathSync(process.argv[1])
+		const moduleRealPath = fs.realpathSync(fileURLToPath(import.meta.url))
+		return argvRealPath === moduleRealPath
+	} catch {
+		return false
 	}
+}
+
+if (isDirectExecution()) {
+	runCLI()
 }
 
