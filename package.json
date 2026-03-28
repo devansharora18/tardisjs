@@ -1,5 +1,5 @@
 {
-  "name": "tardisjs",
+  "name": "@devansharora18/tardisjs",
   "version": "0.0.2",
   "description": "Smaller on the outside. A ~5KB jQuery-inspired frontend framework.",
   "type": "module",
