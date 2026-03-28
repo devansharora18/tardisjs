@@ -23,7 +23,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build:lib": "rollup -c",
-    "build:bin": "rollup -c rollup.cli.config.js",
+    "build:bin": "rollup -c rollup.cli.config.js && chmod +x dist/bin/tardis.js dist/bin/create-tardis-app.js",
     "build": "npm run clean && npm run build:lib && npm run build:bin",
     "test": "vitest run",
     "test:watch": "vitest",
