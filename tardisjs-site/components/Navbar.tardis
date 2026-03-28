@@ -1,0 +1,15 @@
+blueprint Navbar {
+	ui {
+		<nav class="nav">
+			<div class="nav-inner">
+				<span class="nav-brand">tardisjs</span>
+				<div class="nav-links">
+					<a href="#features">Features</a>
+					<a href="#how-it-works">How It Works</a>
+					<a href="#comparison">vs React</a>
+					<a href="https://github.com/anthropics/tardisjs">GitHub</a>
+				</div>
+			</div>
+		</nav>
+	}
+}

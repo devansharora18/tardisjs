@@ -1,0 +1,9 @@
+blueprint Footer {
+	ui {
+		<footer class="footer">
+			<div class="container">
+				<p>tardisjs is open source. Built with care, shipped without magic.</p>
+			</div>
+		</footer>
+	}
+}

@@ -1,0 +1,12 @@
+blueprint LiveDemo {
+	ui {
+		<section class="section" id="demo">
+			<div class="container" style="text-align: center;">
+				<p class="section-label">Try it</p>
+				<h2 class="section-title" style="text-align: center;">Reactivity in action</h2>
+				<p class="section-desc" style="text-align: center; margin-left: auto; margin-right: auto;">This counter component is built with tardisjs. Click the buttons. State updates are instant because there is no diff cycle.</p>
+				<CounterDemo />
+			</div>
+		</section>
+	}
+}

@@ -1,0 +1,11 @@
+blueprint GetStarted {
+	ui {
+		<section class="section section-alt" id="get-started">
+			<div class="container cta">
+				<h2>Start building</h2>
+				<p>Create a new tardisjs project in one command.</p>
+				<div class="cta-install">npx create-tardis-app my-project</div>
+			</div>
+		</section>
+	}
+}

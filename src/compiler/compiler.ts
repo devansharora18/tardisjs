@@ -229,6 +229,23 @@ export function compileUI(raw: string, componentName: string, scriptCode?: strin
 	return lines.join("\n");
 }
 
+function rewriteElementSelectors(raw: string): string {
+	// {<tag id="x" class="y"></tag>} or {<tag id="x" class="y" />} → $el.querySelector('tag#x.y')
+	return raw.replace(
+		/\{<(\w+)((?:\s+[\w-]+="[^"]*")*)\s*(?:\/>|>\s*<\/\1>)\}/g,
+		(_match, tag: string, attrsRaw: string) => {
+			let selector = tag;
+			const idMatch = attrsRaw.match(/\bid="([^"]*)"/)
+			if (idMatch) selector = `${tag}#${idMatch[1]}`;
+			const classMatch = attrsRaw.match(/\bclass="([^"]*)"/)
+			if (classMatch) {
+				selector += classMatch[1].split(/\s+/).map(c => `.${c}`).join('');
+			}
+			return `$el.querySelector('${selector}')`;
+		},
+	);
+}
+
 function compileScript(ast: BlueprintNode): string {
 	const lines: string[] = [];
 	lines.push(`  // script`);
@@ -238,7 +255,8 @@ function compileScript(ast: BlueprintNode): string {
 	if (ast.state.length > 0) lines.push(`    const state = _state`);
 	if (ast.methods.length > 0) lines.push(`    const methods = _methods`);
 	if (ast.computed.length > 0) lines.push(`    const computed = _computed`);
-	for (const line of ast.script!.raw.split('\n')) {
+	const transformed = rewriteElementSelectors(ast.script!.raw);
+	for (const line of transformed.split('\n')) {
 		lines.push(`    ${line}`);
 	}
 	lines.push(`  })`);

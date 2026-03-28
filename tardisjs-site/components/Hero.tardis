@@ -1,0 +1,43 @@
+blueprint Hero {
+	ui {
+		<section class="hero">
+			<div class="container">
+				<div class="fade-up">
+					<div class="hero-badge">Blueprint-first framework</div>
+					<h1>Write UI as <span>blueprints</span>,<br/>ship plain JavaScript.</h1>
+					<p class="hero-sub">tardisjs compiles .tardis files into framework-free JavaScript with a small runtime. No virtual DOM. No build-time magic. Just explicit, fast UI.</p>
+				</div>
+				<div class="hero-actions fade-up fade-up-delay-1">
+					<a class="btn-primary" href="#get-started">Get Started</a>
+					<a class="btn-secondary" href="#comparison">Compare to React</a>
+				</div>
+				<div class="code-preview fade-up fade-up-delay-2">
+					<div class="code-preview-bar">
+						<div class="code-dot"></div>
+						<div class="code-dot"></div>
+						<div class="code-dot"></div>
+						<span class="code-filename">counter.tardis</span>
+					</div>
+					<pre id="hero-code"></pre>
+				</div>
+			</div>
+		</section>
+	}
+	script {
+		const code = `blueprint Counter {
+  state {
+    count: number = 0
+  }
+  methods {
+    increment: () => $update(state.count, state.count + 1)
+  }
+  ui {
+    <div>
+      <p>{state.count}</p>
+      <button @click={methods.increment}>+1</button>
+    </div>
+  }
+}`
+		{<pre id="hero-code"></pre>}.textContent = code
+	}
+}

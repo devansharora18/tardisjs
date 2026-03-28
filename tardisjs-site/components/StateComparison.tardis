@@ -1,0 +1,49 @@
+blueprint StateComparison {
+	ui {
+		<section class="section section-alt" id="reactivity">
+			<div class="container">
+				<p class="section-label">Reactivity</p>
+				<h2 class="section-title">State without the ceremony</h2>
+				<p class="section-desc">Declare state, write update expressions, and the compiler wires everything. No useState, no reducers, no action creators.</p>
+				<div class="code-split">
+					<div class="code-block">
+						<div class="code-block-header">tardisjs</div>
+						<pre id="code-tardis-state"></pre>
+					</div>
+					<div class="code-block">
+						<div class="code-block-header">React equivalent</div>
+						<pre id="code-react-state"></pre>
+					</div>
+				</div>
+			</div>
+		</section>
+	}
+	script {
+		const tardisState = `state {
+  count: number = 0
+  name: string = "world"
+}
+methods {
+  increment: () =>
+    $update(state.count, state.count + 1)
+}
+
+// Usage in UI:
+<p>{state.count}</p>
+<button @click={methods.increment}>+1</button>`
+
+		const reactState = `const [count, setCount] = useState(0)
+const [name, setName] = useState("world")
+
+function increment() {
+  setCount(prev => prev + 1)
+}
+
+// Usage in JSX:
+<p>{count}</p>
+<button onClick={increment}>+1</button>`
+
+		{<pre id="code-tardis-state"></pre>}.textContent = tardisState
+		{<pre id="code-react-state"></pre>}.textContent = reactState
+	}
+}

@@ -1,0 +1,56 @@
+blueprint VdomDebate {
+	ui {
+		<section class="section section-alt" id="vdom">
+			<div class="container">
+				<p class="section-label">Architecture</p>
+				<h2 class="section-title">The virtual DOM debate</h2>
+				<p class="section-desc">The virtual DOM was a good idea in 2013. In 2025, compilers can do better.</p>
+				<div class="code-split">
+					<div class="code-block">
+						<div class="code-block-header">Virtual DOM (React)</div>
+						<pre id="code-vdom"></pre>
+					</div>
+					<div class="code-block">
+						<div class="code-block-header">Direct binding (tardisjs)</div>
+						<pre id="code-direct"></pre>
+					</div>
+				</div>
+				<div class="steps" style="margin-top: 40px;">
+					<div class="step">
+						<h3>Why VDOM exists</h3>
+						<p>React introduced the virtual DOM to batch updates and minimize direct DOM manipulation, which was slow in 2013 browsers. The tradeoff: every render re-executes your component function and diffs two object trees.</p>
+					</div>
+					<div class="step">
+						<h3>The cost</h3>
+						<p>Diffing is O(n) on tree size. For most updates, you change one piece of state and one DOM node needs updating. But React still walks the whole subtree to figure that out.</p>
+					</div>
+					<div class="step">
+						<h3>Compiler alternative</h3>
+						<p>tardisjs knows at compile time which state binds to which DOM node. When state.count changes, only the text node showing count updates. No tree walk. No scheduling. One assignment.</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	}
+	script {
+		const vdomCode = `// On every state change:
+1. Component function re-executes
+2. New virtual tree is created
+3. Old and new trees are diffed
+4. Minimal DOM patches are applied
+
+// Even for a single text change,
+// React walks the entire subtree.`
+
+		const directCode = `// On state.count change:
+1. Proxy trap fires
+2. Bound updater runs:
+   textNode.data = state.count
+
+// One state change = one DOM write.
+// No tree. No diff. No scheduling.`
+
+		{<pre id="code-vdom"></pre>}.textContent = vdomCode
+		{<pre id="code-direct"></pre>}.textContent = directCode
+	}
+}

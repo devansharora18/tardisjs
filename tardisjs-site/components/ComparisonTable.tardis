@@ -1,0 +1,58 @@
+blueprint ComparisonTable {
+	ui {
+		<section class="section" id="comparison">
+			<div class="container">
+				<p class="section-label">Comparison</p>
+				<h2 class="section-title">tardisjs vs React</h2>
+				<p class="section-desc">Two different philosophies. React builds a virtual tree and diffs it. tardisjs compiles to direct DOM operations at build time.</p>
+				<table class="comparison">
+					<tr>
+						<th>Aspect</th>
+						<th>tardisjs</th>
+						<th>React</th>
+					</tr>
+					<tr>
+						<td>Rendering</td>
+						<td>Direct DOM binding <span class="tag">No VDOM</span></td>
+						<td>Virtual DOM + reconciliation</td>
+					</tr>
+					<tr>
+						<td>State</td>
+						<td>Proxy objects, fine-grained</td>
+						<td>useState / useReducer hooks</td>
+					</tr>
+					<tr>
+						<td>Reactivity</td>
+						<td>Automatic via Proxy traps</td>
+						<td>Manual dependency arrays</td>
+					</tr>
+					<tr>
+						<td>Component model</td>
+						<td>Blueprint files (.tardis)</td>
+						<td>JSX functions / classes</td>
+					</tr>
+					<tr>
+						<td>Styling</td>
+						<td>Co-located in blueprint</td>
+						<td>CSS modules / styled-components / etc</td>
+					</tr>
+					<tr>
+						<td>Routing</td>
+						<td>Built-in, file-based</td>
+						<td>react-router (third-party)</td>
+					</tr>
+					<tr>
+						<td>Build output</td>
+						<td>Plain JS + small runtime</td>
+						<td>React runtime (~40KB min+gz)</td>
+					</tr>
+					<tr>
+						<td>Learning curve</td>
+						<td>Blueprint syntax</td>
+						<td>JSX + hooks + ecosystem</td>
+					</tr>
+				</table>
+			</div>
+		</section>
+	}
+}

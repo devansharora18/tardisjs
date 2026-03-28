@@ -2,7 +2,7 @@ export default {
 	pages: './pages',
 	components: './components',
 	outDir: './dist',
-	port: 3002,
+	port: 3000,
 	title: 'tardisjs — blueprint-first frontend framework',
 	head: [
 		'<link rel="preconnect" href="https://fonts.googleapis.com">',
