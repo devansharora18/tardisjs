@@ -1,57 +1,139 @@
 blueprint ComparisonTable {
+	style {
+		.section { padding: 80px 0; }
+		.section-label {
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--accent);
+			margin-bottom: 8px;
+		}
+		.section-title {
+			font-size: 32px;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			margin-bottom: 12px;
+			line-height: 1.2;
+		}
+		.section-desc {
+			font-size: 16px;
+			color: var(--text-secondary);
+			max-width: 600px;
+			margin-bottom: 40px;
+			line-height: 1.5;
+		}
+		.container {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+		}
+		.compare-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 24px;
+		}
+		.compare-item {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			padding: 24px;
+		}
+		.compare-item h3 {
+			font-size: 16px;
+			font-weight: 700;
+			margin-bottom: 14px;
+			letter-spacing: -0.01em;
+		}
+		.compare-col {
+			margin-bottom: 14px;
+		}
+		.compare-col:last-child {
+			margin-bottom: 0;
+		}
+		.compare-label {
+			font-size: 11px;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			margin-bottom: 4px;
+		}
+		.compare-label-tardis {
+			color: var(--accent);
+		}
+		.compare-label-react {
+			color: var(--text-muted);
+		}
+		.compare-col p {
+			font-size: 14px;
+			color: var(--text-secondary);
+			line-height: 1.5;
+		}
+		.compare-divider {
+			height: 1px;
+			background: var(--border);
+			margin: 12px 0;
+		}
+		@media (max-width: 768px) {
+			.compare-grid { grid-template-columns: 1fr; }
+		}
+	}
 	ui {
 		<section class="section" id="comparison">
 			<div class="container">
 				<p class="section-label">Comparison</p>
 				<h2 class="section-title">tardisjs vs React</h2>
 				<p class="section-desc">Two different philosophies. React builds a virtual tree and diffs it. tardisjs compiles to direct DOM operations at build time.</p>
-				<table class="comparison">
-					<tr>
-						<th>Aspect</th>
-						<th>tardisjs</th>
-						<th>React</th>
-					</tr>
-					<tr>
-						<td>Rendering</td>
-						<td>Direct DOM binding <span class="tag">No VDOM</span></td>
-						<td>Virtual DOM + reconciliation</td>
-					</tr>
-					<tr>
-						<td>State</td>
-						<td>Proxy objects, fine-grained</td>
-						<td>useState / useReducer hooks</td>
-					</tr>
-					<tr>
-						<td>Reactivity</td>
-						<td>Automatic via Proxy traps</td>
-						<td>Manual dependency arrays</td>
-					</tr>
-					<tr>
-						<td>Component model</td>
-						<td>Blueprint files (.tardis)</td>
-						<td>JSX functions / classes</td>
-					</tr>
-					<tr>
-						<td>Styling</td>
-						<td>Co-located in blueprint</td>
-						<td>CSS modules / styled-components / etc</td>
-					</tr>
-					<tr>
-						<td>Routing</td>
-						<td>Built-in, file-based</td>
-						<td>react-router (third-party)</td>
-					</tr>
-					<tr>
-						<td>Build output</td>
-						<td>Plain JS + small runtime</td>
-						<td>React runtime (~40KB min+gz)</td>
-					</tr>
-					<tr>
-						<td>Learning curve</td>
-						<td>Blueprint syntax</td>
-						<td>JSX + hooks + ecosystem</td>
-					</tr>
-				</table>
+				<div class="compare-grid">
+					<div class="compare-item">
+						<h3>Rendering</h3>
+						<div class="compare-col">
+							<p class="compare-label compare-label-tardis">tardisjs</p>
+							<p>The compiler analyzes your template at build time and generates code that creates DOM nodes directly. When state changes, a Proxy trap fires and updates the exact text node or attribute that depends on that state field. There is no virtual tree, no diff algorithm, no reconciliation pass. One state change equals one DOM write.</p>
+						</div>
+						<div class="compare-divider"></div>
+						<div class="compare-col">
+							<p class="compare-label compare-label-react">React</p>
+							<p>Every state update re-executes the component function to produce a new virtual DOM tree. React then diffs the old and new trees (reconciliation) and applies the minimal set of DOM mutations. This is O(n) on tree size even if only one value changed. Fiber scheduling adds further complexity.</p>
+						</div>
+					</div>
+					<div class="compare-item">
+						<h3>State management</h3>
+						<div class="compare-col">
+							<p class="compare-label compare-label-tardis">tardisjs</p>
+							<p>State is declared as typed fields inside a state block. The compiler wraps them in a JavaScript Proxy. Mutations use $update(state.field, newValue) which triggers only the bindings that read that field. No setters, no reducers, no action types, no immutable update patterns.</p>
+						</div>
+						<div class="compare-divider"></div>
+						<div class="compare-col">
+							<p class="compare-label compare-label-react">React</p>
+							<p>State is managed through hooks like useState and useReducer. Each call returns a value and a setter. Updates must be immutable (spread operators everywhere). Complex state often requires useReducer or external libraries like Zustand, Redux, or Jotai.</p>
+						</div>
+					</div>
+					<div class="compare-item">
+						<h3>Component model</h3>
+						<div class="compare-col">
+							<p class="compare-label compare-label-tardis">tardisjs</p>
+							<p>Each .tardis file is a blueprint with explicit sections: props, state, computed, methods, events, style, ui, script. The structure is enforced by the parser. You always know where to find things. Components are auto-registered by the build system.</p>
+						</div>
+						<div class="compare-divider"></div>
+						<div class="compare-col">
+							<p class="compare-label compare-label-react">React</p>
+							<p>Components are JavaScript functions that return JSX. State, effects, refs, and memoization are mixed into the function body through hooks. The structure is freeform, which gives flexibility but means every codebase organizes differently.</p>
+						</div>
+					</div>
+					<div class="compare-item">
+						<h3>Routing and tooling</h3>
+						<div class="compare-col">
+							<p class="compare-label compare-label-tardis">tardisjs</p>
+							<p>Routing is built in and file-based. Drop a .tardis file in the pages/ directory and it becomes a route. The CLI handles dev server, hot reload, and production builds. No configuration files, no plugin ecosystem to navigate.</p>
+						</div>
+						<div class="compare-divider"></div>
+						<div class="compare-col">
+							<p class="compare-label compare-label-react">React</p>
+							<p>React has no built-in routing. You choose between react-router, TanStack Router, or a framework like Next.js. Build tooling means choosing between Vite, Webpack, Parcel, or a meta-framework. Each choice adds its own configuration layer.</p>
+						</div>
+					</div>
+				</div>
 			</div>
 		</section>
 	}

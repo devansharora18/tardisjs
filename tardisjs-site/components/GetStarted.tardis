@@ -1,4 +1,43 @@
 blueprint GetStarted {
+	style {
+		.section { padding: 80px 0; }
+		.section-alt {
+			background: var(--surface);
+			border-top: 1px solid var(--border);
+			border-bottom: 1px solid var(--border);
+		}
+		.cta {
+			text-align: center;
+			padding: 80px 0 100px;
+		}
+		.cta h2 {
+			font-size: 28px;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			margin-bottom: 12px;
+		}
+		.cta p {
+			font-size: 16px;
+			color: var(--text-secondary);
+			margin-bottom: 28px;
+		}
+		.cta-install {
+			display: inline-block;
+			background: var(--code-bg);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 12px 24px;
+			font-family: 'JetBrains Mono', monospace;
+			font-size: 14px;
+			color: var(--text);
+			user-select: all;
+		}
+		.container {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+		}
+	}
 	ui {
 		<section class="section section-alt" id="get-started">
 			<div class="container cta">

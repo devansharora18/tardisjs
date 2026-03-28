@@ -1,10 +1,99 @@
 blueprint StateComparison {
+	style {
+		.section { padding: 80px 0; }
+		.section-alt {
+			background: var(--surface);
+			border-top: 1px solid var(--border);
+			border-bottom: 1px solid var(--border);
+		}
+		.section-label {
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--accent);
+			margin-bottom: 8px;
+		}
+		.section-title {
+			font-size: 32px;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			margin-bottom: 12px;
+			line-height: 1.2;
+		}
+		.section-desc {
+			font-size: 16px;
+			color: var(--text-secondary);
+			max-width: 600px;
+			margin-bottom: 40px;
+			line-height: 1.5;
+		}
+		.container {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+		}
+		.code-split {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 20px;
+			margin-top: 32px;
+		}
+		.code-block {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			overflow: hidden;
+		}
+		.code-block-header {
+			padding: 10px 16px;
+			background: var(--code-bg);
+			border-bottom: 1px solid var(--border);
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--text-muted);
+			font-family: 'JetBrains Mono', monospace;
+		}
+		.code-block pre {
+			padding: 16px;
+			font-size: 13px;
+			line-height: 1.55;
+			overflow-x: auto;
+			color: var(--text);
+		}
+		.react-points {
+			margin-top: 32px;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 20px;
+		}
+		.react-point {
+			padding: 20px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+		}
+		.react-point h4 {
+			font-size: 14px;
+			font-weight: 600;
+			margin-bottom: 6px;
+		}
+		.react-point p {
+			font-size: 13px;
+			color: var(--text-secondary);
+			line-height: 1.5;
+		}
+		@media (max-width: 768px) {
+			.code-split { grid-template-columns: 1fr; }
+			.react-points { grid-template-columns: 1fr; }
+		}
+	}
 	ui {
 		<section class="section section-alt" id="reactivity">
 			<div class="container">
 				<p class="section-label">Reactivity</p>
 				<h2 class="section-title">State without the ceremony</h2>
-				<p class="section-desc">Declare state, write update expressions, and the compiler wires everything. No useState, no reducers, no action creators.</p>
+				<p class="section-desc">Declare state, write update expressions, and the compiler wires the reactivity. No hooks, no dependency arrays, no stale closures.</p>
 				<div class="code-split">
 					<div class="code-block">
 						<div class="code-block-header">tardisjs</div>
@@ -15,33 +104,94 @@ blueprint StateComparison {
 						<pre id="code-react-state"></pre>
 					</div>
 				</div>
+				<div class="react-points">
+					<div class="react-point">
+						<h4>No useState boilerplate</h4>
+						<p>Declare state as typed fields. The compiler generates Proxy-based reactive objects automatically. You write state.count, not const [count, setCount] = useState(0).</p>
+					</div>
+					<div class="react-point">
+						<h4>No dependency arrays</h4>
+						<p>React requires you to manually list dependencies in useEffect, useMemo, and useCallback. tardisjs tracks dependencies through Proxy traps at runtime. Nothing to forget.</p>
+					</div>
+					<div class="react-point">
+						<h4>No stale closures</h4>
+						<p>React hooks capture values at render time, causing bugs when callbacks reference old state. tardisjs always reads the current value through the Proxy.</p>
+					</div>
+					<div class="react-point">
+						<h4>Computed values are automatic</h4>
+						<p>Define a computed field and it re-evaluates when its dependencies change. No useMemo with a dependency array that might go stale.</p>
+					</div>
+				</div>
 			</div>
 		</section>
 	}
 	script {
-		const tardisState = `state {
-  count: number = 0
-  name: string = "world"
-}
-methods {
-  increment: () =>
-    $update(state.count, state.count + 1)
-}
+		const tardisState = `blueprint TodoApp {
+  state {
+    items: array = []
+    input: string = ""
+  }
+  computed {
+    remaining: () => state.items.filter(
+      t => !t.done
+    ).length
+  }
+  methods {
+    add: () => {
+      $update(state.items, [
+        ...state.items,
+        { text: state.input, done: false }
+      ])
+      $update(state.input, "")
+    }
+    toggle: (i) =>
+      $update(state.items[i].done,
+        !state.items[i].done)
+  }
+  ui {
+    <p>{computed.remaining} remaining</p>
+    <input value={state.input}
+      @input={methods.setInput} />
+    <button @click={methods.add}>Add</button>
+  }
+}`
 
-// Usage in UI:
-<p>{state.count}</p>
-<button @click={methods.increment}>+1</button>`
+		const reactState = `function TodoApp() {
+  const [items, setItems] = useState([])
+  const [input, setInput] = useState("")
 
-		const reactState = `const [count, setCount] = useState(0)
-const [name, setName] = useState("world")
+  const remaining = useMemo(
+    () => items.filter(t => !t.done).length,
+    [items]  // forget this and it breaks
+  )
 
-function increment() {
-  setCount(prev => prev + 1)
-}
+  function add() {
+    setItems(prev => [
+      ...prev,
+      { text: input, done: false }
+    ])
+    setInput("")
+  }
 
-// Usage in JSX:
-<p>{count}</p>
-<button onClick={increment}>+1</button>`
+  function toggle(i) {
+    setItems(prev => prev.map(
+      (t, idx) => idx === i
+        ? { ...t, done: !t.done }
+        : t
+    ))
+  }
+
+  return (
+    <>
+      <p>{remaining} remaining</p>
+      <input value={input}
+        onChange={e => setInput(
+          e.target.value
+        )} />
+      <button onClick={add}>Add</button>
+    </>
+  )
+}`
 
 		{<pre id="code-tardis-state"></pre>}.textContent = tardisState
 		{<pre id="code-react-state"></pre>}.textContent = reactState

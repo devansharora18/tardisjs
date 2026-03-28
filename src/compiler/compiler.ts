@@ -44,7 +44,7 @@ export function compile(ast: BlueprintNode): string {
 		lines.push(``);
 	}
 
-	if (ast.style) {
+	if (ast.style && ast.style.mode !== 'raw') {
 		lines.push(compileStyle(ast.style));
 		lines.push(``);
 	}
@@ -57,7 +57,11 @@ export function compile(ast: BlueprintNode): string {
 	);
 	lines.push(``);
 
-	const scriptCode = ast.script ? compileScript(ast) : undefined;
+	let scriptCode = ast.script ? compileScript(ast) : undefined;
+	if (ast.style && ast.style.mode === 'raw' && ast.style.raw) {
+		const cssInjection = compileRawStyle(ast.style.raw);
+		scriptCode = scriptCode ? `${scriptCode}\n${cssInjection}` : cssInjection;
+	}
 	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode));
 	lines.push(`}`);
 
@@ -197,6 +201,18 @@ function compileStyle(style: StyleNode): string {
 		rules.join(",\n"),
 		`  }, _props, _state)`,
 	].join("\n");
+}
+
+function compileRawStyle(raw: string): string {
+	const escaped = raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+	const lines: string[] = [];
+	lines.push(`  // raw style`);
+	lines.push(`  ;(() => {`);
+	lines.push(`    const _style = document.createElement('style')`);
+	lines.push(`    _style.textContent = \`${escaped}\``);
+	lines.push(`    document.head.appendChild(_style)`);
+	lines.push(`  })()`);
+	return lines.join('\n');
 }
 
 // ── ref rewriter ───────────────────────────────────────────────────────────
@@ -364,7 +380,7 @@ function compileElement(raw: string, depth: number): string {
 				`${indent}return $runtime.text(() => ${rewriteRefs(trimmed.slice(1, -1).trim())})`,
 			);
 		} else {
-			lines.push(`${indent}return $runtime.text(${JSON.stringify(trimmed)})`);
+			lines.push(`${indent}return $runtime.text(${JSON.stringify(decodeEntities(trimmed))})`);
 		}
 		return lines.join("\n");
 	}
@@ -372,7 +388,7 @@ function compileElement(raw: string, depth: number): string {
 	const openTagStr = trimmed.slice(0, openTagEndIdx + 1);
 	const tagNameMatch = openTagStr.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
 	if (!tagNameMatch) {
-		lines.push(`${indent}return $runtime.text(${JSON.stringify(trimmed)})`);
+		lines.push(`${indent}return $runtime.text(${JSON.stringify(decodeEntities(trimmed))})`);
 		return lines.join("\n");
 	}
 
@@ -395,8 +411,13 @@ function compileElement(raw: string, depth: number): string {
 
 	const children = splitChildren(innerContent);
 	let childIndex = 0;
-	for (const child of children) {
-		const ct = child.trim();
+	for (let ci = 0; ci < children.length; ci++) {
+		const child = children[ci];
+		// normalize whitespace: trim first child's leading, last child's trailing
+		// but preserve boundary spaces for middle children (e.g. "text " before <span>)
+		let ct = child.replace(/\s*\n\s*/g, ' ');
+		if (ci === 0) ct = ct.replace(/^\s+/, '');
+		if (ci === children.length - 1) ct = ct.replace(/\s+$/, '');
 		if (!ct) continue;
 
     if (ct.startsWith('{') && ct.endsWith('}') && !ct.startsWith('{<')) {
@@ -405,12 +426,17 @@ function compileElement(raw: string, depth: number): string {
       lines.push(`${indent}$runtime.bind(_text_${depth}, 'textContent', () => String(${expr}))`)
       lines.push(`${indent}_el_${depth}.appendChild(_text_${depth})`)
 		} else if (
-			ct.startsWith('<') ||
-			ct.startsWith('{<') ||
-			ct.startsWith('$if(') ||
-			ct.startsWith('$each(') ||
-			ct.startsWith('$show(')
+			ct.trim().startsWith('<') ||
+			ct.trim().startsWith('{<') ||
+			ct.trim().startsWith('$if(') ||
+			ct.trim().startsWith('$each(') ||
+			ct.trim().startsWith('$show(')
 		) {
+			// emit leading whitespace as a text node (preserves spaces between text and inline elements)
+			const wsMatch = ct.match(/^(\s+)/)
+			if (wsMatch) {
+				lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(" "))`)
+			}
 			const childVar = `_child_${depth}_${childIndex}`
 			lines.push(`${indent}const ${childVar} = (() => {`)
 			lines.push(compileUINode(ct, depth + 1))
@@ -427,7 +453,7 @@ function compileElement(raw: string, depth: number): string {
 				hasInterpolation = true
 				const textBefore = ct.slice(cursor, match.index)
 				if (textBefore) {
-					lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(textBefore)}))`)
+					lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(decodeEntities(textBefore))}))`)
 				}
 
 				const textVar = `_text_${depth}_${childIndex}_${interpolationIndex}`
@@ -443,10 +469,10 @@ function compileElement(raw: string, depth: number): string {
 			if (hasInterpolation) {
 				const tail = ct.slice(cursor)
 				if (tail) {
-					lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(tail)}))`)
+					lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(decodeEntities(tail))}))`)
 				}
 			} else {
-				lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(ct)}))`)
+				lines.push(`${indent}_el_${depth}.appendChild(document.createTextNode(${JSON.stringify(decodeEntities(ct))}))`)
 			}
     }
 		childIndex++
@@ -670,6 +696,24 @@ function findInnerContent(raw: string, tag: string, startFrom: number): string {
 	return raw.slice(startFrom, i).trim();
 }
 
+function decodeEntities(s: string): string {
+	return s
+		.replace(/&#(\d+);/g, (_m, code) => String.fromCharCode(Number(code)))
+		.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex) => String.fromCharCode(parseInt(hex, 16)))
+		.replace(/&amp;/g, '&')
+		.replace(/&lt;/g, '<')
+		.replace(/&gt;/g, '>')
+		.replace(/&quot;/g, '"')
+		.replace(/&apos;/g, "'")
+		.replace(/&nbsp;/g, '\u00A0')
+}
+
+function normalizeWs(s: string): string {
+	// collapse newlines (and surrounding whitespace) to a single space
+	// but preserve meaningful spaces at word/element boundaries
+	return s.replace(/\s*\n\s*/g, ' ');
+}
+
 function splitChildren(raw: string): string[] {
 	const parts: string[] = [];
 	let depth = 0;
@@ -682,13 +726,31 @@ function splitChildren(raw: string): string[] {
 		if (ch === "<") {
 			if (raw[i + 1] === "/") {
 				if (depth === 0) {
-					if (current.trim()) parts.push(current.trim());
+					// closing tag for PARENT element — push current and skip tag
+					const n = normalizeWs(current);
+					if (n.trim()) parts.push(n);
 					current = "";
 					while (i < raw.length && raw[i] !== ">") i++;
 					i++;
 					continue;
 				}
 				depth--;
+				if (depth === 0) {
+					// just closed a CHILD element back to top level
+					// accumulate through closing tag end, then split
+					while (i < raw.length && raw[i] !== ">") {
+						current += raw[i];
+						i++;
+					}
+					if (i < raw.length) {
+						current += raw[i]; // the >
+						i++;
+					}
+					const n = normalizeWs(current);
+					if (n.trim()) parts.push(n);
+					current = "";
+					continue;
+				}
 			} else if (raw[i + 1] !== "!") {
 				if (!isSelfClosingFrom(raw, i)) {
 					depth++;
@@ -709,14 +771,16 @@ function splitChildren(raw: string): string[] {
 				next.startsWith("$") ||
 				next.startsWith("{")
 			) {
-				parts.push(current.trim());
+				const n = normalizeWs(current);
+				if (n.trim()) parts.push(n);
 				current = "";
 			}
 		}
 	}
 
-	if (current.trim()) parts.push(current.trim());
-	return parts.filter(Boolean);
+	const n = normalizeWs(current);
+	if (n.trim()) parts.push(n);
+	return parts.filter(p => p.trim().length > 0);
 }
 
 // look-ahead to determine if a tag starting at tagStart is self-closing (ends with />)

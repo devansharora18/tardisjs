@@ -391,6 +391,12 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
   function parseStyle(): StyleNode {
     expect('STYLE')
 
+    // raw CSS mode: style { ... } without (mode)
+    if (check('RAW_JSX')) {
+      const rawTok = expect('RAW_JSX')
+      return { mode: 'raw', rules: [], raw: rawTok.value }
+    }
+
     const modeTok = expect('STYLE_MODE')
     const mode = modeTok.value as 'tailwind' | 'css'
 

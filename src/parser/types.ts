@@ -55,8 +55,9 @@ export type StyleRule = {
 }
 
 export type StyleNode = {
-  mode: 'tailwind' | 'css'
+  mode: 'tailwind' | 'css' | 'raw'
   rules: StyleRule[]
+  raw?: string
 }
 
 export type UINode = {

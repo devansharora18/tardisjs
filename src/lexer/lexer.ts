@@ -127,7 +127,7 @@ export function lex(source: string): Token[] {
 
     if (ch === '{') {
       advance()
-      if (lastKeyword === 'UI' || lastKeyword === 'SCRIPT') {
+      if (lastKeyword === 'UI' || lastKeyword === 'SCRIPT' || lastKeyword === 'STYLE') {
         const raw = readRawBlock()
         emit('RAW_JSX', raw)
         lastKeyword = null
@@ -187,6 +187,7 @@ export function lex(source: string): Token[] {
           const modeStartCol = col
           const mode = readStyleMode()
           tokens.push({ type: 'STYLE_MODE', value: mode, line: modeStartLine, col: modeStartCol })
+          lastKeyword = null
         }
       } else {
         emit('IDENT', ident)

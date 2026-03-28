@@ -7,6 +7,75 @@ blueprint CounterDemo {
 		decrement: () => $update(state.count, state.count - 1)
 		reset: () => $update(state.count, 0)
 	}
+	style {
+		.demo-widget {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			overflow: hidden;
+			max-width: 400px;
+			margin: 0 auto;
+		}
+		.demo-header {
+			padding: 12px 18px;
+			background: var(--code-bg);
+			border-bottom: 1px solid var(--border);
+		}
+		.demo-label {
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--accent);
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+		}
+		.demo-sublabel {
+			display: block;
+			font-size: 12px;
+			color: var(--text-muted);
+			margin-top: 2px;
+		}
+		.demo-body {
+			padding: 28px 18px;
+			text-align: center;
+		}
+		.demo-value {
+			font-size: 48px;
+			font-weight: 700;
+			letter-spacing: -0.03em;
+			color: var(--text);
+			margin-bottom: 20px;
+			font-variant-numeric: tabular-nums;
+		}
+		.demo-controls {
+			display: flex;
+			gap: 8px;
+			justify-content: center;
+		}
+		.demo-btn {
+			background: var(--code-bg);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 8px 18px;
+			font-size: 14px;
+			font-weight: 600;
+			color: var(--text);
+			cursor: pointer;
+			transition: border-color 0.15s;
+			font-family: inherit;
+		}
+		.demo-btn:hover {
+			border-color: var(--text-muted);
+		}
+		.demo-btn-accent {
+			background: var(--accent);
+			border-color: var(--accent);
+			color: #ffffff;
+		}
+		.demo-btn-accent:hover {
+			background: var(--accent-hover);
+			border-color: var(--accent-hover);
+		}
+	}
 	ui {
 		<div class="demo-widget">
 			<div class="demo-header">

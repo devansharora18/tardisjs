@@ -1,4 +1,21 @@
 blueprint Footer {
+	style {
+		.footer {
+			border-top: 1px solid var(--border);
+			padding: 32px 0;
+			text-align: center;
+			font-size: 13px;
+			color: var(--text-muted);
+		}
+		.footer a {
+			color: var(--text-secondary);
+		}
+		.container {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+		}
+	}
 	ui {
 		<footer class="footer">
 			<div class="container">
