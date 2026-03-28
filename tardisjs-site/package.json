@@ -9,6 +9,6 @@
     "preview": "tardis preview"
   },
   "dependencies": {
-    "@devansharora18/tardisjs": "file:.."
+    "@devansharora18/tardisjs": "latest"
   }
 }
