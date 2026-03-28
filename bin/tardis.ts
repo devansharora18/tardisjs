@@ -345,12 +345,19 @@ ${hmrSnippet}
 
 async function writeRuntimeModules(outDir: string): Promise<void> {
 	const cliDir = path.dirname(fileURLToPath(import.meta.url))
-	const frameworkRoot = path.resolve(cliDir, '..')
-	const runtimeSrcDir = path.join(frameworkRoot, 'src', 'runtime')
 	const runtimeOutDir = path.join(outDir, 'runtime')
+	const rootCandidates = [
+		path.resolve(cliDir, '..'),
+		path.resolve(cliDir, '../..'),
+	]
 
-	if (await pathExists(runtimeSrcDir)) {
-		const runtimeFiles = (await fsp.readdir(runtimeSrcDir)).filter((f) => f.endsWith('.ts'))
+	for (const root of rootCandidates) {
+		const runtimeSrcDir = path.join(root, 'src', 'runtime')
+		if (!(await pathExists(runtimeSrcDir))) continue
+
+		const runtimeFiles = (await fsp.readdir(runtimeSrcDir)).filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
+		if (runtimeFiles.length === 0) continue
+
 		await ensureDir(runtimeOutDir)
 
 		const ts = await getTypeScriptModule()
@@ -380,12 +387,22 @@ async function writeRuntimeModules(outDir: string): Promise<void> {
 		return
 	}
 
-	const runtimeDist = path.join(frameworkRoot, 'dist', 'runtime', 'index.mjs')
-	if (await pathExists(runtimeDist)) {
-		const built = await fsp.readFile(runtimeDist, 'utf8')
-		await fsp.writeFile(path.join(outDir, 'tardis-runtime.js'), built, 'utf8')
-		await fsp.writeFile(path.join(outDir, 'runtime.js'), built, 'utf8')
-		return
+	for (const root of rootCandidates) {
+		const distCandidates = [
+			path.join(root, 'runtime', 'index.mjs'),
+			path.join(root, 'dist', 'runtime', 'index.mjs'),
+		]
+
+		for (const runtimeDist of distCandidates) {
+			if (!(await pathExists(runtimeDist))) continue
+			const built = await fsp.readFile(runtimeDist, 'utf8')
+			await ensureDir(runtimeOutDir)
+			await fsp.writeFile(path.join(runtimeOutDir, 'index.js'), built, 'utf8')
+			const entry = `export * from './runtime/index.js'\n`
+			await fsp.writeFile(path.join(outDir, 'tardis-runtime.js'), entry, 'utf8')
+			await fsp.writeFile(path.join(outDir, 'runtime.js'), entry, 'utf8')
+			return
+		}
 	}
 
 	throw new CLIError('TardisError: runtime source not found\n  Reinstall tardisjs or run package build')
@@ -806,7 +823,7 @@ function isDirectExecution(): boolean {
 	try {
 		if (!process.argv[1] || !fs.existsSync(process.argv[1])) return false
 		const executableName = path.basename(process.argv[1])
-		if (!/^tardis(?:\.js)?$/.test(executableName)) return false
+		if (!/^tardis(?:\.(?:js|ts|mjs|cjs))?$/.test(executableName)) return false
 		const argvRealPath = fs.realpathSync(process.argv[1])
 		const moduleRealPath = fs.realpathSync(fileURLToPath(import.meta.url))
 		return argvRealPath === moduleRealPath
