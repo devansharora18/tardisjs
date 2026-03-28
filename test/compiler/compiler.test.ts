@@ -725,6 +725,18 @@ describe('ui compiler', () => {
       expect(out).toContain('$runtime.bindClass(')
     })
 
+    it('does not reference _styles for reactive class binding without style block', () => {
+      const out = compileSource(`
+        blueprint Navbar {
+          state { menuOpen: boolean = false }
+          ui { <div class={state.menuOpen ? "open" : "closed"}>x</div> }
+        }
+      `)
+      expect(out).toContain('$runtime.bindClass(')
+      expect(out).not.toContain('resolveStyles(_styles')
+      expect(out).not.toContain('_styles ?')
+    })
+
     it('compiles reactive attribute binding', () => {
       const out = compileSource(`
         blueprint Input {

@@ -62,7 +62,8 @@ export function compile(ast: BlueprintNode): string {
 		const cssInjection = compileRawStyle(ast.style.raw);
 		scriptCode = scriptCode ? `${scriptCode}\n${cssInjection}` : cssInjection;
 	}
-	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode));
+	const hasCompiledStyles = !!(ast.style && ast.style.mode !== 'raw');
+	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode, hasCompiledStyles));
 	lines.push(`}`);
 
 	return lines.join("\n");
@@ -231,11 +232,11 @@ function rewriteRefs(expr: string): string {
 
 // ── ui compiler ────────────────────────────────────────────────────────────
 
-export function compileUI(raw: string, componentName: string, scriptCode?: string): string {
+export function compileUI(raw: string, componentName: string, scriptCode?: string, hasStyles = false): string {
 	const lines: string[] = [];
 	lines.push(`  // ui`);
 	lines.push(`  const _root = (() => {`);
-	lines.push(compileUINode(raw.trim(), 2, false));
+	lines.push(compileUINode(raw.trim(), 2, false, hasStyles));
 	lines.push(`  })()`);
 	if (scriptCode) {
 		lines.push(``);
@@ -279,7 +280,7 @@ function compileScript(ast: BlueprintNode): string {
 	return lines.join('\n');
 }
 
-function compileUINode(raw: string, depth: number, preserveWs: boolean): string {
+function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
 
@@ -287,7 +288,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean): string 
 	const ifMatch = raw.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (ifMatch) {
 		const condition = rewriteRefs(ifMatch[1].trim());
-		const inner = compileUINode(ifMatch[2].trim(), depth + 1, preserveWs);
+		const inner = compileUINode(ifMatch[2].trim(), depth + 1, preserveWs, hasStyles);
 		lines.push(`${indent}return $runtime.if(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -301,7 +302,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean): string 
 	if (eachMatch) {
 		const arrayRef = rewriteRefs(eachMatch[1].trim());
 		const itemVar = eachMatch[2];
-		const inner = compileUINode(eachMatch[3].trim(), depth + 1, preserveWs);
+		const inner = compileUINode(eachMatch[3].trim(), depth + 1, preserveWs, hasStyles);
 		lines.push(`${indent}return $runtime.each(() => ${arrayRef}, (${itemVar}) => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -312,7 +313,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean): string 
 	const showMatch = raw.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (showMatch) {
 		const condition = rewriteRefs(showMatch[1].trim());
-		const inner = compileUINode(showMatch[2].trim(), depth + 1, preserveWs);
+		const inner = compileUINode(showMatch[2].trim(), depth + 1, preserveWs, hasStyles);
 		lines.push(`${indent}return $runtime.show(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -324,7 +325,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean): string 
 	if (chainMatch) {
 		const innerEl = chainMatch[1].trim();
 		const chainStr = chainMatch[2].trim();
-		const elCode = compileElement(innerEl, depth, preserveWs);
+		const elCode = compileElement(innerEl, depth, preserveWs, hasStyles);
 		const chains = parseChains(chainStr);
 		lines.push(`${indent}const _chained = (() => {`);
 		lines.push(elCode);
@@ -338,10 +339,10 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean): string 
 		return lines.join("\n");
 	}
 
-  return compileElement(raw, depth, preserveWs)
+	return compileElement(raw, depth, preserveWs, hasStyles)
 }
 
-function compileElement(raw: string, depth: number, preserveWs: boolean): string {
+function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
 	const trimmed = raw.trim();
@@ -364,7 +365,7 @@ function compileElement(raw: string, depth: number, preserveWs: boolean): string
 				`${indent}const _el_${depth} = document.createElement('${tag}')`,
 			);
 			for (const attr of parseAttributes(attrsRaw)) {
-				lines.push(...compileAttr(attr, depth, indent));
+				lines.push(...compileAttr(attr, depth, indent, hasStyles));
 			}
 			lines.push(`${indent}return _el_${depth}`);
 			return lines.join("\n");
@@ -409,7 +410,7 @@ function compileElement(raw: string, depth: number, preserveWs: boolean): string
 
 	lines.push(`${indent}const _el_${depth} = document.createElement('${tag}')`);
 	for (const attr of parseAttributes(attrsRaw)) {
-		lines.push(...compileAttr(attr, depth, indent));
+		lines.push(...compileAttr(attr, depth, indent, hasStyles));
 	}
 
 	const children = splitChildren(innerContent, childPreserveWs);
@@ -451,7 +452,7 @@ function compileElement(raw: string, depth: number, preserveWs: boolean): string
 			}
 			const childVar = `_child_${depth}_${childIndex}`
 			lines.push(`${indent}const ${childVar} = (() => {`)
-			lines.push(compileUINode(ct, depth + 1, childPreserveWs))
+			lines.push(compileUINode(ct, depth + 1, childPreserveWs, hasStyles))
 			lines.push(`${indent}})()`)
 			lines.push(`${indent}if (${childVar} instanceof Node) _el_${depth}.appendChild(${childVar})`)
     } else {
@@ -498,6 +499,7 @@ function compileAttr(
 	attr: { name: string; value: string },
 	depth: number,
 	indent: string,
+	hasStyles: boolean,
 ): string[] {
 	const lines: string[] = [];
 	if (attr.name.startsWith("@")) {
@@ -511,9 +513,15 @@ function compileAttr(
 	} else if (attr.name === "class") {
 		if (isReactive(attr.value)) {
 			const expr = rewriteRefs(stripBraces(attr.value));
-			lines.push(
-				`${indent}$runtime.bindClass(_el_${depth}, () => _styles ? $runtime.resolveStyles(_styles, ${expr}) : ${expr})`,
-			);
+			if (hasStyles) {
+				lines.push(
+					`${indent}$runtime.bindClass(_el_${depth}, () => _styles ? $runtime.resolveStyles(_styles, ${expr}) : ${expr})`,
+				);
+			} else {
+				lines.push(
+					`${indent}$runtime.bindClass(_el_${depth}, () => ${expr})`,
+				);
+			}
 		} else {
 			lines.push(
 				`${indent}_el_${depth}.className = ${JSON.stringify(attr.value)}`,
