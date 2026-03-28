@@ -395,6 +395,35 @@ describe('compiler', () => {
       `)
       expect(out).not.toContain('$runtime.events(')
     })
+
+    it('compiles multiline arrow event bodies without nested arrow wrappers', () => {
+      const out = compileSource(`
+        blueprint Navbar {
+          state {
+            menuOpen: boolean = false
+            themeDark: boolean = false
+          }
+          methods {
+            toggleTheme: () => state.themeDark ? (document.documentElement.removeAttribute('data-theme'), localStorage.setItem('tardis-theme', 'light'), $update(state.themeDark, false)) : (document.documentElement.setAttribute('data-theme', 'dark'), localStorage.setItem('tardis-theme', 'dark'), $update(state.themeDark, true))
+          }
+          events {
+            onMount: () => {
+              const stored = localStorage.getItem('tardis-theme')
+              if (stored === 'dark') {
+                $update(state.themeDark, true)
+              }
+            }
+          }
+          ui { <div /> }
+        }
+      `)
+
+      expect(out).toContain(`localStorage.setItem("tardis-theme", "light")`)
+      expect(out).toContain(`localStorage.getItem("tardis-theme")`)
+      expect(out).toContain('onMount: () => {')
+      expect(out).not.toContain('onMount: () => { () => {')
+      expect(out).not.toContain('tardis - theme')
+    })
   })
 
   // ── style ─────────────────────────────────────────────────────────────────

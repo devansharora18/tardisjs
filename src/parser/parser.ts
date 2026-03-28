@@ -55,12 +55,41 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
     return false
   }
 
+  function isWordLike(type: TokenType): boolean {
+    return [
+      'IDENT',
+      'NUMBER',
+      'BOOLEAN',
+      'STRING',
+      'BLUEPRINT',
+      'PROPS',
+      'STATE',
+      'COMPUTED',
+      'METHODS',
+      'EVENTS',
+      'STYLE',
+      'UI',
+      'SCRIPT',
+    ].includes(type)
+  }
+
+  function tokenText(tok: Token): string {
+    if (tok.type === 'STRING') return JSON.stringify(tok.value)
+    return tok.value
+  }
+
+  function needsSpace(prev: Token | null, curr: Token): boolean {
+    if (!prev) return false
+    return isWordLike(prev.type) && isWordLike(curr.type)
+  }
+
   // ── expression builder ─────────────────────────────────────────────────
   // reads tokens until a stopping condition and builds a raw expression string
   // preserves spaces around operators and commas
 
   function buildExpr(stopAt: TokenType[]): string {
     let expr = ''
+    let prev: Token | null = null
     while (!stopAt.includes(peek().type) && !check('EOF')) {
       const tok = peek()
       if (tok.type === 'RAW_EXPR') {
@@ -68,9 +97,11 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
       } else if (tok.type === 'COMMA') {
         expr += ', '
       } else {
-        expr += tok.value
+        if (needsSpace(prev, tok)) expr += ' '
+        expr += tokenText(tok)
       }
       advance()
+      prev = tok
     }
     return expr.trim()
   }
@@ -80,12 +111,13 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
   function buildBody(): string {
     let raw = ''
     let depth = 0
+    let prev: Token | null = null
 
     while (!check('EOF')) {
       const tok = peek()
 
-      if (tok.value === '{') depth++
-      if (tok.value === '}') {
+      if (tok.type === 'LBRACE') depth++
+      if (tok.type === 'RBRACE') {
         if (depth === 0) break
         depth--
       }
@@ -93,11 +125,37 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
 
       if (tok.type === 'RAW_EXPR') raw += ` ${tok.value} `
       else if (tok.type === 'COMMA') raw += ', '
-      else raw += tok.value
+      else {
+        if (needsSpace(prev, tok)) raw += ' '
+        raw += tokenText(tok)
+      }
       advance()
+      prev = tok
     }
 
     return raw.trim()
+  }
+
+  function parseEventBody(raw: string): string {
+    const trimmed = raw.trim()
+    const arrowMatch = trimmed.match(/^\(([^)]*)\)\s*=>\s*(.+)$/s)
+    if (!arrowMatch) return trimmed
+
+    const paramStr = arrowMatch[1].trim()
+    if (paramStr.length > 0) {
+      throw new TardisError(
+        `Invalid event handler syntax — expected "() => body" but got "${raw}"`,
+        file,
+        peek().line,
+        peek().col
+      )
+    }
+
+    let body = arrowMatch[2].trim()
+    if (body.startsWith('{') && body.endsWith('}')) {
+      body = body.slice(1, -1).trim()
+    }
+    return body
   }
 
   // ── did you mean ───────────────────────────────────────────────────────
@@ -368,10 +426,11 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
       expect('COLON')
 
       const raw = buildBody()
+      const body = parseEventBody(raw)
 
       const key = nameTok.value as keyof EventsNode
       if (key in events) {
-        events[key] = raw
+        events[key] = body
       } else {
         throw new TardisError(
           `Unknown event "${nameTok.value}" — valid events are onMount, onDestroy, onUpdate`,

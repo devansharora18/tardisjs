@@ -1,4 +1,26 @@
 blueprint Navbar {
+	state {
+		menuOpen: boolean = false
+		themeDark: boolean = false
+	}
+	methods {
+		toggleMenu: () => $toggle(state.menuOpen)
+		closeMenu: () => $update(state.menuOpen, false)
+		toggleTheme: () => state.themeDark ? (document.documentElement.removeAttribute('data-theme'), localStorage.setItem('tardis-theme', 'light'), $update(state.themeDark, false)) : (document.documentElement.setAttribute('data-theme', 'dark'), localStorage.setItem('tardis-theme', 'dark'), $update(state.themeDark, true))
+	}
+	events {
+		onMount: () => {
+			const stored = localStorage.getItem('tardis-theme')
+			const shouldDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)
+			if (shouldDark) {
+				document.documentElement.setAttribute('data-theme', 'dark')
+				$update(state.themeDark, true)
+			}
+			window.addEventListener('resize', () => {
+				if (window.innerWidth > 768) $update(state.menuOpen, false)
+			})
+		}
+	}
 	style {
 		.nav {
 			position: sticky;
@@ -110,53 +132,15 @@ blueprint Navbar {
 		<nav class="nav">
 			<div class="nav-inner">
 				<span class="nav-brand">tardisjs</span>
-				<button class="menu-toggle" id="menu-btn">Menu</button>
-				<div class="nav-links" id="nav-links">
-					<a href="#features">Features</a>
-					<a href="#how-it-works">How It Works</a>
-					<a href="#comparison">vs React</a>
-					<a href="https://github.com/devansharora18/tardisjs">GitHub</a>
-					<button class="theme-toggle" id="theme-btn">&#9790;</button>
+				<button class="menu-toggle" @click={methods.toggleMenu}>Menu</button>
+				<div class={state.menuOpen ? "nav-links open" : "nav-links"}>
+					<a href="#features" @click={methods.closeMenu}>Features</a>
+					<a href="#how-it-works" @click={methods.closeMenu}>How It Works</a>
+					<a href="#comparison" @click={methods.closeMenu}>vs React</a>
+					<a href="https://github.com/devansharora18/tardisjs" @click={methods.closeMenu}>GitHub</a>
+					<button class="theme-toggle" @click={methods.toggleTheme}>{state.themeDark ? "\u2600" : "\u263E"}</button>
 				</div>
 			</div>
 		</nav>
-	}
-	script {
-		const btn = {<button id="theme-btn"></button>}
-		const menuBtn = document.getElementById('menu-btn')
-		const navLinks = document.getElementById('nav-links')
-		const navAnchors = navLinks ? Array.from(navLinks.querySelectorAll('a')) : []
-
-		if (menuBtn && navLinks) {
-			menuBtn.addEventListener('click', () => {
-				navLinks.classList.toggle('open')
-			})
-
-			navAnchors.forEach((anchor) => {
-				anchor.addEventListener('click', () => navLinks.classList.remove('open'))
-			})
-
-			window.addEventListener('resize', () => {
-				if (window.innerWidth > 768) navLinks.classList.remove('open')
-			})
-		}
-
-		const stored = localStorage.getItem('tardis-theme')
-		if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-			document.documentElement.setAttribute('data-theme', 'dark')
-			btn.textContent = '\u2600'
-		}
-		btn.addEventListener('click', () => {
-			const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
-			if (isDark) {
-				document.documentElement.removeAttribute('data-theme')
-				localStorage.setItem('tardis-theme', 'light')
-				btn.textContent = '\u263E'
-			} else {
-				document.documentElement.setAttribute('data-theme', 'dark')
-				localStorage.setItem('tardis-theme', 'dark')
-				btn.textContent = '\u2600'
-			}
-		})
 	}
 }

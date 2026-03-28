@@ -35,11 +35,11 @@ export function lex(source: string): Token[] {
     }
   }
 
-  function readString(): string {
+  function readString(quote: '"' | "'"): string {
     advance()
     let value = ''
-    while (i < source.length && peek() !== '"') {
-      if (peek() === '\\' && peek(1) === '"') {
+    while (i < source.length && peek() !== quote) {
+      if (peek() === '\\' && peek(1) === quote) {
         advance()
         value += advance()
       } else {
@@ -47,7 +47,7 @@ export function lex(source: string): Token[] {
         value += advance()
       }
     }
-    if (peek() === '"') advance()
+    if (peek() === quote) advance()
     return value
   }
 
@@ -162,8 +162,8 @@ export function lex(source: string): Token[] {
       continue
     }
 
-    if (ch === '"') {
-      const str = readString()
+    if (ch === '"' || ch === "'") {
+      const str = readString(ch as '"' | "'")
       emit('STRING', str)
       continue
     }
