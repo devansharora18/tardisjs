@@ -7,6 +7,7 @@ blueprint Home {
 	}
 	methods {
 		increment: () => $update(state.count, state.count + 1)
+		incrementBy: (n) => $update(state.count, state.count + n)
 		decrement: () => $update(state.count, state.count - 1)
 		reset: () => $update(state.count, 0)
 	}
@@ -33,6 +34,7 @@ blueprint Home {
 					<div class={"actions"}>
 						<button class={"btnSecondary"} @click={methods.decrement}>-1</button>
 						<button class={"btnPrimary"} @click={methods.increment}>+1</button>
+						<button class={"btnPrimary"} @click={() => methods.incrementBy(5)}>+5</button>
 						<button class={"btnSecondary"} @click={methods.reset}>Reset</button>
 					</div>
 				</div>
