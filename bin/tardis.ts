@@ -148,7 +148,7 @@ const STARTER_PACKAGE = `{
 		"preview": "tardis preview"
 	},
 	"dependencies": {
-		"tardisjs": "latest"
+		"@devansharora18/tardisjs": "latest"
 	}
 }
 `
