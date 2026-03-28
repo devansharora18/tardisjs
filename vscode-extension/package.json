@@ -1,0 +1,42 @@
+{
+	"name": "tardisjs-syntax",
+	"displayName": "TardisJS Syntax",
+	"description": "Syntax highlighting support for TardisJS .tardis files.",
+	"version": "0.1.0",
+	"publisher": "tardisjs",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.80.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"keywords": [
+		"tardis",
+		"tardisjs",
+		"syntax",
+		"highlighting"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "tardis",
+				"aliases": [
+					"Tardis",
+					"tardis"
+				],
+				"extensions": [
+					".tardis"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "tardis",
+				"scopeName": "source.tardis",
+				"path": "./syntaxes/tardis.tmLanguage.json"
+			}
+		]
+	}
+}
