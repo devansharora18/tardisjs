@@ -805,6 +805,8 @@ export async function runCLI(argv = process.argv): Promise<void> {
 function isDirectExecution(): boolean {
 	try {
 		if (!process.argv[1] || !fs.existsSync(process.argv[1])) return false
+		const executableName = path.basename(process.argv[1])
+		if (!/^tardis(?:\.js)?$/.test(executableName)) return false
 		const argvRealPath = fs.realpathSync(process.argv[1])
 		const moduleRealPath = fs.realpathSync(fileURLToPath(import.meta.url))
 		return argvRealPath === moduleRealPath
