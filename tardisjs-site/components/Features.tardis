@@ -50,19 +50,6 @@ blueprint Features {
 		.feature-card:hover {
 			border-color: var(--accent);
 		}
-		.feature-icon {
-			width: 36px;
-			height: 36px;
-			background: var(--accent-light);
-			border-radius: 8px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 16px;
-			margin-bottom: 14px;
-			color: var(--accent);
-			font-weight: 700;
-		}
 		.feature-card h3 {
 			font-size: 15px;
 			font-weight: 600;
@@ -85,32 +72,26 @@ blueprint Features {
 				<p class="section-desc">A compiler-driven framework that prioritizes explicitness, small bundle size, and direct DOM manipulation.</p>
 				<div class="features-grid">
 					<div class="feature-card fade-up">
-						<div class="feature-icon">B</div>
 						<h3>Blueprint syntax</h3>
 						<p>Author UI in .tardis files with dedicated sections for state, methods, computed values, styles, and markup. Everything has a place.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d1">
-						<div class="feature-icon">P</div>
 						<h3>Proxy-based reactivity</h3>
 						<p>State changes propagate through JavaScript Proxies. Fine-grained updates target only the DOM nodes that changed. No diffing needed.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d2">
-						<div class="feature-icon">C</div>
 						<h3>Compile-time transforms</h3>
 						<p>The compiler handles lexing, parsing, and code generation at build time. The runtime stays minimal because the heavy lifting is already done.</p>
 					</div>
 					<div class="feature-card fade-up">
-						<div class="feature-icon">R</div>
 						<h3>File-based routing</h3>
 						<p>Drop a .tardis file in pages/ and it becomes a route. Nested folders map to nested paths. No configuration required.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d1">
-						<div class="feature-icon">S</div>
 						<h3>Scoped styles</h3>
 						<p>Choose between Tailwind utility classes or plain CSS. Style definitions live inside the blueprint alongside the markup they apply to.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d2">
-						<div class="feature-icon">D</div>
 						<h3>No virtual DOM</h3>
 						<p>tardisjs binds directly to real DOM nodes. No reconciliation pass, no fiber tree, no scheduling overhead. Updates are immediate.</p>
 					</div>

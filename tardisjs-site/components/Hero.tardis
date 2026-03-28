@@ -76,7 +76,7 @@ blueprint Hero {
 		.code-preview {
 			max-width: 640px;
 			margin: 48px auto 0;
-			background: var(--surface);
+			background: var(--code-surface);
 			border: 1px solid var(--border);
 			border-radius: 8px;
 			overflow: hidden;
@@ -90,12 +90,9 @@ blueprint Hero {
 			background: var(--code-bg);
 			border-bottom: 1px solid var(--border);
 		}
-		.code-dot {
-			width: 10px;
-			height: 10px;
-			border-radius: 50%;
-			background: #d4d4d4;
-		}
+		.dot-close { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-close); }
+		.dot-min { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-minimize); }
+		.dot-max { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-maximize); }
 		.code-filename {
 			margin-left: 8px;
 			font-size: 12px;
@@ -106,9 +103,10 @@ blueprint Hero {
 			padding: 18px 20px;
 			font-size: 13px;
 			line-height: 1.6;
-			overflow-x: auto;
+			white-space: pre-wrap;
+			word-wrap: break-word;
 			color: var(--text);
-			background: var(--surface);
+			background: var(--code-surface);
 			text-align: left;
 		}
 		.container {
@@ -136,9 +134,9 @@ blueprint Hero {
 				</div>
 				<div class="code-preview fade-up fade-up-d2">
 					<div class="code-preview-bar">
-						<div class="code-dot"></div>
-						<div class="code-dot"></div>
-						<div class="code-dot"></div>
+						<div class="dot-close"></div>
+						<div class="dot-min"></div>
+						<div class="dot-max"></div>
 						<span class="code-filename">counter.tardis</span>
 					</div>
 					<pre id="hero-code"></pre>
@@ -147,6 +145,22 @@ blueprint Hero {
 		</section>
 	}
 	script {
+		function highlight(code) {
+			let h = code
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+			h = h.replace(/(\/\/[^\n]*)/g, '<span class="syn-cmt">$1</span>')
+			h = h.replace(/"([^"]*)"/g, '<span class="syn-str">"$1"</span>')
+			h = h.replace(/\b(blueprint|state|methods|computed|props|events|ui|script|style)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/\b(number|string|boolean|array|function)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/(\$update|\$toggle)\b/g, '<span class="syn-fn">$1</span>')
+			h = h.replace(/\b(\d+)\b/g, '<span class="syn-num">$1</span>')
+			h = h.replace(/(&lt;\/?)([\w]+)/g, '$1<span class="syn-tag">$2</span>')
+			h = h.replace(/(@[\w]+)/g, '<span class="syn-attr">$1</span>')
+			return h
+		}
+
 		const code = `blueprint Counter {
   state {
     count: number = 0
@@ -164,6 +178,6 @@ blueprint Hero {
     </div>
   }
 }`
-		{<pre id="hero-code"></pre>}.textContent = code
+		{<pre id="hero-code"></pre>}.innerHTML = highlight(code)
 	}
 }

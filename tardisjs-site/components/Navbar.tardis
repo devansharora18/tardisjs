@@ -7,6 +7,10 @@ blueprint Navbar {
 			background: rgba(250, 250, 250, 0.92);
 			backdrop-filter: blur(8px);
 			border-bottom: 1px solid var(--border);
+			transition: background 0.2s, border-color 0.2s;
+		}
+		[data-theme="dark"] .nav {
+			background: rgba(15, 15, 15, 0.92);
 		}
 		.nav-inner {
 			max-width: 1080px;
@@ -38,6 +42,20 @@ blueprint Navbar {
 			color: var(--text);
 			text-decoration: none;
 		}
+		.theme-toggle {
+			background: none;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 6px 10px;
+			cursor: pointer;
+			font-size: 14px;
+			line-height: 1;
+			color: var(--text);
+			transition: border-color 0.15s;
+		}
+		.theme-toggle:hover {
+			border-color: var(--text-muted);
+		}
 		@media (max-width: 768px) {
 			.nav-links { gap: 16px; }
 		}
@@ -51,8 +69,29 @@ blueprint Navbar {
 					<a href="#how-it-works">How It Works</a>
 					<a href="#comparison">vs React</a>
 					<a href="https://github.com/anthropics/tardisjs">GitHub</a>
+					<button class="theme-toggle" id="theme-btn">&#9790;</button>
 				</div>
 			</div>
 		</nav>
+	}
+	script {
+		const btn = {<button id="theme-btn"></button>}
+		const stored = localStorage.getItem('tardis-theme')
+		if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+			document.documentElement.setAttribute('data-theme', 'dark')
+			btn.textContent = '\u2600'
+		}
+		btn.addEventListener('click', () => {
+			const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+			if (isDark) {
+				document.documentElement.removeAttribute('data-theme')
+				localStorage.setItem('tardis-theme', 'light')
+				btn.textContent = '\u263E'
+			} else {
+				document.documentElement.setAttribute('data-theme', 'dark')
+				localStorage.setItem('tardis-theme', 'dark')
+				btn.textContent = '\u2600'
+			}
+		})
 	}
 }
