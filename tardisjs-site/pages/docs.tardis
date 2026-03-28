@@ -1,0 +1,256 @@
+blueprint Docs {
+	style {
+		.docs-page {
+			background: var(--bg);
+			color: var(--text);
+			min-height: 100vh;
+		}
+		.docs-wrap {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 42px 24px 80px;
+		}
+		.docs-hero h1 {
+			font-size: clamp(2rem, 4vw, 3rem);
+			line-height: 1.1;
+			letter-spacing: -0.03em;
+		}
+		.docs-hero p {
+			margin-top: 14px;
+			max-width: 760px;
+			color: var(--text-secondary);
+		}
+		.docs-grid {
+			display: grid;
+			grid-template-columns: 260px 1fr;
+			gap: 28px;
+			margin-top: 30px;
+		}
+		.docs-nav {
+			position: sticky;
+			top: 78px;
+			height: fit-content;
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 14px;
+			background: var(--surface);
+		}
+		.docs-nav h3 {
+			font-size: 13px;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			color: var(--text-muted);
+			margin-bottom: 10px;
+		}
+		.docs-nav a {
+			display: block;
+			padding: 6px 0;
+			font-size: 14px;
+			color: var(--text-secondary);
+		}
+		.docs-nav a:hover {
+			color: var(--text);
+			text-decoration: none;
+		}
+		.docs-main section {
+			border: 1px solid var(--border);
+			border-radius: 14px;
+			padding: 22px;
+			background: var(--surface);
+			margin-bottom: 16px;
+		}
+		.docs-main h2 {
+			font-size: 1.4rem;
+			letter-spacing: -0.01em;
+			margin-bottom: 10px;
+		}
+		.docs-main p,
+		.docs-main li {
+			color: var(--text-secondary);
+			font-size: 15px;
+		}
+		.docs-main ul,
+		.docs-main ol {
+			padding-left: 18px;
+			margin-top: 10px;
+		}
+		.docs-main li + li {
+			margin-top: 6px;
+		}
+		.docs-main pre {
+			margin-top: 12px;
+			padding: 14px;
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			background: var(--code-bg);
+			overflow-x: auto;
+		}
+		.docs-main code {
+			font-size: 13px;
+		}
+		.docs-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 12px;
+		}
+		.docs-table th,
+		.docs-table td {
+			text-align: left;
+			padding: 10px;
+			border-bottom: 1px solid var(--border);
+			font-size: 14px;
+		}
+		.docs-table th {
+			color: var(--text);
+		}
+		.docs-table td {
+			color: var(--text-secondary);
+		}
+		@media (max-width: 900px) {
+			.docs-grid {
+				grid-template-columns: 1fr;
+			}
+			.docs-nav {
+				position: static;
+			}
+		}
+	}
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<main class="docs-wrap">
+				<header class="docs-hero">
+					<h1>Documentation</h1>
+					<p>Blueprint-first frontend development with a tiny runtime, direct DOM updates, and file-based routing. This page reflects the current README plus runtime, parser, and CLI source in the framework.</p>
+				</header>
+
+				<div class="docs-grid">
+					<aside class="docs-nav">
+						<h3>On This Page</h3>
+						<a href="#quickstart">Quick Start</a>
+						<a href="#blueprints">Blueprint Syntax</a>
+						<a href="#routing">Routing</a>
+						<a href="#runtime">Runtime API</a>
+						<a href="#cli">CLI</a>
+						<a href="#config">Configuration</a>
+						<a href="#compiler">Compiler Pipeline</a>
+					</aside>
+
+					<div class="docs-main">
+						<section id="quickstart">
+							<h2>Quick Start</h2>
+							<pre><code>npx create-tardis-app my-app
+cd my-app
+npm install
+npm run dev</code></pre>
+							<pre><code>npx tardis init
+npx tardis dev</code></pre>
+						</section>
+
+						<section id="blueprints">
+							<h2>Blueprint Syntax</h2>
+							<p>A <strong>blueprint</strong> can include these optional sections: <strong>props</strong>, <strong>state</strong>, <strong>computed</strong>, <strong>methods</strong>, <strong>events</strong>, <strong>style</strong>, <strong>script</strong>, and required <strong>ui</strong>.</p>
+							<pre><code>blueprint Counter &#123;
+  state &#123;
+    count: number = 0
+  &#125;
+  methods &#123;
+    increment: () =&gt; $update(state.count, state.count + 1)
+  &#125;
+  events &#123;
+    onMount: () =&gt; console.log("mounted")
+  &#125;
+  style(tailwind) &#123;
+    value: "text-6xl font-bold"
+  &#125;
+  ui &#123;
+    &lt;button @click=&#123;methods.increment&#125;&gt;&#123;state.count&#125;&lt;/button&gt;
+  &#125;
+&#125;</code></pre>
+							<ul>
+								<li><strong>Events:</strong> supported lifecycle handlers are <strong>onMount</strong>, <strong>onDestroy</strong>, and <strong>onUpdate</strong>.</li>
+								<li><strong>Methods and events</strong> accept arrow syntax, including multiline bodies.</li>
+								<li><strong>Reactive bindings</strong> in UI use braces, e.g. <strong>&#123;state.count&#125;</strong>.</li>
+							</ul>
+						</section>
+
+						<section id="routing">
+							<h2>File-Based Routing</h2>
+							<p>Routes are generated from <strong>pages/</strong> files.</p>
+							<ul>
+								<li><strong>pages/index.tardis</strong> → <strong>/</strong></li>
+								<li><strong>pages/about.tardis</strong> → <strong>/about</strong></li>
+								<li><strong>pages/blog/[id].tardis</strong> → <strong>/blog/:id</strong></li>
+							</ul>
+							<p>Navigation helpers are available through the runtime: <strong>$navigate</strong>, <strong>$back</strong>, <strong>$forward</strong>, and <strong>$params</strong>.</p>
+						</section>
+
+						<section id="runtime">
+							<h2>Runtime API</h2>
+							<table class="docs-table">
+								<thead>
+									<tr><th>Function</th><th>Purpose</th></tr>
+								</thead>
+								<tbody>
+									<tr><td>$update(ref, value)</td><td>Set a state key and trigger dependent effects.</td></tr>
+									<tr><td>$toggle(ref)</td><td>Toggle a boolean state key.</td></tr>
+									<tr><td>$reset(state, initial?)</td><td>Reset state to initial values.</td></tr>
+									<tr><td>$batch(fn)</td><td>Batch multiple updates in one cycle.</td></tr>
+									<tr><td>$if / $each / $show</td><td>Conditional and list rendering helpers.</td></tr>
+									<tr><td>$fetch(url, opts?)</td><td>Fetch helper exposed by runtime.</td></tr>
+									<tr><td>$navigate(path)</td><td>Client-side route navigation.</td></tr>
+									<tr><td>$(selector)</td><td>jQuery-inspired DOM selection utility.</td></tr>
+								</tbody>
+							</table>
+						</section>
+
+						<section id="cli">
+							<h2>CLI</h2>
+							<table class="docs-table">
+								<thead>
+									<tr><th>Command</th><th>Description</th></tr>
+								</thead>
+								<tbody>
+									<tr><td>tardis init</td><td>Scaffold pages, components, and config in current directory.</td></tr>
+									<tr><td>tardis dev</td><td>Run dev server with websocket-driven reloads.</td></tr>
+									<tr><td>tardis build</td><td>Compile pages/components into dist output.</td></tr>
+									<tr><td>tardis preview</td><td>Serve built output for local preview.</td></tr>
+									<tr><td>create-tardis-app &lt;name&gt;</td><td>Create a new project in a subdirectory.</td></tr>
+								</tbody>
+							</table>
+						</section>
+
+						<section id="config">
+							<h2>Configuration</h2>
+							<pre><code>export default &#123;
+  pages: './pages',
+  components: './components',
+  outDir: './dist',
+  port: 3000,
+  title: 'my app',
+  head: [
+    '&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;',
+  ],
+  staticDir: './public',
+&#125;</code></pre>
+							<p>These options are loaded by the CLI and drive page scanning, output directory, head tags, and static asset copying.</p>
+						</section>
+
+						<section id="compiler">
+							<h2>Compiler Pipeline</h2>
+							<ol>
+								<li>Lex <strong>.tardis</strong> source into tokens.</li>
+								<li>Parse tokens into a blueprint AST.</li>
+								<li>Compile AST to JavaScript that calls <strong>$runtime</strong>.</li>
+								<li>Transpile TypeScript output and rewrite runtime import paths.</li>
+								<li>Emit route modules + runtime bundle + index router bootstrap.</li>
+							</ol>
+							<p>Generated output updates DOM directly through effect bindings, avoiding virtual DOM diffing.</p>
+						</section>
+					</div>
+				</div>
+			</main>
+			<Footer />
+		</div>
+	}
+}

@@ -131,12 +131,13 @@ blueprint Navbar {
 	ui {
 		<nav class="nav">
 			<div class="nav-inner">
-				<span class="nav-brand">tardisjs</span>
+				<a class="nav-brand" href="/" @click={methods.closeMenu}>tardisjs</a>
 				<button class="menu-toggle" @click={methods.toggleMenu}>Menu</button>
 				<div class={state.menuOpen ? "nav-links open" : "nav-links"}>
-					<a href="#features" @click={methods.closeMenu}>Features</a>
-					<a href="#how-it-works" @click={methods.closeMenu}>How It Works</a>
-					<a href="#comparison" @click={methods.closeMenu}>vs React</a>
+					<a href="/#features" @click={methods.closeMenu}>Features</a>
+					<a href="/#how-it-works" @click={methods.closeMenu}>How It Works</a>
+					<a href="/#comparison" @click={methods.closeMenu}>vs React</a>
+					<a href="/docs" @click={methods.closeMenu}>Docs</a>
 					<a href="https://github.com/devansharora18/tardisjs" @click={methods.closeMenu}>GitHub</a>
 					<button class="theme-toggle" @click={methods.toggleTheme}>{state.themeDark ? "\u2600" : "\u263E"}</button>
 				</div>
