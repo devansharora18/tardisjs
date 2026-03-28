@@ -2,12 +2,13 @@
   "name": "tardisjs",
   "version": "0.0.1",
   "description": "Smaller on the outside. A ~5KB jQuery-inspired frontend framework.",
+  "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "bin": {
-    "tardis": "./bin/tardis.js",
-    "create-tardis-app": "./bin/create-tardis-app.js"
+    "tardis": "./dist/bin/tardis.js",
+    "create-tardis-app": "./dist/bin/create-tardis-app.js"
   },
   "exports": {
     ".": {
@@ -20,12 +21,22 @@
     }
   },
   "scripts": {
-    "build": "rollup -c",
+    "clean": "rm -rf dist",
+    "build:lib": "rollup -c",
+    "build:bin": "rollup -c rollup.cli.config.js",
+    "build": "npm run clean && npm run build:lib && npm run build:bin",
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "rollup -c --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "publish:check": "npm run build && npm run typecheck && npm test && npm pack --dry-run",
+    "prepublishOnly": "npm run publish:check"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "frontend",
     "framework",
