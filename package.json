@@ -1,6 +1,6 @@
 {
   "name": "@devansharora18/tardisjs",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Smaller on the outside. A ~5KB jQuery-inspired frontend framework.",
   "type": "module",
   "main": "dist/index.cjs",
