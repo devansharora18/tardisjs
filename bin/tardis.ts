@@ -533,9 +533,12 @@ async function findAvailablePort(preferredPort: number): Promise<number> {
 		})
 	}
 
-	if (await check(preferredPort)) return preferredPort
-	if (await check(preferredPort + 1)) return preferredPort + 1
-	throw new CLIError(`TardisError: no open port found\n  Tried ${preferredPort} and ${preferredPort + 1}`)
+	const startPort = Math.max(1, preferredPort)
+	for (let port = startPort; port <= 65535; port++) {
+		if (await check(port)) return port
+	}
+
+	throw new CLIError(`TardisError: no open port found\n  Tried ports ${startPort}-65535`)
 }
 
 export async function buildProject(cwd = process.cwd()): Promise<BuildResult> {
