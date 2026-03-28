@@ -4,6 +4,23 @@ blueprint ContributingDocs {
       <aside class="docs-sidebar">
         <div class="docs-brand">tardisjs</div>
         <div class="docs-nav-section">
+          <p class="docs-nav-title">Introduction</p>
+          <a class="docs-nav-link" href="/">Overview</a>
+          <a class="docs-nav-link" href="/getting-started">Getting Started</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Core</p>
+          <a class="docs-nav-link" href="/core-concepts">Core Concepts</a>
+          <a class="docs-nav-link" href="/api-reference">Runtime API</a>
+          <a class="docs-nav-link" href="/cli">CLI & Config</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+        <div class="docs-nav-section">
           <p class="docs-nav-title">Reference</p>
           <a class="docs-nav-link" href="/glossary">Glossary</a>
           <a class="docs-nav-link" href="/contributing">Contributing</a>
@@ -16,9 +33,9 @@ blueprint ContributingDocs {
           <p class="docs-lead">Contribution workflow for feature work, bug fixes, and documentation updates.</p>
 
           <h2 id="setup">Local setup</h2>
-          <div class="docs-code">npm install
+          <pre class="docs-code">npm install
 npm run typecheck
-npm test</div>
+npm test</pre>
 
           <h2 id="workflow">Development workflow</h2>
           <ol>

@@ -9,10 +9,21 @@ blueprint Guides {
           <a class="docs-nav-link" href="/getting-started">Getting Started</a>
         </div>
         <div class="docs-nav-section">
+          <p class="docs-nav-title">Core</p>
+          <a class="docs-nav-link" href="/core-concepts">Core Concepts</a>
+          <a class="docs-nav-link" href="/api-reference">Runtime API</a>
+          <a class="docs-nav-link" href="/cli">CLI & Config</a>
+        </div>
+        <div class="docs-nav-section">
           <p class="docs-nav-title">Guides</p>
           <a class="docs-nav-link" href="/guides">Guides</a>
           <a class="docs-nav-link" href="/advanced">Advanced</a>
           <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Reference</p>
+          <a class="docs-nav-link" href="/glossary">Glossary</a>
+          <a class="docs-nav-link" href="/contributing">Contributing</a>
         </div>
       </aside>
 
@@ -22,30 +33,126 @@ blueprint Guides {
           <p class="docs-lead">Task-oriented tutorials for common product flows.</p>
 
           <h2 id="counter">Build a counter</h2>
-          <ol>
-            <li>Define numeric state key.</li>
-            <li>Add increment/decrement methods with <span class="docs-kbd">$update</span>.</li>
-            <li>Bind state in UI text and button events.</li>
-          </ol>
+          <p>A minimal counter demonstrating state, methods, and reactive UI binding.</p>
+          <pre class="docs-code">blueprint Counter &#123;
+  state &#123;
+    count: number = 0
+  &#125;
+  methods &#123;
+    increment: () =&gt; $update(state.count, state.count + 1)
+    decrement: () =&gt; $update(state.count, state.count - 1)
+    reset: () =&gt; $update(state.count, 0)
+  &#125;
+  style(tailwind) &#123;
+    value: "text-4xl font-bold text-center"
+    actions: "flex gap-4 justify-center mt-4"
+    btn: "rounded-lg bg-cyan-400 px-4 py-2 text-black"
+  &#125;
+  ui &#123;
+    &lt;main&gt;
+      &lt;p class=&#123;"value"&#125;&gt;&#123;state.count&#125;&lt;/p&gt;
+      &lt;div class=&#123;"actions"&#125;&gt;
+        &lt;button class=&#123;"btn"&#125; @click=&#123;methods.decrement&#125;&gt;-1&lt;/button&gt;
+        &lt;button class=&#123;"btn"&#125; @click=&#123;methods.increment&#125;&gt;+1&lt;/button&gt;
+        &lt;button class=&#123;"btn"&#125; @click=&#123;methods.reset&#125;&gt;Reset&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/main&gt;
+  &#125;
+&#125;</pre>
 
           <h2 id="todo">Build a todo checklist</h2>
-          <ol>
-            <li>Represent each task as boolean state, or model task collection in state object/array.</li>
-            <li>Use computed values for done/remaining counts.</li>
-            <li>Render list with <span class="docs-kbd">$each</span> when dynamic collections are required.</li>
-          </ol>
+          <p>A todo app using state arrays, computed values, and list rendering.</p>
+          <pre class="docs-code">blueprint Todo &#123;
+  state &#123;
+    tasks: string = "[]"
+    input: string = ""
+  &#125;
+  computed &#123;
+    count: state.tasks.length
+  &#125;
+  methods &#123;
+    add: () =&gt; &#123;
+      $update(state.tasks, [...state.tasks, state.input])
+      $update(state.input, "")
+    &#125;
+  &#125;
+  ui &#123;
+    &lt;main&gt;
+      &lt;input value=&#123;state.input&#125; @input=&#123;(e) =&gt; $update(state.input, e.target.value)&#125; /&gt;
+      &lt;button @click=&#123;methods.add&#125;&gt;Add&lt;/button&gt;
+      &lt;p&gt;Tasks: &#123;computed.count&#125;&lt;/p&gt;
+    &lt;/main&gt;
+  &#125;
+&#125;</pre>
+
+          <h2 id="components">Reusable components</h2>
+          <p>Create components in <span class="docs-kbd">components/</span> and use them in pages by blueprint name.</p>
+          <pre class="docs-code">// components/Button.tardis
+blueprint Button &#123;
+  props &#123;
+    label: string = "Action"
+    variant: "primary" | "secondary" = "primary"
+    onClick: function
+  &#125;
+  style(tailwind) &#123;
+    primary: "rounded-lg bg-cyan-400 px-4 py-2 text-black"
+    secondary: "rounded-lg border border-zinc-600 px-4 py-2 text-zinc-200"
+  &#125;
+  ui &#123;
+    &lt;button class=&#123;props.variant&#125; @click=&#123;props.onClick&#125;&gt;&#123;props.label&#125;&lt;/button&gt;
+  &#125;
+&#125;
+
+// Use in pages:
+&lt;Button label="Save" variant="primary" @click=&#123;methods.save&#125; /&gt;</pre>
 
           <h2 id="routing">Routing patterns</h2>
-          <div class="docs-code">pages/index.tardis      -> /
-pages/about.tardis      -> /about
-pages/[slug].tardis     -> /:slug
-pages/blog/[id].tardis  -> /blog/:id</div>
+          <p>Routes are derived from the file structure in <span class="docs-kbd">pages/</span>. Dynamic segments use bracket syntax.</p>
+          <pre class="docs-code">pages/index.tardis      -&gt; /
+pages/about.tardis      -&gt; /about
+pages/[slug].tardis     -&gt; /:slug
+pages/blog/[id].tardis  -&gt; /blog/:id</pre>
+          <p>Navigate between routes with <span class="docs-kbd">$navigate</span> and read dynamic params with <span class="docs-kbd">$params</span>.</p>
+          <pre class="docs-code">methods &#123;
+  goToPost: () =&gt; $navigate('/blog/42')
+&#125;
+// In pages/blog/[id].tardis:
+ui &#123; &lt;p&gt;Post ID: &#123;$runtime.params.id&#125;&lt;/p&gt; &#125;</pre>
 
           <h2 id="styling">Styling strategy</h2>
-          <p>Keep style tokens centralized and deterministic. Prefer reusable class keys over ad-hoc literal classes.</p>
+          <p>Define style tokens in the <span class="docs-kbd">style(tailwind)</span> block. Reference them in UI with <span class="docs-kbd">class=&#123;"tokenName"&#125;</span>. This keeps classes centralized and deterministic.</p>
+          <pre class="docs-code">style(tailwind) &#123;
+  card: "rounded-xl border border-white/10 bg-zinc-900 p-6"
+  heading: "text-xl font-semibold text-white"
+  muted: "text-sm text-zinc-400"
+&#125;
+ui &#123;
+  &lt;div class=&#123;"card"&#125;&gt;
+    &lt;h2 class=&#123;"heading"&#125;&gt;Title&lt;/h2&gt;
+    &lt;p class=&#123;"muted"&#125;&gt;Subtitle&lt;/p&gt;
+  &lt;/div&gt;
+&#125;</pre>
 
           <h2 id="fetch">Data fetching</h2>
-          <p>Use runtime fetch helper and lifecycle events to coordinate load phases. Keep network side effects in methods or event hooks, not inline render expressions.</p>
+          <p>Use <span class="docs-kbd">$fetch</span> in lifecycle events to load data. Keep network side effects in methods or event hooks, not inline render expressions.</p>
+          <pre class="docs-code">blueprint UserProfile &#123;
+  state &#123;
+    user: string = "null"
+    loading: boolean = true
+  &#125;
+  events &#123;
+    onMount: async () =&gt; &#123;
+      const data = await $fetch('/api/user')
+      $update(state.user, data)
+      $update(state.loading, false)
+    &#125;
+  &#125;
+  ui &#123;
+    &lt;main&gt;
+      &lt;p&gt;&#123;state.loading ? "Loading..." : state.user.name&#125;&lt;/p&gt;
+    &lt;/main&gt;
+  &#125;
+&#125;</pre>
 
           <div class="docs-note">Each guide intentionally separates <strong>state shape</strong>, <strong>methods</strong>, and <strong>UI bindings</strong>. This pattern scales best as files grow.</div>
         </article>
@@ -56,6 +163,7 @@ pages/blog/[id].tardis  -> /blog/:id</div>
         <a href="#guides">Guides</a>
         <a href="#counter">Counter</a>
         <a href="#todo">Todo</a>
+        <a href="#components">Components</a>
         <a href="#routing">Routing</a>
         <a href="#styling">Styling</a>
         <a href="#fetch">Data fetching</a>

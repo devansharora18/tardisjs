@@ -4,6 +4,23 @@ blueprint GlossaryDocs {
       <aside class="docs-sidebar">
         <div class="docs-brand">tardisjs</div>
         <div class="docs-nav-section">
+          <p class="docs-nav-title">Introduction</p>
+          <a class="docs-nav-link" href="/">Overview</a>
+          <a class="docs-nav-link" href="/getting-started">Getting Started</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Core</p>
+          <a class="docs-nav-link" href="/core-concepts">Core Concepts</a>
+          <a class="docs-nav-link" href="/api-reference">Runtime API</a>
+          <a class="docs-nav-link" href="/cli">CLI & Config</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+        <div class="docs-nav-section">
           <p class="docs-nav-title">Reference</p>
           <a class="docs-nav-link" href="/glossary">Glossary</a>
           <a class="docs-nav-link" href="/contributing">Contributing</a>
@@ -23,13 +40,21 @@ blueprint GlossaryDocs {
             <li><strong>Route module</strong>: Compiled JS file emitted from a page blueprint.</li>
             <li><strong>HMR channel</strong>: Development websocket endpoint used to signal reload.</li>
             <li><strong>Selector API</strong>: Chainable utility layer for querying/acting on DOM and component instances.</li>
+            <li><strong>Props</strong>: Typed inputs passed to a component from its parent.</li>
+            <li><strong>State</strong>: Proxy-backed reactive data local to a component instance.</li>
+            <li><strong>Computed</strong>: Derived values recalculated from state.</li>
+            <li><strong>Style token</strong>: A named class string defined in the <span class="docs-kbd">style(tailwind)</span> block.</li>
+            <li><strong>Component registry</strong>: Global map of active component instances, queryable at runtime.</li>
+            <li><strong>$runtime</strong>: The single runtime object the compiler references in generated code.</li>
+            <li><strong>File-based routing</strong>: Automatic route derivation from the <span class="docs-kbd">pages/</span> directory structure.</li>
+            <li><strong>Dynamic segment</strong>: A route parameter defined with bracket syntax, e.g. <span class="docs-kbd">[slug]</span>.</li>
           </ul>
 
           <h2 id="versioning">Versioning policy</h2>
           <p>Use semantic versioning. Treat parser/compiler output changes as potentially breaking when they alter generated behavior for valid blueprint inputs.</p>
 
           <h2 id="changelog">Changelog format</h2>
-          <div class="docs-code">## [x.y.z] - YYYY-MM-DD
+          <pre class="docs-code">## [x.y.z] - YYYY-MM-DD
 ### Added
 - ...
 ### Changed
@@ -37,7 +62,7 @@ blueprint GlossaryDocs {
 ### Fixed
 - ...
 ### Breaking
-- ...</div>
+- ...</pre>
         </article>
       </main>
 

@@ -235,7 +235,7 @@ export function compileUI(raw: string, componentName: string, scriptCode?: strin
 	const lines: string[] = [];
 	lines.push(`  // ui`);
 	lines.push(`  const _root = (() => {`);
-	lines.push(compileUINode(raw.trim(), 2));
+	lines.push(compileUINode(raw.trim(), 2, false));
 	lines.push(`  })()`);
 	if (scriptCode) {
 		lines.push(``);
@@ -279,7 +279,7 @@ function compileScript(ast: BlueprintNode): string {
 	return lines.join('\n');
 }
 
-function compileUINode(raw: string, depth: number): string {
+function compileUINode(raw: string, depth: number, preserveWs: boolean): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
 
@@ -287,7 +287,7 @@ function compileUINode(raw: string, depth: number): string {
 	const ifMatch = raw.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (ifMatch) {
 		const condition = rewriteRefs(ifMatch[1].trim());
-		const inner = compileUINode(ifMatch[2].trim(), depth + 1);
+		const inner = compileUINode(ifMatch[2].trim(), depth + 1, preserveWs);
 		lines.push(`${indent}return $runtime.if(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -301,7 +301,7 @@ function compileUINode(raw: string, depth: number): string {
 	if (eachMatch) {
 		const arrayRef = rewriteRefs(eachMatch[1].trim());
 		const itemVar = eachMatch[2];
-		const inner = compileUINode(eachMatch[3].trim(), depth + 1);
+		const inner = compileUINode(eachMatch[3].trim(), depth + 1, preserveWs);
 		lines.push(`${indent}return $runtime.each(() => ${arrayRef}, (${itemVar}) => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -312,7 +312,7 @@ function compileUINode(raw: string, depth: number): string {
 	const showMatch = raw.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (showMatch) {
 		const condition = rewriteRefs(showMatch[1].trim());
-		const inner = compileUINode(showMatch[2].trim(), depth + 1);
+		const inner = compileUINode(showMatch[2].trim(), depth + 1, preserveWs);
 		lines.push(`${indent}return $runtime.show(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -324,7 +324,7 @@ function compileUINode(raw: string, depth: number): string {
 	if (chainMatch) {
 		const innerEl = chainMatch[1].trim();
 		const chainStr = chainMatch[2].trim();
-		const elCode = compileElement(innerEl, depth);
+		const elCode = compileElement(innerEl, depth, preserveWs);
 		const chains = parseChains(chainStr);
 		lines.push(`${indent}const _chained = (() => {`);
 		lines.push(elCode);
@@ -338,10 +338,10 @@ function compileUINode(raw: string, depth: number): string {
 		return lines.join("\n");
 	}
 
-  return compileElement(raw, depth)
+  return compileElement(raw, depth, preserveWs)
 }
 
-function compileElement(raw: string, depth: number): string {
+function compileElement(raw: string, depth: number, preserveWs: boolean): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
 	const trimmed = raw.trim();
@@ -402,6 +402,9 @@ function compileElement(raw: string, depth: number): string {
 		return lines.join("\n");
 	}
 
+	// preserve whitespace inside <pre> elements
+	const childPreserveWs = preserveWs || tag === 'pre';
+
 	const innerContent = findInnerContent(trimmed, tag, openTagEndIdx + 1);
 
 	lines.push(`${indent}const _el_${depth} = document.createElement('${tag}')`);
@@ -409,15 +412,24 @@ function compileElement(raw: string, depth: number): string {
 		lines.push(...compileAttr(attr, depth, indent));
 	}
 
-	const children = splitChildren(innerContent);
+	const children = splitChildren(innerContent, childPreserveWs);
 	let childIndex = 0;
 	for (let ci = 0; ci < children.length; ci++) {
 		const child = children[ci];
-		// normalize whitespace: trim first child's leading, last child's trailing
-		// but preserve boundary spaces for middle children (e.g. "text " before <span>)
-		let ct = child.replace(/\s*\n\s*/g, ' ');
-		if (ci === 0) ct = ct.replace(/^\s+/, '');
-		if (ci === children.length - 1) ct = ct.replace(/\s+$/, '');
+		let ct: string;
+		const isChildElement = child.trimStart().startsWith('<') ||
+			child.trimStart().startsWith('$') ||
+			child.trimStart().startsWith('{<');
+		if (childPreserveWs || isChildElement) {
+			// preserve whitespace (inside <pre>, or element children that handle their own ws)
+			ct = child;
+		} else {
+			// normalize whitespace: trim first child's leading, last child's trailing
+			// but preserve boundary spaces for middle children (e.g. "text " before <span>)
+			ct = child.replace(/\s*\n\s*/g, ' ');
+			if (ci === 0) ct = ct.replace(/^\s+/, '');
+			if (ci === children.length - 1) ct = ct.replace(/\s+$/, '');
+		}
 		if (!ct) continue;
 
     if (ct.startsWith('{') && ct.endsWith('}') && !ct.startsWith('{<')) {
@@ -439,7 +451,7 @@ function compileElement(raw: string, depth: number): string {
 			}
 			const childVar = `_child_${depth}_${childIndex}`
 			lines.push(`${indent}const ${childVar} = (() => {`)
-			lines.push(compileUINode(ct, depth + 1))
+			lines.push(compileUINode(ct, depth + 1, childPreserveWs))
 			lines.push(`${indent}})()`)
 			lines.push(`${indent}if (${childVar} instanceof Node) _el_${depth}.appendChild(${childVar})`)
     } else {
@@ -714,11 +726,16 @@ function normalizeWs(s: string): string {
 	return s.replace(/\s*\n\s*/g, ' ');
 }
 
-function splitChildren(raw: string): string[] {
+function splitChildren(raw: string, preserveWs = false): string[] {
 	const parts: string[] = [];
 	let depth = 0;
 	let current = "";
 	let i = 0;
+
+	// Only normalize text-only fragments; leave element children as-is
+	// so that <pre> and similar tags can preserve their internal whitespace
+	const ws = (s: string, isElement: boolean) =>
+		(preserveWs || isElement) ? s : normalizeWs(s);
 
 	while (i < raw.length) {
 		const ch = raw[i];
@@ -727,7 +744,8 @@ function splitChildren(raw: string): string[] {
 			if (raw[i + 1] === "/") {
 				if (depth === 0) {
 					// closing tag for PARENT element — push current and skip tag
-					const n = normalizeWs(current);
+					const isEl = current.trimStart().startsWith('<');
+					const n = ws(current, isEl);
 					if (n.trim()) parts.push(n);
 					current = "";
 					while (i < raw.length && raw[i] !== ">") i++;
@@ -746,7 +764,8 @@ function splitChildren(raw: string): string[] {
 						current += raw[i]; // the >
 						i++;
 					}
-					const n = normalizeWs(current);
+					const isEl = current.trimStart().startsWith('<');
+					const n = ws(current, isEl);
 					if (n.trim()) parts.push(n);
 					current = "";
 					continue;
@@ -771,14 +790,20 @@ function splitChildren(raw: string): string[] {
 				next.startsWith("$") ||
 				next.startsWith("{")
 			) {
-				const n = normalizeWs(current);
+				const isEl = current.trimStart().startsWith('<') ||
+					current.trimStart().startsWith('$') ||
+					current.trimStart().startsWith('{<');
+				const n = ws(current, isEl);
 				if (n.trim()) parts.push(n);
 				current = "";
 			}
 		}
 	}
 
-	const n = normalizeWs(current);
+	const isEl = current.trimStart().startsWith('<') ||
+		current.trimStart().startsWith('$') ||
+		current.trimStart().startsWith('{<');
+	const n = ws(current, isEl);
 	if (n.trim()) parts.push(n);
 	return parts.filter(p => p.trim().length > 0);
 }

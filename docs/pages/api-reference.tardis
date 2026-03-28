@@ -14,46 +14,132 @@ blueprint ApiReference {
           <a class="docs-nav-link" href="/api-reference">Runtime API</a>
           <a class="docs-nav-link" href="/cli">CLI & Config</a>
         </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Guides</p>
+          <a class="docs-nav-link" href="/guides">Guides</a>
+          <a class="docs-nav-link" href="/advanced">Advanced</a>
+          <a class="docs-nav-link" href="/troubleshooting">Troubleshooting</a>
+        </div>
+        <div class="docs-nav-section">
+          <p class="docs-nav-title">Reference</p>
+          <a class="docs-nav-link" href="/glossary">Glossary</a>
+          <a class="docs-nav-link" href="/contributing">Contributing</a>
+        </div>
       </aside>
 
       <main class="docs-main">
         <article class="docs-content">
           <h1 id="api">Runtime API Reference</h1>
-          <p class="docs-lead">Reference for commonly used runtime functions available to compiled blueprints.</p>
+          <p class="docs-lead">Complete reference for runtime functions available to compiled blueprints.</p>
 
           <h2 id="state-api">State API</h2>
-          <h3>$update(stateRef, key, nextValue)</h3>
+          <h3>$update(stateRef, nextValue)</h3>
           <p>Set a specific state key and trigger dependent bindings.</p>
-          <div class="docs-code">$update(state.count, state.count + 1)</div>
+          <pre class="docs-code">$update(state.count, state.count + 1)</pre>
 
-          <h3>$toggle(stateRef, key)</h3>
-          <p>Toggle boolean state.</p>
-          <div class="docs-code">$toggle(state.open)</div>
+          <h3>$toggle(stateRef)</h3>
+          <p>Toggle a boolean state value.</p>
+          <pre class="docs-code">$toggle(state.open)</pre>
 
-          <h3>$reset(stateObj, initial)</h3>
-          <p>Reset state object keys to provided defaults.</p>
+          <h3>$reset(stateObj, initialValues)</h3>
+          <p>Reset all state keys to provided initial values.</p>
+          <pre class="docs-code">$reset(state, &#123; count: 0, open: false &#125;)</pre>
+
+          <h3>$batch(fn)</h3>
+          <p>Batch multiple state updates into a single render cycle. Useful when updating several keys at once to avoid redundant DOM updates.</p>
+          <pre class="docs-code">$batch(() =&gt; &#123;
+  $update(state.count, 0)
+  $update(state.name, 'reset')
+&#125;)</pre>
 
           <h2 id="router-api">Router API</h2>
           <h3>$navigate(path)</h3>
-          <p>Navigate client-side without full page reload.</p>
+          <p>Navigate client-side without full page reload. Uses History API under the hood.</p>
+          <pre class="docs-code">$navigate('/about')</pre>
 
           <h3>$params</h3>
-          <p>Read active dynamic route params.</p>
-          <div class="docs-code">ui &#123; &lt;p&gt;Slug: &#123;$runtime.params.slug&#125;&lt;/p&gt; &#125;</div>
+          <p>Read active dynamic route parameters. Keys correspond to bracket segments in page file names.</p>
+          <pre class="docs-code">// pages/blog/[id].tardis -> /blog/42
+// $params.id === '42'
+ui &#123; &lt;p&gt;Post: &#123;$runtime.params.id&#125;&lt;/p&gt; &#125;</pre>
 
-          <h3>$back() / $forward()</h3>
-          <p>Proxy browser history traversal.</p>
+          <h3>$back()</h3>
+          <p>Navigate one step back in browser history.</p>
+
+          <h3>$forward()</h3>
+          <p>Navigate one step forward in browser history.</p>
 
           <h2 id="render-api">Render helpers</h2>
+          <h3>$if(condition, elseElement?)</h3>
+          <p>Conditionally render a DOM block. Inserts or removes elements from the DOM based on the condition.</p>
+
+          <h3>$each(items, renderFn)</h3>
+          <p>Render a list of items. The render function receives each item and returns a DOM element.</p>
+
+          <h3>$show(condition, element)</h3>
+          <p>Toggle element visibility via CSS display. Unlike <span class="docs-kbd">$if</span>, the element stays in the DOM.</p>
+
+          <h3>$portal(element, target)</h3>
+          <p>Render an element into a different DOM target, outside the component's own tree.</p>
+
+          <h3>bind(element, key, getter)</h3>
+          <p>Create a reactive text binding that updates when the bound state changes.</p>
+
+          <h3>bindClass(element, key, getter)</h3>
+          <p>Reactively update an element's class list based on state.</p>
+
+          <h3>bindAttr(element, attr, getter)</h3>
+          <p>Reactively update an element attribute based on state.</p>
+
+          <h3>text(content)</h3>
+          <p>Create a safe text node. Prevents XSS by escaping content.</p>
+
+          <h2 id="fetch-api">Fetch</h2>
+          <h3>$fetch(url, options?)</h3>
+          <p>Network request helper. Use in lifecycle events or methods to load data.</p>
+          <pre class="docs-code">events &#123;
+  onMount: async () =&gt; &#123;
+    const data = await $fetch('/api/items')
+    $update(state.items, data)
+  &#125;
+&#125;</pre>
+
+          <h2 id="styles-api">Styles</h2>
+          <h3>createStyles(object)</h3>
+          <p>Create a style object from key-value pairs. Used internally by the <span class="docs-kbd">style(tailwind)</span> block.</p>
+
+          <h2 id="lifecycle-api">Lifecycle events</h2>
+          <h3>onMount</h3>
+          <p>Callback invoked after the component is inserted into the DOM.</p>
+
+          <h3>onDestroy</h3>
+          <p>Callback invoked during component teardown. Use for cleanup (timers, subscriptions).</p>
+
+          <h3>onUpdate</h3>
+          <p>Callback invoked after a state update cycle executes.</p>
+
+          <h2 id="registry-api">Component registry</h2>
+          <p>Global registry for querying component instances at runtime.</p>
           <ul>
-            <li><strong>$if</strong>: conditional render block</li>
-            <li><strong>$each</strong>: list rendering</li>
-            <li><strong>$show</strong>: display toggle</li>
-            <li><strong>bind/bindAttr/bindClass</strong>: reactive DOM binding</li>
+            <li><strong>register(name, instance)</strong>: register a component instance.</li>
+            <li><strong>unregister(name)</strong>: remove a component instance.</li>
+            <li><strong>getAll()</strong>: list all registered instances.</li>
+            <li><strong>getById(id)</strong>: find instance by ID.</li>
+            <li><strong>getByClass(className)</strong>: find instances by class.</li>
+            <li><strong>getByPropValue(key, value)</strong>: find instances matching a prop value.</li>
+            <li><strong>getByStateValue(key, value)</strong>: find instances matching a state value.</li>
           </ul>
 
           <h2 id="selector-api">Selector utilities</h2>
-          <p>The <span class="docs-kbd">$()</span> selector supports DOM and component instance operations with chainable APIs for class, attributes, and component method invocation.</p>
+          <p>The <span class="docs-kbd">$()</span> selector supports DOM and component instance operations with chainable APIs.</p>
+          <ul>
+            <li><strong>$(selector)</strong>: query DOM elements.</li>
+            <li><strong>.class(name)</strong>: add/remove classes.</li>
+            <li><strong>.attr(key, value)</strong>: set attributes.</li>
+            <li><strong>.text(content)</strong>: set text content.</li>
+            <li><strong>.on(event, handler)</strong>: attach event listeners.</li>
+            <li><strong>.$(childSelector)</strong>: query within matched elements.</li>
+          </ul>
 
           <div class="docs-note">Treat selector utilities as imperative escape hatches. Prefer declarative UI and state-driven rendering for primary flows.</div>
         </article>
@@ -65,6 +151,10 @@ blueprint ApiReference {
         <a href="#state-api">State API</a>
         <a href="#router-api">Router API</a>
         <a href="#render-api">Render helpers</a>
+        <a href="#fetch-api">Fetch</a>
+        <a href="#styles-api">Styles</a>
+        <a href="#lifecycle-api">Lifecycle events</a>
+        <a href="#registry-api">Registry</a>
         <a href="#selector-api">Selector</a>
       </aside>
     </div>

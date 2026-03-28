@@ -46,12 +46,12 @@ blueprint DocsHome {
 					</ul>
 
 					<h2 id="pipeline">Compile pipeline</h2>
-					<div class="docs-code">.tardis source
+					<pre class="docs-code">.tardis source
 	-> lex()
 	-> parse()
 	-> compile()
 	-> JavaScript modules + runtime
-	-> browser</div>
+	-> browser</pre>
 
 					<h2 id="principles">Design principles</h2>
 					<ul>
