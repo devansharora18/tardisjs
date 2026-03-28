@@ -102,6 +102,44 @@ describe('runtime router', () => {
     expect(document.getElementById('app')?.textContent).toContain('about')
   })
 
+  it('handles internal links with hash fragments without 404', () => {
+    setupDom('http://localhost/docs')
+
+    const Home = () => {
+      const el = document.createElement('div')
+      const section = document.createElement('section')
+      section.id = 'features'
+      section.textContent = 'home features'
+      el.appendChild(section)
+      return el
+    }
+
+    const Docs = () => {
+      const el = document.createElement('div')
+      el.textContent = 'docs'
+      return el
+    }
+
+    const router = createRouter([
+      { path: '/', component: Home },
+      { path: '/docs', component: Docs },
+    ])
+
+    router.start()
+
+    const link = document.createElement('a')
+    link.href = '/#features'
+    link.textContent = 'Features'
+    document.body.appendChild(link)
+
+    link.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
+
+    expect(window.location.pathname).toBe('/')
+    expect(window.location.hash).toBe('#features')
+    expect(document.getElementById('app')?.textContent).toContain('home features')
+    expect(document.getElementById('app')?.textContent).not.toContain('404')
+  })
+
   it('delegates back and forward calls to browser history', () => {
     const backSpy = vi.spyOn(window.history, 'back')
     const forwardSpy = vi.spyOn(window.history, 'forward')

@@ -18,10 +18,35 @@ let activeRouter: Router | null = null
 
 function normalizePath(path: string): string {
 	if (!path) return '/'
-	const [pathname] = path.split('?')
+	const [withoutHash] = path.split('#')
+	const [pathname] = withoutHash.split('?')
 	const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`
 	if (normalized !== '/' && normalized.endsWith('/')) return normalized.slice(0, -1)
 	return normalized
+}
+
+function extractHash(path: string): string {
+	const idx = path.indexOf('#')
+	if (idx < 0) return ''
+	return path.slice(idx)
+}
+
+function scrollToHash(hash: string): void {
+	if (!hash || hash.length < 2) return
+	if (typeof document === 'undefined') return
+	const id = decodeURIComponent(hash.slice(1))
+	const el = document.getElementById(id)
+	if (el && typeof el.scrollIntoView === 'function') {
+		el.scrollIntoView({ block: 'start' })
+	}
+}
+
+function scheduleAfterRender(fn: () => void): void {
+	if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+		window.requestAnimationFrame(fn)
+		return
+	}
+	setTimeout(fn, 0)
 }
 
 function splitPath(path: string): string[] {
@@ -113,12 +138,17 @@ export function createRouter(
 
 	function navigate(path: string, replace = false): void {
 		const nextPath = normalizePath(path)
+		const hash = extractHash(path)
+		const nextUrl = `${nextPath}${hash}`
 		if (replace) {
-			window.history.replaceState({}, '', nextPath)
+			window.history.replaceState({}, '', nextUrl)
 		} else {
-			window.history.pushState({}, '', nextPath)
+			window.history.pushState({}, '', nextUrl)
 		}
 		render(nextPath)
+		if (hash) {
+			scheduleAfterRender(() => scrollToHash(hash))
+		}
 	}
 
 	function back(): void {
@@ -142,17 +172,22 @@ export function createRouter(
 		if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#')) return
 		if (anchor.target && anchor.target !== '_self') return
 
-		const nextPath = normalizePath(href)
 		event.preventDefault()
-		navigate(nextPath)
+		navigate(href)
 	}
 
 	const router: Router = {
 		start() {
 			render(window.location.pathname)
+			if (window.location.hash) {
+				scheduleAfterRender(() => scrollToHash(window.location.hash))
+			}
 			document.addEventListener('click', handleLinkClick)
 			window.addEventListener('popstate', () => {
 				render(window.location.pathname)
+				if (window.location.hash) {
+					scheduleAfterRender(() => scrollToHash(window.location.hash))
+				}
 			})
 			activeRouter = router
 		},
