@@ -68,7 +68,7 @@ blueprint Navbar {
 					<a href="#features">Features</a>
 					<a href="#how-it-works">How It Works</a>
 					<a href="#comparison">vs React</a>
-					<a href="https://github.com/anthropics/tardisjs">GitHub</a>
+					<a href="https://github.com/devansharora18/tardisjs">GitHub</a>
 					<button class="theme-toggle" id="theme-btn">&#9790;</button>
 				</div>
 			</div>
