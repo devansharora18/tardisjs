@@ -59,6 +59,9 @@ blueprint Docs {
 			background: var(--surface);
 			margin-bottom: 16px;
 		}
+		.docs-main {
+			min-width: 0;
+		}
 		.docs-main h2 {
 			font-size: 1.4rem;
 			letter-spacing: -0.01em;
@@ -107,11 +110,93 @@ blueprint Docs {
 			color: var(--text-secondary);
 		}
 		@media (max-width: 900px) {
+			.docs-wrap {
+				padding: 28px 18px 64px;
+			}
 			.docs-grid {
 				grid-template-columns: 1fr;
+				gap: 16px;
 			}
 			.docs-nav {
 				position: static;
+				padding: 12px;
+			}
+			.docs-nav a {
+				display: inline-block;
+				padding: 8px 10px;
+				margin: 0 6px 6px 0;
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				background: var(--code-bg);
+			}
+			.docs-main section {
+				padding: 18px;
+			}
+		}
+		@media (max-width: 700px) {
+			.docs-wrap {
+				padding: 24px 14px 56px;
+			}
+			.docs-hero p {
+				font-size: 14px;
+			}
+			.docs-main h2 {
+				font-size: 1.2rem;
+			}
+			.docs-main p,
+			.docs-main li {
+				font-size: 14px;
+			}
+			.docs-main pre {
+				padding: 12px;
+			}
+			.docs-main code {
+				font-size: 12px;
+			}
+			.docs-table,
+			.docs-table tbody,
+			.docs-table tr,
+			.docs-table td {
+				display: block;
+				width: 100%;
+			}
+			.docs-table thead {
+				display: none;
+			}
+			.docs-table tr {
+				border: 1px solid var(--border);
+				border-radius: 10px;
+				padding: 10px;
+				margin-bottom: 10px;
+			}
+			.docs-table td {
+				border: 0;
+				padding: 0;
+				font-size: 13px;
+			}
+			.docs-table td:first-child {
+				font-weight: 600;
+				color: var(--text);
+				margin-bottom: 6px;
+			}
+			.docs-table td + td {
+				color: var(--text-secondary);
+			}
+		}
+		@media (max-width: 480px) {
+			.docs-wrap {
+				padding: 20px 12px 48px;
+			}
+			.docs-main section {
+				padding: 14px;
+				border-radius: 12px;
+			}
+			.docs-nav h3 {
+				font-size: 12px;
+			}
+			.docs-nav a {
+				font-size: 13px;
+				padding: 7px 8px;
 			}
 		}
 	}
