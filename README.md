@@ -1,6 +1,10 @@
 # tardisjs
 
-**Smaller on the outside.** A blueprint-first frontend framework that compiles `.tardis` files to vanilla JavaScript.
+A compiler-driven frontend framework built around a blueprint DSL.
+
+TardisJS compiles `.tardis` files to plain JavaScript modules plus a small runtime (~5KB). It uses Proxy-based reactivity with direct DOM bindings (no virtual DOM reconciliation).
+
+This project is experimental and blueprint-first by design. It is meant for teams who want explicit generated output and a small runtime surface.
 
 ## Quick Start
 
@@ -50,14 +54,19 @@ blueprint Counter {
 
 ## Features
 
-- **~5KB runtime** — ships minimal code to the browser
-- **No virtual DOM** — direct DOM updates with Proxy-based reactivity
-- **Blueprint syntax** — structured DSL with props, state, computed, methods, events, styles, and UI
-- **Compiler-driven** — lexer, parser, and code generator transform `.tardis` files to JavaScript modules
+- **Compiler pipeline** — `lex()` → `parse()` → `compile()` generates imperative JS
+- **~5KB runtime** — small client runtime focused on binding and routing
+- **Proxy-based reactivity** — field-level subscriptions trigger dependent effects
+- **Direct DOM updates** — generated code writes to concrete nodes/attributes
+- **Blueprint sections** — explicit `props/state/computed/methods/events/style/ui/script`
 - **File-based routing** — `pages/index.tardis` → `/`, `pages/[slug].tardis` → `/:slug`
-- **Built-in dev server** — HMR via WebSocket, auto port discovery
-- **Zero runtime dependencies** — the runtime has no external deps
-- **Tailwind integration** — style tokens map directly to Tailwind classes
+- **Built-in CLI** — `init`, `dev`, `build`, `preview`
+
+## Where It Fits
+
+- **React / Vue / Svelte** are mature and better choices for many production teams today.
+- **TardisJS** is useful if you want to inspect compile output, keep the runtime surface small, and work in a sectioned DSL.
+- Trade-off: smaller ecosystem and fewer integrations compared to established frameworks.
 
 ## Project Structure
 
@@ -186,6 +195,15 @@ Working examples are in `examples/`:
 ```
 
 The compiler transforms blueprint sections into imperative DOM code that references the `$runtime` object. State uses JavaScript Proxies for fine-grained reactivity — only bindings that read a changed key are re-evaluated.
+
+In practice:
+
+- `lex()` tokenizes blueprint sections and expressions.
+- `parse()` builds typed AST nodes (`state`, `methods`, `events`, `ui`, etc).
+- `compile()` emits DOM creation code + binding/effect wiring.
+- Runtime updates are driven by Proxy traps and dependency tracking.
+
+The model keeps runtime logic simple, but shifts more responsibility to compile-time transforms and DSL ergonomics.
 
 ## Contributing
 
