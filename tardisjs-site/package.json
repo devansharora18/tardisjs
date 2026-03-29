@@ -9,6 +9,7 @@
     "preview": "tardis preview"
   },
   "dependencies": {
-    "@devansharora18/tardisjs": "^0.0.15"
+    "@devansharora18/tardisjs": "^0.0.15",
+    "@vercel/analytics": "^2.0.1"
   }
 }
