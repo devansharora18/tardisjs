@@ -1,4 +1,4 @@
-import { flushDestroyCallbacks } from './events'
+import { flushDestroyCallbacks, flushMountCallbacks } from './events'
 
 export interface RouteDefinition {
 	path: string
@@ -134,6 +134,7 @@ export function createRouter(
 		setParams(params)
 		target.innerHTML = ''
 		target.appendChild(nextNode)
+		flushMountCallbacks()
 	}
 
 	function navigate(path: string, replace = false): void {

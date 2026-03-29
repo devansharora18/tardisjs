@@ -11,13 +11,16 @@ blueprint Navbar {
 	events {
 		onMount: () => {
 			const stored = localStorage.getItem('tardis-theme')
-			const shouldDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)
+			const shouldDark = stored ? stored === 'dark' : true
 			if (shouldDark) {
 				document.documentElement.setAttribute('data-theme', 'dark')
-				$update(state.themeDark, true)
+				if (!stored) localStorage.setItem('tardis-theme', 'dark')
+			} else {
+				document.documentElement.removeAttribute('data-theme')
 			}
+			state.themeDark = shouldDark
 			window.addEventListener('resize', () => {
-				if (window.innerWidth > 768) $update(state.menuOpen, false)
+				if (window.innerWidth > 768) state.menuOpen = false
 			})
 		}
 	}

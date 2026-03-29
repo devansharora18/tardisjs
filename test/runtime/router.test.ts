@@ -1,6 +1,7 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { JSDOM } from 'jsdom'
 import { createRouter, $navigate, $params, $back, $forward } from '../../src/runtime/router'
+import { registerEvents } from '../../src/runtime/events'
 
 let dom: JSDOM
 
@@ -149,5 +150,21 @@ describe('runtime router', () => {
 
     expect(backSpy).toHaveBeenCalledTimes(1)
     expect(forwardSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('flushes onMount callbacks after route mount', () => {
+    const onMountSpy = vi.fn()
+
+    const Home = () => {
+      registerEvents({ onMount: onMountSpy })
+      const el = document.createElement('div')
+      el.textContent = 'home'
+      return el
+    }
+
+    const router = createRouter([{ path: '/', component: Home }])
+    router.start()
+
+    expect(onMountSpy).toHaveBeenCalledTimes(1)
   })
 })
