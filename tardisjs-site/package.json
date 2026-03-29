@@ -9,6 +9,6 @@
     "preview": "tardis preview"
   },
   "dependencies": {
-    "@devansharora18/tardisjs": "^0.0.14"
+    "@devansharora18/tardisjs": "^0.0.15"
   }
 }
