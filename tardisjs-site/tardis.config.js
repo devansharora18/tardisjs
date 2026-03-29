@@ -11,6 +11,6 @@ export default {
 		'<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">',
 		'<link rel="stylesheet" href="/styles.css">',
 		'<script type="importmap">{"imports":{"@vercel/analytics":"https://esm.sh/@vercel/analytics"}}</script>',
-		'<script type="module">import { inject } from "@vercel/analytics"; inject();</script>',
+		'<script type="module">import { inject } from "@vercel/analytics"; inject({ mode: "production" });</script>',
 	],
 }
