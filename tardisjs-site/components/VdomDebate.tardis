@@ -96,8 +96,8 @@ blueprint VdomDebate {
 		<section class="section section-alt" id="vdom">
 			<div class="container">
 				<p class="section-label">Architecture</p>
-				<h2 class="section-title">The virtual DOM debate</h2>
-				<p class="section-desc">The virtual DOM was a good idea in 2013. In 2025, compilers can do better.</p>
+				<h2 class="section-title">Virtual DOM vs compiled bindings</h2>
+				<p class="section-desc">Both models are valid. TardisJS chooses compile-time binding maps and direct DOM writes to keep runtime behavior straightforward.</p>
 				<div class="code-split">
 					<div class="code-block">
 						<div class="code-block-header">
@@ -121,15 +121,15 @@ blueprint VdomDebate {
 				<div class="steps">
 					<div class="step">
 						<h3>Why VDOM exists</h3>
-						<p>React introduced the virtual DOM to batch updates and minimize direct DOM manipulation, which was slow in 2013 browsers. The tradeoff: every render re-executes your component function and diffs two object trees.</p>
+						<p>Virtual DOM models make UI updates declarative and portable across many component patterns. They also centralize update scheduling.</p>
 					</div>
 					<div class="step">
 						<h3>The cost</h3>
-						<p>Diffing is O(n) on tree size. For most updates, you change one piece of state and one DOM node needs updating. But React still walks the whole subtree to figure that out.</p>
+						<p>They pay runtime work per update: render functions run, trees are compared, and patches are applied.</p>
 					</div>
 					<div class="step">
 						<h3>Compiler alternative</h3>
-						<p>tardisjs knows at compile time which state binds to which DOM node. When state.count changes, only the text node showing count updates. No tree walk. No scheduling. One assignment.</p>
+						<p>TardisJS records dependencies during binding and updates by field. The trade-off is less abstraction and a smaller ecosystem.</p>
 					</div>
 				</div>
 			</div>

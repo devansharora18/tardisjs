@@ -124,13 +124,13 @@ blueprint Hero {
 		<section class="hero">
 			<div class="container">
 				<div class="fade-up">
-					<div class="hero-badge">Blueprint-first framework</div>
+					<div class="hero-badge">Compiler-driven UI framework</div>
 					<h1>Write UI as <span>blueprints</span>,<br/>ship plain JavaScript.</h1>
-					<p class="hero-sub">tardisjs compiles .tardis files into framework-free JavaScript with a small runtime. No virtual DOM. No build-time magic. Just explicit, fast UI.</p>
+					<p class="hero-sub">TardisJS compiles .tardis blueprints through lex/parse/compile stages into direct DOM code plus a ~5KB runtime. Reactivity is Proxy-based and field-level. This is an experimental blueprint-first model, not a replacement for React, Vue, or Svelte.</p>
 				</div>
 				<div class="hero-actions fade-up fade-up-d1">
 					<a class="btn-primary" href="#get-started">Get Started</a>
-					<a class="btn-secondary" href="#comparison">Compare to React</a>
+					<a class="btn-secondary" href="#comparison">Architecture Notes</a>
 				</div>
 				<div class="code-preview fade-up fade-up-d2">
 					<div class="code-preview-bar">

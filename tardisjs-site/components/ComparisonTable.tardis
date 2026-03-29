@@ -82,55 +82,55 @@ blueprint ComparisonTable {
 		<section class="section" id="comparison">
 			<div class="container">
 				<p class="section-label">Comparison</p>
-				<h2 class="section-title">tardisjs vs React</h2>
-				<p class="section-desc">Two different philosophies. React builds a virtual tree and diffs it. tardisjs compiles to direct DOM operations at build time.</p>
+				<h2 class="section-title">TardisJS in context</h2>
+				<p class="section-desc">This project focuses on explicit compile output and a small runtime. It explores a different set of trade-offs than React/Vue/Svelte rather than trying to replace them.</p>
 				<div class="compare-grid">
 					<div class="compare-item">
 						<h3>Rendering</h3>
 						<div class="compare-col">
 							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>The compiler analyzes your template at build time and generates code that creates DOM nodes directly. When state changes, a Proxy trap fires and updates the exact text node or attribute that depends on that state field. There is no virtual tree, no diff algorithm, no reconciliation pass. One state change equals one DOM write.</p>
+							<p>Templates are compiled into direct DOM operations. Effects are field-scoped through Proxy reads, so updates target subscribed bindings.</p>
 						</div>
 						<div class="compare-divider"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
-							<p>Every state update re-executes the component function to produce a new virtual DOM tree. React then diffs the old and new trees (reconciliation) and applies the minimal set of DOM mutations. This is O(n) on tree size even if only one value changed. Fiber scheduling adds further complexity.</p>
+							<p>Components re-render to virtual nodes, then reconciliation computes DOM patches. This model is flexible and ecosystem-rich, with different runtime costs.</p>
 						</div>
 					</div>
 					<div class="compare-item">
 						<h3>State management</h3>
 						<div class="compare-col">
 							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>State is declared as typed fields inside a state block. The compiler wraps them in a JavaScript Proxy. Mutations use $update(state.field, newValue) which triggers only the bindings that read that field. No setters, no reducers, no action types, no immutable update patterns.</p>
+							<p>State fields are declared in blueprint blocks and wrapped by a Proxy. Writes trigger only effects that consumed those fields.</p>
 						</div>
 						<div class="compare-divider"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
-							<p>State is managed through hooks like useState and useReducer. Each call returns a value and a setter. Updates must be immutable (spread operators everywhere). Complex state often requires useReducer or external libraries like Zustand, Redux, or Jotai.</p>
+							<p>Hooks (`useState`, `useReducer`) provide composable state control with mature community patterns and tooling.</p>
 						</div>
 					</div>
 					<div class="compare-item">
 						<h3>Component model</h3>
 						<div class="compare-col">
 							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>Each .tardis file is a blueprint with explicit sections: props, state, computed, methods, events, style, ui, script. The structure is enforced by the parser. You always know where to find things. Components are auto-registered by the build system.</p>
+							<p>Each `.tardis` file has sectioned structure (props/state/computed/methods/events/style/ui/script). This improves consistency but is less flexible than function-based component models.</p>
 						</div>
 						<div class="compare-divider"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
-							<p>Components are JavaScript functions that return JSX. State, effects, refs, and memoization are mixed into the function body through hooks. The structure is freeform, which gives flexibility but means every codebase organizes differently.</p>
+							<p>Components are functions returning JSX. This is highly flexible and familiar, but architectural consistency depends on team conventions.</p>
 						</div>
 					</div>
 					<div class="compare-item">
 						<h3>Routing and tooling</h3>
 						<div class="compare-col">
 							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>Routing is built in and file-based. Drop a .tardis file in the pages/ directory and it becomes a route. The CLI handles dev server, hot reload, and production builds. No configuration files, no plugin ecosystem to navigate.</p>
+							<p>Routing is file-based and bundled with the CLI (`init/dev/build/preview`). Setup is compact, but integrations are still early-stage.</p>
 						</div>
 						<div class="compare-divider"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
-							<p>React has no built-in routing. You choose between react-router, TanStack Router, or a framework like Next.js. Build tooling means choosing between Vite, Webpack, Parcel, or a meta-framework. Each choice adds its own configuration layer.</p>
+							<p>Routing/build choices are modular (`react-router`, Next.js, Vite, etc.), which gives broad options and a large ecosystem footprint.</p>
 						</div>
 					</div>
 				</div>

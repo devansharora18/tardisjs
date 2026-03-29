@@ -42,8 +42,8 @@ blueprint LiveDemo {
 		<section class="section" id="demo">
 			<div class="container demo-center">
 				<p class="section-label">Try it</p>
-				<h2 class="section-title">Reactivity in action</h2>
-				<p class="section-desc">This counter component is built with tardisjs. Click the buttons. State updates are instant because there is no diff cycle.</p>
+				<h2 class="section-title">Field-level updates in practice</h2>
+				<p class="section-desc">This counter writes to one state field and updates the subscribed text binding. Use it as a reference for runtime behavior, not as a benchmark.</p>
 				<CounterDemo />
 			</div>
 		</section>

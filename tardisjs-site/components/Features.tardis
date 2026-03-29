@@ -68,32 +68,32 @@ blueprint Features {
 		<section class="section section-alt" id="features">
 			<div class="container">
 				<p class="section-label">Features</p>
-				<h2 class="section-title">What makes tardisjs different</h2>
-				<p class="section-desc">A compiler-driven framework that prioritizes explicitness, small bundle size, and direct DOM manipulation.</p>
+				<h2 class="section-title">How TardisJS is built</h2>
+				<p class="section-desc">The framework is organized around a compiler pipeline and a small runtime. Most behavior is explicit in blueprint sections and generated DOM code.</p>
 				<div class="features-grid">
 					<div class="feature-card fade-up">
 						<h3>Blueprint syntax</h3>
-						<p>Author UI in .tardis files with dedicated sections for state, methods, computed values, styles, and markup. Everything has a place.</p>
+						<p>UI logic is split into props, state, computed, methods, events, style, and ui blocks. The parser enforces that structure, so component files stay consistent.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d1">
 						<h3>Proxy-based reactivity</h3>
-						<p>State changes propagate through JavaScript Proxies. Fine-grained updates target only the DOM nodes that changed. No diffing needed.</p>
+						<p>State is wrapped in a Proxy. Bindings subscribe per field, and updates re-run only the effects that read that field.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d2">
 						<h3>Compile-time transforms</h3>
-						<p>The compiler handles lexing, parsing, and code generation at build time. The runtime stays minimal because the heavy lifting is already done.</p>
+						<p>`.tardis` files are tokenized, parsed to AST nodes, then compiled to imperative JavaScript modules. Runtime work is mostly binding and event dispatch.</p>
 					</div>
 					<div class="feature-card fade-up">
 						<h3>File-based routing</h3>
-						<p>Drop a .tardis file in pages/ and it becomes a route. Nested folders map to nested paths. No configuration required.</p>
+						<p>Route definitions come from the pages directory. Dynamic segments map from `[id].tardis` to `:id` at runtime.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d1">
-						<h3>Scoped styles</h3>
-						<p>Choose between Tailwind utility classes or plain CSS. Style definitions live inside the blueprint alongside the markup they apply to.</p>
+						<h3>Style options</h3>
+						<p>Components can use style blocks, utility-class maps, or raw CSS. Style decisions stay local to the blueprint.</p>
 					</div>
 					<div class="feature-card fade-up fade-up-d2">
-						<h3>No virtual DOM</h3>
-						<p>tardisjs binds directly to real DOM nodes. No reconciliation pass, no fiber tree, no scheduling overhead. Updates are immediate.</p>
+						<h3>Trade-off surface</h3>
+						<p>The API is intentionally small and experimental. You get predictable generated code, but a smaller ecosystem than Vue/React/Svelte today.</p>
 					</div>
 				</div>
 			</div>

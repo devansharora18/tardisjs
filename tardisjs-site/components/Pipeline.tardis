@@ -82,7 +82,7 @@ blueprint Pipeline {
 			<div class="container">
 				<p class="section-label">Pipeline</p>
 				<h2 class="section-title">How tardisjs works</h2>
-				<p class="section-desc">Your .tardis source goes through three compilation stages before reaching the browser.</p>
+				<p class="section-desc">Build-time does most of the structural work. The browser runtime handles subscriptions, updates, and routing.</p>
 				<div class="pipeline">
 					<div class="pipeline-step">.tardis</div>
 					<span class="pipeline-arrow">&#8594;</span>
@@ -100,17 +100,17 @@ blueprint Pipeline {
 					<div class="step">
 						<div class="step-num">01</div>
 						<h3>Lex</h3>
-						<p>The lexer tokenizes your .tardis file, identifying keywords like blueprint, state, methods, ui, and extracting raw blocks of markup and expressions.</p>
+						<p>The lexer converts source text into tokens for section keywords, literals, operators, and raw UI/script blocks.</p>
 					</div>
 					<div class="step">
 						<div class="step-num">02</div>
 						<h3>Parse</h3>
-						<p>Tokens are structured into an AST with typed nodes for props, state, computed values, methods, events, styles, and the UI tree.</p>
+						<p>The parser builds a typed AST: props, state, computed, methods, events, style metadata, and UI nodes.</p>
 					</div>
 					<div class="step">
 						<div class="step-num">03</div>
 						<h3>Compile</h3>
-						<p>The AST is walked to emit JavaScript that creates DOM elements, sets up Proxy-based reactivity bindings, and wires event listeners.</p>
+						<p>The compiler emits JavaScript that creates DOM nodes, registers bindings, and wires events against the runtime API.</p>
 					</div>
 				</div>
 			</div>
