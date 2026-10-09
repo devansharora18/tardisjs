@@ -1,72 +1,38 @@
 blueprint VdomDebate {
 	style {
-		.section { padding: clamp(56px, 8vw, 96px) 0; }
-		.section-alt {
-			background: var(--surface);
-			border-top: 1px solid var(--border);
-			border-bottom: 1px solid var(--border);
-		}
-		.section-label {
-			font-size: 12px;
-			font-weight: 600;
-			letter-spacing: 0.08em;
-			text-transform: uppercase;
-			color: var(--accent);
-			margin-bottom: 8px;
-		}
-		.section-title {
-			font-size: clamp(24px, 3.5vw, 32px);
-			font-weight: 700;
-			letter-spacing: -0.02em;
-			margin-bottom: 12px;
-			line-height: 1.2;
-		}
-		.section-desc {
-			font-size: 16px;
-			color: var(--text-secondary);
-			max-width: 600px;
-			margin-bottom: 40px;
-			line-height: 1.5;
-		}
-		.container {
-			max-width: 1080px;
-			margin: 0 auto;
-			padding: 0 24px;
-		}
 		.code-split {
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-			gap: 20px;
-			margin-top: 32px;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 16px;
 		}
 		.code-block {
-			background: var(--surface);
+			background: var(--code-surface);
 			border: 1px solid var(--border);
-			border-radius: 12px;
+			border-radius: var(--radius-lg);
 			overflow: hidden;
 		}
 		.code-block-header {
 			display: flex;
 			align-items: center;
 			gap: 6px;
-			padding: 10px 14px;
+			padding: 11px 14px;
 			background: var(--code-bg);
 			border-bottom: 1px solid var(--border);
 		}
-		.dot-close { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-close); }
-		.dot-min { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-minimize); }
-		.dot-max { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-maximize); }
+		.dot { width: 10px; height: 10px; border-radius: 50%; }
+		.dot-close { background: var(--dot-close); }
+		.dot-min { background: var(--dot-minimize); }
+		.dot-max { background: var(--dot-maximize); }
 		.code-filename {
 			margin-left: 8px;
 			font-size: 12px;
-			font-weight: 600;
+			font-weight: 500;
 			color: var(--text-muted);
-			font-family: 'JetBrains Mono', monospace;
 		}
 		.code-block pre {
-			padding: 16px;
+			padding: 18px;
 			font-size: 13px;
-			line-height: 1.55;
+			line-height: 1.65;
 			white-space: pre-wrap;
 			word-wrap: break-word;
 			color: var(--text);
@@ -74,8 +40,26 @@ blueprint VdomDebate {
 		.steps {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-			gap: 24px;
-			margin-top: 40px;
+			gap: 16px;
+			margin-top: 20px;
+		}
+		.step {
+			border: 1px solid var(--border);
+			border-radius: var(--radius-lg);
+			padding: 22px;
+			background: var(--surface);
+		}
+		.step-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 36px;
+			height: 36px;
+			border-radius: var(--radius);
+			border: 1px solid var(--border);
+			background: var(--bg);
+			color: var(--accent);
+			margin-bottom: 14px;
 		}
 		.step h3 {
 			font-size: 15px;
@@ -85,11 +69,11 @@ blueprint VdomDebate {
 		.step p {
 			font-size: 14px;
 			color: var(--text-secondary);
-			line-height: 1.5;
+			line-height: 1.6;
 		}
 	}
 	ui {
-		<section class="section section-alt" id="vdom">
+		<section class="section" id="vdom">
 			<div class="container">
 				<p class="section-label">Architecture</p>
 				<h2 class="section-title">Virtual DOM vs compiled bindings</h2>
@@ -97,18 +81,18 @@ blueprint VdomDebate {
 				<div class="code-split">
 					<div class="code-block">
 						<div class="code-block-header">
-							<div class="dot-close" aria-hidden="true"></div>
-							<div class="dot-min" aria-hidden="true"></div>
-							<div class="dot-max" aria-hidden="true"></div>
+							<div class="dot dot-close" aria-hidden="true"></div>
+							<div class="dot dot-min" aria-hidden="true"></div>
+							<div class="dot dot-max" aria-hidden="true"></div>
 							<span class="code-filename">Virtual DOM (React)</span>
 						</div>
 						<pre id="code-vdom"></pre>
 					</div>
 					<div class="code-block">
 						<div class="code-block-header">
-							<div class="dot-close" aria-hidden="true"></div>
-							<div class="dot-min" aria-hidden="true"></div>
-							<div class="dot-max" aria-hidden="true"></div>
+							<div class="dot dot-close" aria-hidden="true"></div>
+							<div class="dot dot-min" aria-hidden="true"></div>
+							<div class="dot dot-max" aria-hidden="true"></div>
 							<span class="code-filename">Direct binding (tardisjs)</span>
 						</div>
 						<pre id="code-direct"></pre>
@@ -116,14 +100,17 @@ blueprint VdomDebate {
 				</div>
 				<div class="steps">
 					<div class="step">
+						<span class="step-icon" data-icon="layers"></span>
 						<h3>Why VDOM exists</h3>
-						<p>Virtual DOM models make UI updates declarative and portable across many component patterns. They also centralize update scheduling.</p>
+						<p>Virtual DOM makes updates declarative and portable across many component patterns. It also centralizes update scheduling.</p>
 					</div>
 					<div class="step">
+						<span class="step-icon" data-icon="activity"></span>
 						<h3>The cost</h3>
-						<p>They pay runtime work per update: render functions run, trees are compared, and patches are applied.</p>
+						<p>It pays runtime work per update: render functions run, trees are compared, and patches are applied.</p>
 					</div>
 					<div class="step">
+						<span class="step-icon" data-icon="cpu"></span>
 						<h3>Compiler alternative</h3>
 						<p>TardisJS records dependencies during binding and updates by field. The trade-off is less abstraction and a smaller ecosystem.</p>
 					</div>
@@ -163,5 +150,15 @@ blueprint VdomDebate {
 
 		{<pre id="code-vdom"></pre>}.innerHTML = highlight(vdomCode)
 		{<pre id="code-direct"></pre>}.innerHTML = highlight(directCode)
+
+		const ICONS = {
+			layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+			activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+			cpu: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>'
+		}
+		$el.querySelectorAll('.step-icon').forEach(el => {
+			const path = ICONS[el.getAttribute('data-icon')] || ''
+			el.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>'
+		})
 	}
 }
