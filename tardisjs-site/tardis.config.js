@@ -10,6 +10,7 @@ export default {
 		'<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">',
 		'<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">',
 		'<link rel="stylesheet" href="/styles.css">',
+		'<script src="/bench-data.js"></script>',
 		'<script>(function(){var t;try{t=localStorage.getItem("tardis-theme")}catch(e){}document.documentElement.setAttribute("data-theme",t||"dark")})();</script>',
 		'<script type="importmap">{"imports":{"@vercel/analytics":"https://esm.sh/@vercel/analytics"}}</script>',
 		'<script type="module">import { inject } from "@vercel/analytics"; inject({ mode: "production" });</script>',

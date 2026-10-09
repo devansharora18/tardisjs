@@ -147,6 +147,7 @@ blueprint Navbar {
 					<a href="/#features" @click={methods.closeMenu}>Features</a>
 					<a href="/#how-it-works" @click={methods.closeMenu}>How It Works</a>
 					<a href="/#comparison" @click={methods.closeMenu}>vs React</a>
+					<a href="/#benchmarks" @click={methods.closeMenu}>Benchmarks</a>
 					<a href="/docs" @click={methods.closeMenu}>Docs</a>
 					<a href="https://github.com/devansharora18/tardisjs" @click={methods.closeMenu}>GitHub</a>
 					<button class="theme-toggle" aria-label="Toggle color theme" @click={methods.toggleTheme}>{state.themeDark ? "\u2600" : "\u263E"}</button>

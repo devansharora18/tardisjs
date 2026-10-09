@@ -8,6 +8,7 @@ blueprint Home {
 			<StateComparison />
 			<ComparisonTable />
 			<VdomDebate />
+			<Benchmark />
 			<LiveDemo />
 			<GetStarted />
 			<Footer />
