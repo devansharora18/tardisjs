@@ -1,23 +1,34 @@
 blueprint Hero {
 	style {
 		.hero {
-			padding: 100px 0 80px;
+			padding: clamp(72px, 10vw, 120px) 0 clamp(56px, 8vw, 88px);
 			text-align: center;
 		}
 		.hero-badge {
-			display: inline-block;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
 			font-size: 12px;
 			font-weight: 600;
 			letter-spacing: 0.06em;
 			text-transform: uppercase;
 			color: var(--accent);
 			background: var(--accent-light);
-			padding: 4px 12px;
-			border-radius: 4px;
-			margin-bottom: 20px;
+			padding: 6px 14px;
+			border-radius: 999px;
+			border: 1px solid var(--border);
+			margin-bottom: 24px;
+		}
+		.hero-badge::before {
+			content: "";
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: var(--accent);
+			animation: pulse 2s ease-in-out infinite;
 		}
 		.hero h1 {
-			font-size: 48px;
+			font-size: clamp(32px, 5vw, 56px);
 			font-weight: 800;
 			line-height: 1.1;
 			letter-spacing: -0.03em;
@@ -57,6 +68,11 @@ blueprint Hero {
 			text-decoration: none;
 			color: #ffffff;
 		}
+		.btn-primary:focus-visible,
+		.btn-secondary:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
 		.btn-secondary {
 			display: inline-block;
 			background: transparent;
@@ -78,9 +94,10 @@ blueprint Hero {
 			margin: 48px auto 0;
 			background: var(--code-surface);
 			border: 1px solid var(--border);
-			border-radius: 8px;
+			border-radius: 12px;
 			overflow: hidden;
 			text-align: left;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 		}
 		.code-preview-bar {
 			display: flex;
@@ -115,7 +132,6 @@ blueprint Hero {
 			padding: 0 24px;
 		}
 		@media (max-width: 768px) {
-			.hero h1 { font-size: 32px; }
 			.hero-sub { font-size: 16px; }
 			.hero-actions { flex-direction: column; }
 		}

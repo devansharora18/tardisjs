@@ -96,6 +96,16 @@ code, pre {
 .fade-up-d2 { animation-delay: 0.16s; }
 .fade-up-d3 { animation-delay: 0.24s; }
 
+@keyframes pulse {
+  from, to { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .fade-up-d1, .fade-up-d2, .fade-up-d3 { animation: none; }
+  .hero-badge::before { animation: none; }
+}
+
 @media (max-width: 768px) {
   html { font-size: 15px; }
 }
