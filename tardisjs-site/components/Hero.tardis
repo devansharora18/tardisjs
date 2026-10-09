@@ -1,158 +1,177 @@
 blueprint Hero {
 	style {
 		.hero {
-			padding: clamp(72px, 10vw, 120px) 0 clamp(56px, 8vw, 88px);
+			position: relative;
+			overflow: hidden;
+			padding: clamp(84px, 11vw, 132px) 0 clamp(56px, 8vw, 80px);
 			text-align: center;
+		}
+		.hero::before {
+			content: "";
+			position: absolute;
+			inset: -30% 0 auto;
+			height: 640px;
+			background: radial-gradient(ellipse 60% 60% at 50% 0%, var(--accent-light), transparent 70%);
+			pointer-events: none;
+		}
+		.hero > .container {
+			position: relative;
 		}
 		.hero-badge {
 			display: inline-flex;
 			align-items: center;
 			gap: 8px;
 			font-size: 12px;
-			font-weight: 600;
-			letter-spacing: 0.06em;
-			text-transform: uppercase;
-			color: var(--accent);
-			background: var(--accent-light);
-			padding: 6px 14px;
+			font-weight: 500;
+			color: var(--text-secondary);
+			background: var(--surface);
+			padding: 5px 12px 5px 10px;
 			border-radius: 999px;
 			border: 1px solid var(--border);
-			margin-bottom: 24px;
+			margin-bottom: 26px;
 		}
 		.hero-badge::before {
 			content: "";
 			width: 6px;
 			height: 6px;
 			border-radius: 50%;
-			background: var(--accent);
-			animation: pulse 2s ease-in-out infinite;
+			background: var(--success);
+			box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent);
 		}
 		.hero h1 {
-			font-size: clamp(32px, 5vw, 56px);
+			font-size: clamp(36px, 6vw, 68px);
 			font-weight: 800;
-			line-height: 1.1;
-			letter-spacing: -0.03em;
-			color: var(--text);
-			margin-bottom: 16px;
+			line-height: 1.04;
+			letter-spacing: -0.045em;
+			margin-bottom: 20px;
 		}
-		.hero h1 span {
+		.hero h1 .accent {
 			color: var(--accent);
 		}
 		.hero-sub {
-			font-size: 18px;
+			font-size: clamp(16px, 1.6vw, 18px);
 			color: var(--text-secondary);
-			max-width: 560px;
-			margin: 0 auto 32px;
-			line-height: 1.5;
+			max-width: 600px;
+			margin: 0 auto 30px;
+			line-height: 1.6;
 		}
 		.hero-actions {
 			display: flex;
-			gap: 12px;
+			gap: 10px;
 			justify-content: center;
 			align-items: center;
+			flex-wrap: wrap;
+		}
+		.btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 14px;
+			font-weight: 500;
+			padding: 10px 20px;
+			border-radius: var(--radius);
+			border: 1px solid transparent;
+			cursor: pointer;
+			transition: background 0.15s, border-color 0.15s, opacity 0.15s;
 		}
 		.btn-primary {
-			display: inline-block;
-			background: var(--accent);
-			color: #ffffff;
-			font-size: 14px;
-			font-weight: 600;
-			padding: 10px 22px;
-			border-radius: 6px;
-			border: none;
-			cursor: pointer;
-			transition: background 0.15s;
+			background: var(--text);
+			color: var(--bg);
 		}
 		.btn-primary:hover {
-			background: var(--accent-hover);
+			opacity: 0.88;
 			text-decoration: none;
-			color: #ffffff;
-		}
-		.btn-primary:focus-visible,
-		.btn-secondary:focus-visible {
-			outline: 2px solid var(--accent);
-			outline-offset: 2px;
+			color: var(--bg);
 		}
 		.btn-secondary {
-			display: inline-block;
 			background: transparent;
 			color: var(--text);
-			font-size: 14px;
-			font-weight: 600;
-			padding: 10px 22px;
-			border-radius: 6px;
-			border: 1px solid var(--border);
-			cursor: pointer;
-			transition: border-color 0.15s;
+			border-color: var(--border);
 		}
 		.btn-secondary:hover {
-			border-color: var(--text-muted);
+			border-color: var(--border-strong);
+			background: var(--surface);
 			text-decoration: none;
 		}
+		.hero-stats {
+			display: flex;
+			justify-content: center;
+			gap: clamp(24px, 6vw, 64px);
+			margin-top: 44px;
+			flex-wrap: wrap;
+		}
+		.hero-stat strong {
+			display: block;
+			font-size: 24px;
+			font-weight: 700;
+			letter-spacing: -0.03em;
+		}
+		.hero-stat span {
+			font-size: 12px;
+			color: var(--text-muted);
+		}
 		.code-preview {
-			max-width: 640px;
-			margin: 48px auto 0;
+			max-width: 620px;
+			margin: 56px auto 0;
 			background: var(--code-surface);
 			border: 1px solid var(--border);
-			border-radius: 12px;
+			border-radius: var(--radius-lg);
 			overflow: hidden;
 			text-align: left;
-			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+			box-shadow: var(--shadow-md);
 		}
 		.code-preview-bar {
 			display: flex;
 			align-items: center;
 			gap: 6px;
-			padding: 10px 14px;
+			padding: 11px 14px;
 			background: var(--code-bg);
 			border-bottom: 1px solid var(--border);
 		}
-		.dot-close { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-close); }
-		.dot-min { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-minimize); }
-		.dot-max { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-maximize); }
+		.dot { width: 10px; height: 10px; border-radius: 50%; }
+		.dot-close { background: var(--dot-close); }
+		.dot-min { background: var(--dot-minimize); }
+		.dot-max { background: var(--dot-maximize); }
 		.code-filename {
 			margin-left: 8px;
 			font-size: 12px;
 			color: var(--text-muted);
-			font-family: 'JetBrains Mono', monospace;
 		}
 		.code-preview pre {
 			padding: 18px 20px;
 			font-size: 13px;
-			line-height: 1.6;
+			line-height: 1.65;
 			white-space: pre-wrap;
 			word-wrap: break-word;
 			color: var(--text);
 			background: var(--code-surface);
-			text-align: left;
-		}
-		.container {
-			max-width: 1080px;
-			margin: 0 auto;
-			padding: 0 24px;
 		}
 		@media (max-width: 768px) {
-			.hero-sub { font-size: 16px; }
-			.hero-actions { flex-direction: column; }
+			.hero-actions .btn { width: 100%; justify-content: center; }
 		}
 	}
 	ui {
 		<section class="hero">
 			<div class="container">
 				<div class="fade-up">
-					<div class="hero-badge">Compiler-driven UI framework</div>
-					<h1>Write UI as <span>blueprints</span>,<br/>ship plain JavaScript.</h1>
-					<p class="hero-sub">TardisJS compiles .tardis blueprints through lex/parse/compile stages into direct DOM code plus a ~5KB runtime. Reactivity is Proxy-based and field-level. This is an experimental blueprint-first model, not a replacement for React, Vue, or Svelte.</p>
+					<div class="hero-badge">Compiler-driven, no virtual DOM</div>
+					<h1>Write UI as <span class="accent">blueprints</span>.<br/>Ship plain JavaScript.</h1>
+					<p class="hero-sub">TardisJS compiles <code>.tardis</code> blueprints through lex/parse/compile into direct DOM code plus a ~5KB runtime. Reactivity is Proxy-based and field-level — no diff, no scheduling.</p>
 				</div>
 				<div class="hero-actions fade-up fade-up-d1">
-					<a class="btn-primary" href="#get-started">Get Started</a>
-					<a class="btn-secondary" href="#comparison">Architecture Notes</a>
+					<a class="btn btn-primary" href="#get-started">Get started</a>
+					<a class="btn btn-secondary" href="#benchmarks">See benchmarks</a>
 				</div>
-				<div class="code-preview fade-up fade-up-d2">
+				<div class="hero-stats fade-up fade-up-d2">
+					<div class="hero-stat"><strong id="stat-gzip">—</strong><span>runtime, gzip</span></div>
+					<div class="hero-stat"><strong>0</strong><span>virtual nodes</span></div>
+					<div class="hero-stat"><strong>3</strong><span>compiler stages</span></div>
+				</div>
+				<div class="code-preview fade-up fade-up-d3">
 					<div class="code-preview-bar">
-						<div class="dot-close"></div>
-						<div class="dot-min"></div>
-						<div class="dot-max"></div>
+						<div class="dot dot-close" aria-hidden="true"></div>
+						<div class="dot dot-min" aria-hidden="true"></div>
+						<div class="dot dot-max" aria-hidden="true"></div>
 						<span class="code-filename">counter.tardis</span>
 					</div>
 					<pre id="hero-code"></pre>
@@ -195,5 +214,13 @@ blueprint Hero {
   }
 }`
 		{<pre id="hero-code"></pre>}.innerHTML = highlight(code)
+
+		const bench = window.__TARDIS_BENCH
+		if (bench) {
+			const tardis = bench.bundle.find(b => b.name === 'tardisjs')
+			if (tardis && tardis.gzip) {
+				{<strong id="stat-gzip"></strong>}.textContent = (tardis.gzip / 1024).toFixed(1) + 'KB'
+			}
+		}
 	}
 }
