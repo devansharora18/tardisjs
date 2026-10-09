@@ -1,0 +1,12 @@
+blueprint AnnounceBar {
+	ui {
+		<div class="announce">
+			<div class="announce-inner">
+				<span class="pill"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#45a557"></span>Blueprint-first</span>
+				<span>UI compiled to plain JavaScript — no virtual DOM, no diff.</span>
+				<code>~7KB</code>
+				<span>runtime</span>
+			</div>
+		</div>
+	}
+}

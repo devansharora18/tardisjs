@@ -3,32 +3,35 @@ blueprint Hero {
 		.hero {
 			position: relative;
 			overflow: hidden;
-			padding: clamp(84px, 11vw, 132px) 0 clamp(56px, 8vw, 80px);
-			text-align: center;
+			padding: clamp(48px, 6vw, 72px) 0 clamp(40px, 5vw, 56px);
 		}
 		.hero::before {
 			content: "";
 			position: absolute;
-			inset: -30% 0 auto;
-			height: 640px;
-			background: radial-gradient(ellipse 60% 60% at 50% 0%, var(--accent-light), transparent 70%);
+			inset: -40% 0 auto;
+			height: 520px;
+			background: radial-gradient(ellipse 55% 60% at 50% 0%, var(--accent-light), transparent 70%);
 			pointer-events: none;
 		}
-		.hero > .container {
+		.hero-grid {
 			position: relative;
+			display: grid;
+			grid-template-columns: 1.1fr 0.9fr;
+			gap: 48px;
+			align-items: start;
 		}
 		.hero-badge {
 			display: inline-flex;
 			align-items: center;
 			gap: 8px;
+			font-family: 'Geist Mono', monospace;
 			font-size: 12px;
-			font-weight: 500;
 			color: var(--text-secondary);
 			background: var(--surface);
-			padding: 5px 12px 5px 10px;
+			padding: 6px 12px;
 			border-radius: 999px;
 			border: 1px solid var(--border);
-			margin-bottom: 26px;
+			margin-bottom: 22px;
 		}
 		.hero-badge::before {
 			content: "";
@@ -36,28 +39,31 @@ blueprint Hero {
 			height: 6px;
 			border-radius: 50%;
 			background: var(--success);
-			box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent);
-		}
-		.hero h1 {
-			font-size: clamp(36px, 6vw, 68px);
-			font-weight: 800;
-			line-height: 1.04;
-			letter-spacing: -0.045em;
-			margin-bottom: 20px;
+			box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 22%, transparent);
 		}
 		.hero-sub {
-			font-size: clamp(16px, 1.6vw, 18px);
+			font-size: 16px;
 			color: var(--text-secondary);
-			max-width: 600px;
-			margin: 0 auto 30px;
-			line-height: 1.6;
+			max-width: 52ch;
+			margin-bottom: 26px;
+			line-height: 1.65;
+		}
+		.hero-sub code,
+		.hero-chips code {
+			font-family: 'Geist Mono', monospace;
+			font-size: 13px;
+			color: var(--text);
+			background: var(--code-bg);
+			border: 1px solid var(--border);
+			border-radius: 5px;
+			padding: 1px 6px;
 		}
 		.hero-actions {
 			display: flex;
 			gap: 10px;
-			justify-content: center;
 			align-items: center;
 			flex-wrap: wrap;
+			margin-bottom: 20px;
 		}
 		.btn {
 			display: inline-flex;
@@ -66,55 +72,26 @@ blueprint Hero {
 			font-size: 14px;
 			font-weight: 500;
 			padding: 10px 20px;
-			border-radius: var(--radius);
+			border-radius: 999px;
 			border: 1px solid transparent;
 			cursor: pointer;
 			transition: background 0.15s, border-color 0.15s, opacity 0.15s;
 		}
-		.btn-primary {
-			background: var(--text);
-			color: var(--bg);
-		}
-		.btn-primary:hover {
-			opacity: 0.88;
-			text-decoration: none;
-			color: var(--bg);
-		}
-		.btn-secondary {
-			background: transparent;
-			color: var(--text);
-			border-color: var(--border);
-		}
-		.btn-secondary:hover {
-			border-color: var(--border-strong);
-			background: var(--surface);
-			text-decoration: none;
-		}
-		.hero-stats {
+		.btn-primary { background: var(--text); color: var(--bg); }
+		.btn-primary:hover { opacity: 0.88; text-decoration: none; color: var(--bg); }
+		.btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
+		.btn-secondary:hover { border-color: var(--border-strong); background: var(--surface); text-decoration: none; }
+		.hero-chips {
 			display: flex;
-			justify-content: center;
-			gap: clamp(24px, 6vw, 64px);
-			margin-top: 44px;
 			flex-wrap: wrap;
+			gap: 8px;
 		}
-		.hero-stat strong {
-			display: block;
-			font-size: 24px;
-			font-weight: 700;
-			letter-spacing: -0.03em;
-		}
-		.hero-stat span {
-			font-size: 12px;
-			color: var(--text-muted);
-		}
+		.hero-side { position: sticky; top: 76px; }
 		.code-preview {
-			max-width: 620px;
-			margin: 56px auto 0;
 			background: var(--code-surface);
 			border: 1px solid var(--border);
 			border-radius: var(--radius-lg);
 			overflow: hidden;
-			text-align: left;
 			box-shadow: var(--shadow-md);
 		}
 		.code-preview-bar {
@@ -131,47 +108,64 @@ blueprint Hero {
 		.dot-max { background: var(--dot-maximize); }
 		.code-filename {
 			margin-left: 8px;
-			font-size: 12px;
+			font-family: 'Geist Mono', monospace;
+			font-size: 11px;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
 			color: var(--text-muted);
 		}
 		.code-preview pre {
-			padding: 18px 20px;
-			font-size: 13px;
+			padding: 16px 18px;
+			font-size: 12.5px;
 			line-height: 1.65;
 			white-space: pre-wrap;
 			word-wrap: break-word;
 			color: var(--text);
-			background: var(--code-surface);
 		}
-		@media (max-width: 768px) {
-			.hero-actions .btn { width: 100%; justify-content: center; }
+		.hero-stats {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 10px;
+			margin-top: 12px;
+		}
+		@media (max-width: 900px) {
+			.hero-grid { grid-template-columns: 1fr; gap: 32px; }
+			.hero-side { position: static; }
 		}
 	}
 	ui {
 		<section class="hero">
-			<div class="container">
-				<div class="fade-up">
-					<div class="hero-badge">Compiler-driven, no virtual DOM</div>
-					<h1>Write UI as <span class="gradient-text">blueprints</span>.<br/>Ship plain JavaScript.</h1>
-					<p class="hero-sub">TardisJS compiles <code>.tardis</code> blueprints through lex/parse/compile into direct DOM code plus a ~5KB runtime. Reactivity is Proxy-based and field-level — no diff, no scheduling.</p>
-				</div>
-				<div class="hero-actions fade-up fade-up-d1">
-					<a class="btn btn-primary" href="#get-started">Get started</a>
-					<a class="btn btn-secondary" href="#benchmarks">See benchmarks</a>
-				</div>
-				<div class="hero-stats fade-up fade-up-d2">
-					<div class="hero-stat"><strong id="stat-gzip">—</strong><span>runtime, gzip</span></div>
-					<div class="hero-stat"><strong>0</strong><span>virtual nodes</span></div>
-					<div class="hero-stat"><strong>3</strong><span>compiler stages</span></div>
-				</div>
-				<div class="code-preview fade-up fade-up-d3">
-					<div class="code-preview-bar">
-						<div class="dot dot-close" aria-hidden="true"></div>
-						<div class="dot dot-min" aria-hidden="true"></div>
-						<div class="dot dot-max" aria-hidden="true"></div>
-						<span class="code-filename">counter.tardis</span>
+			<div class="container hero-grid">
+				<div class="hero-copy">
+					<div class="hero-badge">Compiler-driven · no virtual DOM</div>
+					<h1 class="headline">Write UI as blueprints.<br/><span class="muted">Ship plain JavaScript.</span></h1>
+					<p class="hero-sub">TardisJS compiles <code>.tardis</code> blueprints through lex, parse, and compile into direct DOM code plus a small runtime. Reactivity is Proxy-based and field-level — no diff, no scheduler, no stale closures.</p>
+					<div class="hero-actions">
+						<a class="btn btn-primary" href="#get-started">Get started</a>
+						<a class="btn btn-secondary" href="#benchmarks">See benchmarks</a>
 					</div>
-					<pre id="hero-code"></pre>
+					<div class="hero-chips">
+						<span class="chip">.tardis blueprints</span>
+						<span class="chip">lex → parse → compile</span>
+						<span class="chip">proxy reactivity</span>
+						<span class="chip">file-based routing</span>
+					</div>
+				</div>
+				<div class="hero-side">
+					<div class="code-preview">
+						<div class="code-preview-bar">
+							<div class="dot dot-close" aria-hidden="true"></div>
+							<div class="dot dot-min" aria-hidden="true"></div>
+							<div class="dot dot-max" aria-hidden="true"></div>
+							<span class="code-filename">counter.tardis</span>
+						</div>
+						<pre id="hero-code"></pre>
+					</div>
+					<div class="hero-stats">
+						<div class="stat-card"><b id="stat-gzip">—</b><span>runtime gzip</span></div>
+						<div class="stat-card"><b>0</b><span>virtual nodes</span></div>
+						<div class="stat-card"><b>3</b><span>compiler stages</span></div>
+					</div>
 				</div>
 			</div>
 		</section>
@@ -216,7 +210,7 @@ blueprint Hero {
 		if (bench) {
 			const tardis = bench.bundle.find(b => b.name === 'tardisjs')
 			if (tardis && tardis.gzip) {
-				{<strong id="stat-gzip"></strong>}.textContent = (tardis.gzip / 1024).toFixed(1) + 'KB'
+				{<b id="stat-gzip"></b>}.textContent = (tardis.gzip / 1024).toFixed(1) + 'KB'
 			}
 		}
 	}

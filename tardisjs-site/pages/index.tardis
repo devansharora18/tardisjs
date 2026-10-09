@@ -1,6 +1,7 @@
 blueprint Home {
 	ui {
 		<div>
+			<AnnounceBar />
 			<Navbar />
 			<Hero />
 			<Features />
