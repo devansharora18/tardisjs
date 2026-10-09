@@ -45,9 +45,6 @@ blueprint Hero {
 			letter-spacing: -0.045em;
 			margin-bottom: 20px;
 		}
-		.hero h1 .accent {
-			color: var(--accent);
-		}
 		.hero-sub {
 			font-size: clamp(16px, 1.6vw, 18px);
 			color: var(--text-secondary);
@@ -155,7 +152,7 @@ blueprint Hero {
 			<div class="container">
 				<div class="fade-up">
 					<div class="hero-badge">Compiler-driven, no virtual DOM</div>
-					<h1>Write UI as <span class="accent">blueprints</span>.<br/>Ship plain JavaScript.</h1>
+					<h1>Write UI as <span class="gradient-text">blueprints</span>.<br/>Ship plain JavaScript.</h1>
 					<p class="hero-sub">TardisJS compiles <code>.tardis</code> blueprints through lex/parse/compile into direct DOM code plus a ~5KB runtime. Reactivity is Proxy-based and field-level — no diff, no scheduling.</p>
 				</div>
 				<div class="hero-actions fade-up fade-up-d1">

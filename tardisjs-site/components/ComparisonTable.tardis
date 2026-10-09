@@ -49,6 +49,8 @@ blueprint ComparisonTable {
 			align-items: center;
 			gap: 8px;
 		}
+		.mark-yes { color: var(--success); }
+		.mark-no { color: var(--text-muted); }
 		.mark svg { display: block; }
 		.dots {
 			display: inline-flex;
@@ -153,8 +155,8 @@ blueprint ComparisonTable {
 		</section>
 	}
 	script {
-		const CHECK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="#45a557" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-		const DASH = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8h8" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round"/></svg>'
+		const CHECK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+		const DASH = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
 
 		$el.querySelectorAll('.mark-yes').forEach(el => { el.innerHTML = CHECK })
 		$el.querySelectorAll('.mark-no').forEach(el => { el.innerHTML = DASH })
