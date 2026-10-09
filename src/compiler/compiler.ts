@@ -63,7 +63,8 @@ export function compile(ast: BlueprintNode): string {
 		scriptCode = scriptCode ? `${scriptCode}\n${cssInjection}` : cssInjection;
 	}
 	const hasCompiledStyles = !!(ast.style && ast.style.mode !== 'raw');
-	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode, hasCompiledStyles));
+	const hasEvents = !!(ast.events.onMount || ast.events.onDestroy || ast.events.onUpdate);
+	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode, hasCompiledStyles, hasEvents));
 	lines.push(`}`);
 
 	return lines.join("\n");
@@ -180,7 +181,7 @@ function compileMethods(methods: MethodNode[]): string {
 
 function compileEvents(ast: BlueprintNode): string {
 	const lines: string[] = [];
-	lines.push(`  $runtime.events({`);
+	lines.push(`  const _disposeEvents = $runtime.events({`);
 	if (ast.events.onMount)
 		lines.push(`    onMount: () => { ${rewriteRefs(ast.events.onMount)} },`);
 	if (ast.events.onDestroy)
@@ -232,7 +233,7 @@ function rewriteRefs(expr: string): string {
 
 // ── ui compiler ────────────────────────────────────────────────────────────
 
-export function compileUI(raw: string, componentName: string, scriptCode?: string, hasStyles = false): string {
+export function compileUI(raw: string, componentName: string, scriptCode?: string, hasStyles = false, hasEvents = false): string {
 	const lines: string[] = [];
 	lines.push(`  // ui`);
 	lines.push(`  const _root = (() => {`);
@@ -241,6 +242,10 @@ export function compileUI(raw: string, componentName: string, scriptCode?: strin
 	if (scriptCode) {
 		lines.push(``);
 		lines.push(scriptCode);
+	}
+	if (hasEvents) {
+		lines.push(``);
+		lines.push(`  ;(_root as unknown as { __disposeEvents?: () => void }).__disposeEvents = _disposeEvents`);
 	}
 	lines.push(`  return _root`);
 	return lines.join("\n");
