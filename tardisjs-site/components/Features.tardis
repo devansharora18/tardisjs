@@ -1,54 +1,32 @@
 blueprint Features {
 	style {
-		.section {
-			padding: clamp(56px, 8vw, 96px) 0;
-		}
-		.section-alt {
-			background: var(--surface);
-			border-top: 1px solid var(--border);
-			border-bottom: 1px solid var(--border);
-		}
-		.section-label {
-			font-size: 12px;
-			font-weight: 600;
-			letter-spacing: 0.08em;
-			text-transform: uppercase;
-			color: var(--accent);
-			margin-bottom: 8px;
-		}
-		.section-title {
-			font-size: clamp(24px, 3.5vw, 32px);
-			font-weight: 700;
-			letter-spacing: -0.02em;
-			margin-bottom: 12px;
-			line-height: 1.2;
-		}
-		.section-desc {
-			font-size: 16px;
-			color: var(--text-secondary);
-			max-width: 600px;
-			margin-bottom: 40px;
-			line-height: 1.5;
-		}
-		.container {
-			max-width: 1080px;
-			margin: 0 auto;
-			padding: 0 24px;
-		}
 		.features-grid {
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-			gap: 20px;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 16px;
 		}
 		.feature-card {
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 12px;
-			padding: 24px;
-			transition: border-color 0.2s;
+			border-radius: var(--radius-lg);
+			padding: 22px;
+			transition: border-color 0.2s, background 0.2s;
 		}
 		.feature-card:hover {
-			border-color: var(--accent);
+			border-color: var(--border-strong);
+			background: var(--elevated);
+		}
+		.feature-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 36px;
+			height: 36px;
+			border-radius: var(--radius);
+			border: 1px solid var(--border);
+			background: var(--bg);
+			color: var(--accent);
+			margin-bottom: 16px;
 		}
 		.feature-card h3 {
 			font-size: 15px;
@@ -58,42 +36,70 @@ blueprint Features {
 		.feature-card p {
 			font-size: 14px;
 			color: var(--text-secondary);
-			line-height: 1.5;
+			line-height: 1.6;
+		}
+		.feature-card code {
+			font-size: 12px;
+			color: var(--text);
+			background: var(--code-bg);
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			padding: 1px 5px;
 		}
 	}
 	ui {
-		<section class="section section-alt" id="features">
+		<section class="section" id="features">
 			<div class="container">
 				<p class="section-label">Features</p>
 				<h2 class="section-title">How TardisJS is built</h2>
-				<p class="section-desc">The framework is organized around a compiler pipeline and a small runtime. Most behavior is explicit in blueprint sections and generated DOM code.</p>
+				<p class="section-desc">A compiler pipeline and a small runtime. Behavior is explicit in blueprint sections and generated DOM code.</p>
 				<div class="features-grid">
-					<div class="feature-card fade-up">
+					<div class="feature-card">
+						<span class="feature-icon" data-icon="code"></span>
 						<h3>Blueprint syntax</h3>
-						<p>UI logic is split into props, state, computed, methods, events, style, and ui blocks. The parser enforces that structure, so component files stay consistent.</p>
+						<p>UI logic is split into <code>props</code>, <code>state</code>, <code>computed</code>, <code>methods</code>, <code>events</code>, <code>style</code>, and <code>ui</code> blocks. The parser enforces that structure.</p>
 					</div>
-					<div class="feature-card fade-up fade-up-d1">
+					<div class="feature-card">
+						<span class="feature-icon" data-icon="zap"></span>
 						<h3>Proxy-based reactivity</h3>
 						<p>State is wrapped in a Proxy. Bindings subscribe per field, and updates re-run only the effects that read that field.</p>
 					</div>
-					<div class="feature-card fade-up fade-up-d2">
+					<div class="feature-card">
+						<span class="feature-icon" data-icon="cpu"></span>
 						<h3>Compile-time transforms</h3>
-						<p>`.tardis` files are tokenized, parsed to AST nodes, then compiled to imperative JavaScript modules. Runtime work is mostly binding and event dispatch.</p>
+						<p><code>.tardis</code> files are tokenized, parsed to AST nodes, then compiled to imperative JavaScript modules.</p>
 					</div>
-					<div class="feature-card fade-up">
+					<div class="feature-card">
+						<span class="feature-icon" data-icon="route"></span>
 						<h3>File-based routing</h3>
-						<p>Route definitions come from the pages directory. Dynamic segments map from `[id].tardis` to `:id` at runtime.</p>
+						<p>Routes come from the pages directory. <code>[id].tardis</code> maps to <code>:id</code> at runtime, with no config.</p>
 					</div>
-					<div class="feature-card fade-up fade-up-d1">
+					<div class="feature-card">
+						<span class="feature-icon" data-icon="palette"></span>
 						<h3>Style options</h3>
-						<p>Components can use style blocks, utility-class maps, or raw CSS. Style decisions stay local to the blueprint.</p>
+						<p>Components can use utility-class maps, inline CSS, or raw stylesheet blocks. Style stays local to the blueprint.</p>
 					</div>
-					<div class="feature-card fade-up fade-up-d2">
-						<h3>Trade-off surface</h3>
-						<p>The API is intentionally small and experimental. You get predictable generated code, but a smaller ecosystem than Vue/React/Svelte today.</p>
+					<div class="feature-card">
+						<span class="feature-icon" data-icon="box"></span>
+						<h3>Small runtime</h3>
+						<p>The shipped runtime is under 7KB gzipped. Most structure is resolved at build time rather than in the browser.</p>
 					</div>
 				</div>
 			</div>
 		</section>
+	}
+	script {
+		const ICONS = {
+			code: '<polyline points="15 18 20 12 15 6"/><polyline points="9 6 4 12 9 18"/>',
+			zap: '<polygon points="13 2 4 14 11 14 10 22 20 10 13 10 13 2"/>',
+			cpu: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+			route: '<circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V9a4 4 0 0 1 4-4h5"/>',
+			palette: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9.5" cy="15" r="1"/>',
+			box: '<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'
+		}
+		$el.querySelectorAll('.feature-icon').forEach(el => {
+			const path = ICONS[el.getAttribute('data-icon')] || ''
+			el.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>'
+		})
 	}
 }
