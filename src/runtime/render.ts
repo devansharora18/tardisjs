@@ -10,26 +10,27 @@ export function $if(
 ): HTMLElement | Comment {
   const anchor = document.createComment('$if')
   let currentEl: HTMLElement | null = null
-  let isMounted = conditionFn()
+  let isMounted = false
 
   function update() {
-    const shouldShow = conditionFn()
+    const shouldShow = withEffect(update, conditionFn)
     if (shouldShow && !isMounted) {
-      currentEl = builderFn()
-      anchor.parentNode?.insertBefore(currentEl, anchor)
+      const el = builderFn()
+      if (anchor.parentNode) {
+        anchor.parentNode.replaceChild(el, anchor)
+      }
+      currentEl = el
       isMounted = true
     } else if (!shouldShow && isMounted && currentEl) {
-      currentEl.parentNode?.removeChild(currentEl)
+      if (currentEl.parentNode) {
+        currentEl.parentNode.replaceChild(anchor, currentEl)
+      }
       currentEl = null
       isMounted = false
     }
   }
 
-  // initial render
-  if (isMounted) {
-    currentEl = builderFn()
-  }
-
+  update()
   return currentEl ?? anchor
 }
 
@@ -43,7 +44,7 @@ export function $each<T>(
   container.setAttribute('data-each', '')
 
   function render() {
-    const items = arrayFn()
+    const items = withEffect(render, arrayFn)
     // clear existing children
     while (container.firstChild) {
       container.removeChild(container.firstChild)
@@ -67,7 +68,7 @@ export function $show(
   const el = builderFn()
 
   function update() {
-    el.style.display = conditionFn() ? '' : 'none'
+    el.style.display = withEffect(update, conditionFn) ? '' : 'none'
   }
 
   update()
