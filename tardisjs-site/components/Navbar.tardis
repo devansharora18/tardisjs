@@ -6,7 +6,7 @@ blueprint Navbar {
 	methods {
 		toggleMenu: () => $toggle(state.menuOpen)
 		closeMenu: () => $update(state.menuOpen, false)
-		toggleTheme: () => state.themeDark ? (document.documentElement.removeAttribute('data-theme'), localStorage.setItem('tardis-theme', 'light'), $update(state.themeDark, false)) : (document.documentElement.setAttribute('data-theme', 'dark'), localStorage.setItem('tardis-theme', 'dark'), $update(state.themeDark, true))
+		toggleTheme: () => state.themeDark ? (document.documentElement.setAttribute('data-theme', 'light'), localStorage.setItem('tardis-theme', 'light'), $update(state.themeDark, false)) : (document.documentElement.setAttribute('data-theme', 'dark'), localStorage.setItem('tardis-theme', 'dark'), $update(state.themeDark, true))
 	}
 	events {
 		onMount: () => {
@@ -16,7 +16,7 @@ blueprint Navbar {
 				document.documentElement.setAttribute('data-theme', 'dark')
 				if (!stored) localStorage.setItem('tardis-theme', 'dark')
 			} else {
-				document.documentElement.removeAttribute('data-theme')
+				document.documentElement.setAttribute('data-theme', 'light')
 			}
 			state.themeDark = shouldDark
 			window.addEventListener('resize', () => {
