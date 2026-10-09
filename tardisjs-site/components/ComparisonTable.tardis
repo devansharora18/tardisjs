@@ -1,6 +1,6 @@
 blueprint ComparisonTable {
 	style {
-		.section { padding: 80px 0; }
+		.section { padding: clamp(56px, 8vw, 96px) 0; }
 		.section-label {
 			font-size: 12px;
 			font-weight: 600;
@@ -10,7 +10,7 @@ blueprint ComparisonTable {
 			margin-bottom: 8px;
 		}
 		.section-title {
-			font-size: 32px;
+			font-size: clamp(24px, 3.5vw, 32px);
 			font-weight: 700;
 			letter-spacing: -0.02em;
 			margin-bottom: 12px;
@@ -30,13 +30,13 @@ blueprint ComparisonTable {
 		}
 		.compare-grid {
 			display: grid;
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 			gap: 24px;
 		}
 		.compare-item {
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 8px;
+			border-radius: 12px;
 			padding: 24px;
 		}
 		.compare-item h3 {
@@ -74,9 +74,6 @@ blueprint ComparisonTable {
 			background: var(--border);
 			margin: 12px 0;
 		}
-		@media (max-width: 768px) {
-			.compare-grid { grid-template-columns: 1fr; }
-		}
 	}
 	ui {
 		<section class="section" id="comparison">
@@ -91,7 +88,7 @@ blueprint ComparisonTable {
 							<p class="compare-label compare-label-tardis">tardisjs</p>
 							<p>Templates are compiled into direct DOM operations. Effects are field-scoped through Proxy reads, so updates target subscribed bindings.</p>
 						</div>
-						<div class="compare-divider"></div>
+						<div class="compare-divider" aria-hidden="true"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
 							<p>Components re-render to virtual nodes, then reconciliation computes DOM patches. This model is flexible and ecosystem-rich, with different runtime costs.</p>
@@ -103,7 +100,7 @@ blueprint ComparisonTable {
 							<p class="compare-label compare-label-tardis">tardisjs</p>
 							<p>State fields are declared in blueprint blocks and wrapped by a Proxy. Writes trigger only effects that consumed those fields.</p>
 						</div>
-						<div class="compare-divider"></div>
+						<div class="compare-divider" aria-hidden="true"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
 							<p>Hooks (`useState`, `useReducer`) provide composable state control with mature community patterns and tooling.</p>
@@ -115,7 +112,7 @@ blueprint ComparisonTable {
 							<p class="compare-label compare-label-tardis">tardisjs</p>
 							<p>Each `.tardis` file has sectioned structure (props/state/computed/methods/events/style/ui/script). This improves consistency but is less flexible than function-based component models.</p>
 						</div>
-						<div class="compare-divider"></div>
+						<div class="compare-divider" aria-hidden="true"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
 							<p>Components are functions returning JSX. This is highly flexible and familiar, but architectural consistency depends on team conventions.</p>
@@ -127,7 +124,7 @@ blueprint ComparisonTable {
 							<p class="compare-label compare-label-tardis">tardisjs</p>
 							<p>Routing is file-based and bundled with the CLI (`init/dev/build/preview`). Setup is compact, but integrations are still early-stage.</p>
 						</div>
-						<div class="compare-divider"></div>
+						<div class="compare-divider" aria-hidden="true"></div>
 						<div class="compare-col">
 							<p class="compare-label compare-label-react">React</p>
 							<p>Routing/build choices are modular (`react-router`, Next.js, Vite, etc.), which gives broad options and a large ecosystem footprint.</p>
