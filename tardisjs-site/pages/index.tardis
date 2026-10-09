@@ -12,7 +12,6 @@ blueprint Home {
 			<LiveDemo />
 			<GetStarted />
 			<Footer />
-			<Motion />
 		</div>
 	}
 }
