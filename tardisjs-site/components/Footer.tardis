@@ -3,30 +3,68 @@ blueprint Footer {
 		.footer {
 			border-top: 1px solid var(--border);
 			padding: 32px 0;
-			text-align: center;
 			font-size: 13px;
 			color: var(--text-muted);
 		}
-		.footer a {
-			color: var(--text-secondary);
+		.footer-inner {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
 		}
-		.footer a:hover {
+		.footer-brand {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+		.footer-mark {
+			display: inline-grid;
+			place-items: center;
+			width: 24px;
+			height: 24px;
+			border-radius: 6px;
+			background: var(--text);
+			color: var(--bg);
+			font-size: 12px;
+			font-weight: 700;
+		}
+		.footer-name {
+			font-weight: 600;
 			color: var(--text);
 		}
-		.footer a:focus-visible {
+		.footer-links {
+			display: flex;
+			gap: 18px;
+			font-family: 'Geist Mono', monospace;
+			font-size: 12px;
+		}
+		.footer-links a {
+			color: var(--text-secondary);
+		}
+		.footer-links a:hover {
+			color: var(--text);
+			text-decoration: none;
+		}
+		.footer-links a:focus-visible {
 			outline: 2px solid var(--accent);
 			outline-offset: 2px;
-		}
-		.container {
-			max-width: 1080px;
-			margin: 0 auto;
-			padding: 0 24px;
 		}
 	}
 	ui {
 		<footer class="footer">
-			<div class="container">
-				<p>Built by <a href="https://github.com/devansharora18">@devansharora18</a>.</p>
+			<div class="container footer-inner">
+				<div class="footer-brand">
+					<span class="footer-mark" aria-hidden="true">T</span>
+					<span class="footer-name">TardisJS</span>
+					<span>— blueprint-first framework. MIT licensed.</span>
+				</div>
+				<nav class="footer-links" aria-label="Footer">
+					<a href="/docs">docs</a>
+					<a href="#benchmarks">benchmarks</a>
+					<a href="https://github.com/devansharora18/tardisjs">github</a>
+				</nav>
 			</div>
 		</footer>
 	}
