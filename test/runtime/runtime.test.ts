@@ -61,8 +61,7 @@ describe('state', () => {
     expect(s.name).toBe('hello')
   })
 
-  it('$batch defers updaters into a single requestAnimationFrame call', () => {
-    vi.stubGlobal('requestAnimationFrame', (fn: () => void) => fn())
+  it('$batch coalesces updaters synchronously', () => {
     const s = createState({ a: 0, b: 0 })
     const calls: string[] = []
     registerDep(s, 'a', () => calls.push('a'))
@@ -73,11 +72,9 @@ describe('state', () => {
     })
     expect(calls).toContain('a')
     expect(calls).toContain('b')
-    vi.unstubAllGlobals()
   })
 
   it('$batch deduplicates — a shared updater registered on two keys fires once', () => {
-    vi.stubGlobal('requestAnimationFrame', (fn: () => void) => fn())
     const s = createState({ x: 0, y: 0 })
     let count = 0
     const shared = () => count++
@@ -88,7 +85,6 @@ describe('state', () => {
       $update(s, 'y', 2)
     })
     expect(count).toBe(1)
-    vi.unstubAllGlobals()
   })
 })
 

@@ -10,13 +10,18 @@ let activeEffect: (() => void) | null = null
 let batchQueue: Set<() => void> | null = null
 
 export function $batch(fn: () => void): void {
+  if (batchQueue) {
+    fn()
+    return
+  }
   batchQueue = new Set()
-  fn()
-  const queue = batchQueue
-  batchQueue = null
-  requestAnimationFrame(() => {
+  try {
+    fn()
+  } finally {
+    const queue = batchQueue
+    batchQueue = null
     queue.forEach(updater => updater())
-  })
+  }
 }
 
 export function createState(initial: Record<string, StateValue>): ReactiveState {
