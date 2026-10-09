@@ -1,7 +1,7 @@
 blueprint Features {
 	style {
 		.section {
-			padding: 80px 0;
+			padding: clamp(56px, 8vw, 96px) 0;
 		}
 		.section-alt {
 			background: var(--surface);
@@ -17,7 +17,7 @@ blueprint Features {
 			margin-bottom: 8px;
 		}
 		.section-title {
-			font-size: 32px;
+			font-size: clamp(24px, 3.5vw, 32px);
 			font-weight: 700;
 			letter-spacing: -0.02em;
 			margin-bottom: 12px;
@@ -37,13 +37,13 @@ blueprint Features {
 		}
 		.features-grid {
 			display: grid;
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 			gap: 20px;
 		}
 		.feature-card {
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 8px;
+			border-radius: 12px;
 			padding: 24px;
 			transition: border-color 0.2s;
 		}
@@ -59,9 +59,6 @@ blueprint Features {
 			font-size: 14px;
 			color: var(--text-secondary);
 			line-height: 1.5;
-		}
-		@media (max-width: 768px) {
-			.features-grid { grid-template-columns: 1fr; }
 		}
 	}
 	ui {
