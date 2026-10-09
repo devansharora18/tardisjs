@@ -1,6 +1,6 @@
 blueprint Pipeline {
 	style {
-		.section { padding: 80px 0; }
+		.section { padding: clamp(56px, 8vw, 96px) 0; }
 		.section-label {
 			font-size: 12px;
 			font-weight: 600;
@@ -10,7 +10,7 @@ blueprint Pipeline {
 			margin-bottom: 8px;
 		}
 		.section-title {
-			font-size: 32px;
+			font-size: clamp(24px, 3.5vw, 32px);
 			font-weight: 700;
 			letter-spacing: -0.02em;
 			margin-bottom: 12px;
@@ -39,7 +39,7 @@ blueprint Pipeline {
 		.pipeline-step {
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 6px;
+			border-radius: 8px;
 			padding: 10px 18px;
 			font-size: 14px;
 			font-weight: 500;
@@ -51,14 +51,14 @@ blueprint Pipeline {
 		}
 		.steps {
 			display: grid;
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 			gap: 24px;
 			margin-top: 32px;
 		}
 		.step-num {
 			font-size: 32px;
 			font-weight: 800;
-			color: var(--accent-light);
+			color: var(--accent);
 			line-height: 1;
 			margin-bottom: 10px;
 		}
@@ -72,10 +72,6 @@ blueprint Pipeline {
 			color: var(--text-secondary);
 			line-height: 1.5;
 		}
-		@media (max-width: 768px) {
-			.pipeline { flex-direction: column; }
-			.steps { grid-template-columns: 1fr; }
-		}
 	}
 	ui {
 		<section class="section" id="how-it-works">
@@ -85,15 +81,15 @@ blueprint Pipeline {
 				<p class="section-desc">Build-time does most of the structural work. The browser runtime handles subscriptions, updates, and routing.</p>
 				<div class="pipeline">
 					<div class="pipeline-step">.tardis</div>
-					<span class="pipeline-arrow">&#8594;</span>
+					<span class="pipeline-arrow" aria-hidden="true">&#8594;</span>
 					<div class="pipeline-step">lex()</div>
-					<span class="pipeline-arrow">&#8594;</span>
+					<span class="pipeline-arrow" aria-hidden="true">&#8594;</span>
 					<div class="pipeline-step">parse()</div>
-					<span class="pipeline-arrow">&#8594;</span>
+					<span class="pipeline-arrow" aria-hidden="true">&#8594;</span>
 					<div class="pipeline-step">compile()</div>
-					<span class="pipeline-arrow">&#8594;</span>
+					<span class="pipeline-arrow" aria-hidden="true">&#8594;</span>
 					<div class="pipeline-step">JS + runtime</div>
-					<span class="pipeline-arrow">&#8594;</span>
+					<span class="pipeline-arrow" aria-hidden="true">&#8594;</span>
 					<div class="pipeline-step">browser</div>
 				</div>
 				<div class="steps">
