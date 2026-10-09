@@ -61,7 +61,7 @@ blueprint Navbar {
 			display: none;
 			background: none;
 			border: 1px solid var(--border);
-			border-radius: 6px;
+			border-radius: 8px;
 			padding: 6px 10px;
 			cursor: pointer;
 			font-size: 14px;
@@ -81,7 +81,7 @@ blueprint Navbar {
 		.theme-toggle {
 			background: none;
 			border: 1px solid var(--border);
-			border-radius: 6px;
+			border-radius: 8px;
 			padding: 6px 10px;
 			cursor: pointer;
 			font-size: 14px;
@@ -91,6 +91,13 @@ blueprint Navbar {
 		}
 		.theme-toggle:hover {
 			border-color: var(--text-muted);
+		}
+		.nav-brand:focus-visible,
+		.nav-links a:focus-visible,
+		.menu-toggle:focus-visible,
+		.theme-toggle:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 		@media (max-width: 768px) {
 			.nav-inner {
@@ -135,14 +142,14 @@ blueprint Navbar {
 		<nav class="nav">
 			<div class="nav-inner">
 				<a class="nav-brand" href="/" @click={methods.closeMenu}>tardisjs</a>
-				<button class="menu-toggle" @click={methods.toggleMenu}>Menu</button>
+				<button class="menu-toggle" aria-expanded={state.menuOpen ? "true" : "false"} @click={methods.toggleMenu}>Menu</button>
 				<div class={state.menuOpen ? "nav-links open" : "nav-links"}>
 					<a href="/#features" @click={methods.closeMenu}>Features</a>
 					<a href="/#how-it-works" @click={methods.closeMenu}>How It Works</a>
 					<a href="/#comparison" @click={methods.closeMenu}>vs React</a>
 					<a href="/docs" @click={methods.closeMenu}>Docs</a>
 					<a href="https://github.com/devansharora18/tardisjs" @click={methods.closeMenu}>GitHub</a>
-					<button class="theme-toggle" @click={methods.toggleTheme}>{state.themeDark ? "\u2600" : "\u263E"}</button>
+					<button class="theme-toggle" aria-label="Toggle color theme" @click={methods.toggleTheme}>{state.themeDark ? "\u2600" : "\u263E"}</button>
 				</div>
 			</div>
 		</nav>

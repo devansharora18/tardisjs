@@ -10,6 +10,13 @@ blueprint Footer {
 		.footer a {
 			color: var(--text-secondary);
 		}
+		.footer a:hover {
+			color: var(--text);
+		}
+		.footer a:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
 		.container {
 			max-width: 1080px;
 			margin: 0 auto;
