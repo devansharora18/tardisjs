@@ -46,9 +46,13 @@ blueprint Pipeline {
 	ui {
 		<section class="section section-alt" id="how-it-works">
 			<div class="container">
-				<p class="section-label">Pipeline</p>
-				<h2 class="section-title">How the compiler works</h2>
-				<p class="section-desc">Build-time does the structural work. The browser runtime handles subscriptions, updates, and routing.</p>
+				<div class="sec-head">
+					<div>
+						<p class="section-label">Pipeline</p>
+						<h2 class="headline">Build-time does the work.<br/><span class="muted">Runtime just binds.</span></h2>
+					</div>
+					<p class="sec-head-desc">Five stages from source to browser. The compiler resolves structure; the runtime handles subscriptions, updates, and routing.</p>
+				</div>
 				<div class="pipe-figure">
 					<div id="pipe-out"></div>
 				</div>

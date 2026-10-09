@@ -16,6 +16,12 @@ blueprint Features {
 			border-color: var(--border-strong);
 			background: var(--elevated);
 		}
+		.feature-top {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 16px;
+		}
 		.feature-icon {
 			display: inline-flex;
 			align-items: center;
@@ -26,7 +32,6 @@ blueprint Features {
 			border: 1px solid var(--border);
 			background: var(--bg);
 			color: var(--accent);
-			margin-bottom: 16px;
 		}
 		.feature-card h3 {
 			font-size: 15px;
@@ -50,37 +55,41 @@ blueprint Features {
 	ui {
 		<section class="section" id="features">
 			<div class="container">
-				<p class="section-label">Features</p>
-				<h2 class="section-title">How TardisJS is built</h2>
-				<p class="section-desc">A compiler pipeline and a small runtime. Behavior is explicit in blueprint sections and generated DOM code.</p>
+				<div class="sec-head">
+					<div>
+						<p class="section-label">Features</p>
+						<h2 class="headline">A compiler pipeline.<br/><span class="muted">A small runtime.</span></h2>
+					</div>
+					<p class="sec-head-desc">Behavior is explicit in blueprint sections and generated DOM code — most structure is resolved at build time, not in the browser.</p>
+				</div>
 				<div class="features-grid">
 					<div class="feature-card">
-						<span class="feature-icon" data-icon="code"></span>
+						<div class="feature-top"><span class="feature-icon" data-icon="code"></span><span class="mono-tag">syntax</span></div>
 						<h3>Blueprint syntax</h3>
 						<p>UI logic is split into <code>props</code>, <code>state</code>, <code>computed</code>, <code>methods</code>, <code>events</code>, <code>style</code>, and <code>ui</code> blocks. The parser enforces that structure.</p>
 					</div>
 					<div class="feature-card">
-						<span class="feature-icon" data-icon="zap"></span>
+						<div class="feature-top"><span class="feature-icon" data-icon="zap"></span><span class="mono-tag">reactivity</span></div>
 						<h3>Proxy-based reactivity</h3>
 						<p>State is wrapped in a Proxy. Bindings subscribe per field, and updates re-run only the effects that read that field.</p>
 					</div>
 					<div class="feature-card">
-						<span class="feature-icon" data-icon="cpu"></span>
+						<div class="feature-top"><span class="feature-icon" data-icon="cpu"></span><span class="mono-tag">compiler</span></div>
 						<h3>Compile-time transforms</h3>
 						<p><code>.tardis</code> files are tokenized, parsed to AST nodes, then compiled to imperative JavaScript modules.</p>
 					</div>
 					<div class="feature-card">
-						<span class="feature-icon" data-icon="route"></span>
+						<div class="feature-top"><span class="feature-icon" data-icon="route"></span><span class="mono-tag">routing</span></div>
 						<h3>File-based routing</h3>
 						<p>Routes come from the pages directory. <code>[id].tardis</code> maps to <code>:id</code> at runtime, with no config.</p>
 					</div>
 					<div class="feature-card">
-						<span class="feature-icon" data-icon="palette"></span>
+						<div class="feature-top"><span class="feature-icon" data-icon="palette"></span><span class="mono-tag">styles</span></div>
 						<h3>Style options</h3>
 						<p>Components can use utility-class maps, inline CSS, or raw stylesheet blocks. Style stays local to the blueprint.</p>
 					</div>
 					<div class="feature-card">
-						<span class="feature-icon" data-icon="box"></span>
+						<div class="feature-top"><span class="feature-icon" data-icon="box"></span><span class="mono-tag">runtime</span></div>
 						<h3>Small runtime</h3>
 						<p>The shipped runtime is under 7KB gzipped. Most structure is resolved at build time rather than in the browser.</p>
 					</div>
