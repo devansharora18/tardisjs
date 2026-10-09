@@ -1,6 +1,6 @@
 blueprint GetStarted {
 	style {
-		.section { padding: 80px 0; }
+		.section { padding: clamp(56px, 8vw, 96px) 0; }
 		.section-alt {
 			background: var(--surface);
 			border-top: 1px solid var(--border);
@@ -8,10 +8,10 @@ blueprint GetStarted {
 		}
 		.cta {
 			text-align: center;
-			padding: 80px 0 100px;
+			padding: clamp(48px, 7vw, 80px) 0 clamp(56px, 8vw, 100px);
 		}
 		.cta h2 {
-			font-size: 28px;
+			font-size: clamp(22px, 3vw, 28px);
 			font-weight: 700;
 			letter-spacing: -0.02em;
 			margin-bottom: 12px;
@@ -25,7 +25,7 @@ blueprint GetStarted {
 			display: inline-block;
 			background: var(--code-bg);
 			border: 1px solid var(--border);
-			border-radius: 6px;
+			border-radius: 8px;
 			padding: 12px 24px;
 			font-family: 'JetBrains Mono', monospace;
 			font-size: 14px;
