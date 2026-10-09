@@ -17,7 +17,7 @@ export type { ComponentInstance } from './registry'
 export { $, DOMSelection, ComponentSelection } from './selector'
 export { createRouter, $navigate, $back, $forward, $params } from './router'
 
-export { registerEvents, flushMountCallbacks, flushDestroyCallbacks } from './events'
+export { registerEvents, flushMountCallbacks, flushDestroyCallbacks, flushUpdateCallbacks, clearEvents } from './events'
 
 // ── $runtime object ────────────────────────────────────────────────────────
 // the compiled output imports $runtime and calls methods on it
