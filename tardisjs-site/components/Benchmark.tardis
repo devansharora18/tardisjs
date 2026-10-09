@@ -50,7 +50,7 @@ blueprint Benchmark {
 		}
 	}
 	ui {
-		<section class="section" id="benchmarks">
+		<section class="section section-alt" id="benchmarks">
 			<div class="container">
 				<p class="section-label">Benchmarks</p>
 				<h2 class="section-title">Measured against React and Vue</h2>

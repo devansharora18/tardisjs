@@ -65,7 +65,7 @@ blueprint StateComparison {
 		}
 	}
 	ui {
-		<section class="section section-alt" id="reactivity">
+		<section class="section" id="reactivity">
 			<div class="container">
 				<p class="section-label">Reactivity</p>
 				<h2 class="section-title">State without the ceremony</h2>

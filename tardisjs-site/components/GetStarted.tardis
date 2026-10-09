@@ -1,50 +1,116 @@
 blueprint GetStarted {
 	style {
-		.section { padding: clamp(56px, 8vw, 96px) 0; }
-		.section-alt {
-			background: var(--surface);
-			border-top: 1px solid var(--border);
-			border-bottom: 1px solid var(--border);
-		}
 		.cta {
 			text-align: center;
-			padding: clamp(48px, 7vw, 80px) 0 clamp(56px, 8vw, 100px);
 		}
 		.cta h2 {
-			font-size: clamp(22px, 3vw, 28px);
+			font-size: clamp(24px, 3.4vw, 34px);
 			font-weight: 700;
-			letter-spacing: -0.02em;
 			margin-bottom: 12px;
 		}
 		.cta p {
 			font-size: 16px;
 			color: var(--text-secondary);
-			margin-bottom: 28px;
+			margin: 0 auto 28px;
+			max-width: 520px;
 		}
 		.cta-install {
-			display: inline-block;
+			display: inline-flex;
+			align-items: center;
+			gap: 14px;
 			background: var(--code-bg);
 			border: 1px solid var(--border);
-			border-radius: 8px;
-			padding: 12px 24px;
-			font-family: 'JetBrains Mono', monospace;
+			border-radius: var(--radius);
+			padding: 10px 12px 10px 18px;
+			font-family: 'Geist Mono', monospace;
 			font-size: 14px;
 			color: var(--text);
+			max-width: 100%;
+		}
+		.cta-install code {
 			user-select: all;
+			overflow-x: auto;
+			white-space: nowrap;
 		}
-		.container {
-			max-width: 1080px;
-			margin: 0 auto;
-			padding: 0 24px;
+		.copy-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: var(--radius-sm);
+			color: var(--text-secondary);
+			font-family: inherit;
+			font-size: 12px;
+			font-weight: 500;
+			padding: 6px 10px;
+			cursor: pointer;
+			transition: border-color 0.15s, color 0.15s;
 		}
+		.copy-btn:hover {
+			border-color: var(--border-strong);
+			color: var(--text);
+		}
+		.cta-actions {
+			margin-top: 24px;
+			display: flex;
+			gap: 10px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+		.btn {
+			display: inline-flex;
+			align-items: center;
+			font-size: 14px;
+			font-weight: 500;
+			padding: 10px 20px;
+			border-radius: var(--radius);
+			border: 1px solid transparent;
+			cursor: pointer;
+		}
+		.btn-primary {
+			background: var(--text);
+			color: var(--bg);
+		}
+		.btn-primary:hover { opacity: 0.88; text-decoration: none; color: var(--bg); }
+		.btn-secondary {
+			background: transparent;
+			color: var(--text);
+			border-color: var(--border);
+		}
+		.btn-secondary:hover { border-color: var(--border-strong); text-decoration: none; }
 	}
 	ui {
 		<section class="section section-alt" id="get-started">
 			<div class="container cta">
 				<h2>Create a project</h2>
-				<p>Scaffold a minimal app, then inspect generated output as you iterate.</p>
-				<div class="cta-install">npx create-tardis-app my-project</div>
+				<p>Scaffold a minimal app, then inspect the generated output as you iterate.</p>
+				<div class="cta-install">
+					<code>npx create-tardis-app my-project</code>
+					<button class="copy-btn" id="copy-install" aria-live="polite">Copy</button>
+				</div>
+				<div class="cta-actions">
+					<a class="btn btn-primary" href="/docs">Read the docs</a>
+					<a class="btn btn-secondary" href="https://github.com/devansharora18/tardisjs">View on GitHub</a>
+				</div>
 			</div>
 		</section>
+	}
+	script {
+		const cmd = 'npx create-tardis-app my-project'
+		const btn = $el.querySelector('button#copy-install')
+		if (btn) {
+			btn.addEventListener('click', () => {
+				const done = () => {
+					btn.textContent = 'Copied'
+					setTimeout(() => { btn.textContent = 'Copy' }, 1600)
+				}
+				if (navigator.clipboard) {
+					navigator.clipboard.writeText(cmd).then(done, () => {})
+				} else {
+					done()
+				}
+			})
+		}
 	}
 }
