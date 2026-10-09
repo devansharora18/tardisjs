@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-10-09T20:35:36.992Z",
+  "environment": "jsdom (Node) — relative micro-benchmark, not a real-browser result",
+  "listSize": 200,
+  "updateCount": 500,
+  "runtimes": [
+    {
+      "name": "tardisjs",
+      "mountMs": 9.11,
+      "updateMs": 123.17,
+      "units": 1
+    },
+    {
+      "name": "React",
+      "mountMs": 25.47,
+      "updateMs": 1053.63,
+      "units": 200
+    },
+    {
+      "name": "Vue",
+      "mountMs": 15.46,
+      "updateMs": 858.55,
+      "units": 0
+    }
+  ],
+  "bundle": [
+    {
+      "name": "tardisjs",
+      "note": "runtime only",
+      "gzip": 6800,
+      "raw": 29684
+    },
+    {
+      "name": "Vue",
+      "note": "runtime build",
+      "gzip": 42033,
+      "raw": null
+    },
+    {
+      "name": "React",
+      "note": "react + react-dom",
+      "gzip": 45158,
+      "raw": 138615
+    }
+  ]
+}
