@@ -1,6 +1,6 @@
 blueprint LiveDemo {
 	style {
-		.section { padding: 80px 0; }
+		.section { padding: clamp(56px, 8vw, 96px) 0; }
 		.section-label {
 			font-size: 12px;
 			font-weight: 600;
@@ -10,7 +10,7 @@ blueprint LiveDemo {
 			margin-bottom: 8px;
 		}
 		.section-title {
-			font-size: 32px;
+			font-size: clamp(24px, 3.5vw, 32px);
 			font-weight: 700;
 			letter-spacing: -0.02em;
 			margin-bottom: 12px;

@@ -11,7 +11,7 @@ blueprint CounterDemo {
 		.demo-widget {
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 8px;
+			border-radius: 12px;
 			overflow: hidden;
 			max-width: 400px;
 			margin: 0 auto;
@@ -54,7 +54,7 @@ blueprint CounterDemo {
 		.demo-btn {
 			background: var(--code-bg);
 			border: 1px solid var(--border);
-			border-radius: 6px;
+			border-radius: 8px;
 			padding: 8px 18px;
 			font-size: 14px;
 			font-weight: 600;
@@ -65,6 +65,10 @@ blueprint CounterDemo {
 		}
 		.demo-btn:hover {
 			border-color: var(--text-muted);
+		}
+		.demo-btn:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 		.demo-btn-accent {
 			background: var(--accent);
