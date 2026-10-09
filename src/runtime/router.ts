@@ -113,10 +113,21 @@ export function createRouter(
 	const target = mountTarget ?? document.getElementById('app') ?? document.body
 	let currentNode: HTMLElement | null = null
 
+	function disposeNode(node: HTMLElement): void {
+		;(node as unknown as { __disposeEvents?: () => void }).__disposeEvents?.()
+	}
+
 	function render(path: string): void {
 		const { route, params } = resolveRoute(routes, path)
 
 		if (!route) {
+			flushDestroyCallbacks()
+			if (currentNode) {
+				if (currentNode.parentNode === target) {
+					target.removeChild(currentNode)
+				}
+				disposeNode(currentNode)
+			}
 			target.innerHTML = '<h1>404</h1>'
 			setParams({})
 			currentNode = null
@@ -124,8 +135,11 @@ export function createRouter(
 		}
 
 		flushDestroyCallbacks()
-		if (currentNode && currentNode.parentNode === target) {
-			target.removeChild(currentNode)
+		if (currentNode) {
+			if (currentNode.parentNode === target) {
+				target.removeChild(currentNode)
+			}
+			disposeNode(currentNode)
 		}
 
 		const nextNode = route.component()
