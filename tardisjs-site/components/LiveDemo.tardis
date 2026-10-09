@@ -3,7 +3,7 @@ blueprint LiveDemo {
 		.demo-center {
 			text-align: center;
 		}
-		.demo-center .section-title,
+		.demo-center .headline,
 		.demo-center .section-desc {
 			text-align: center;
 			margin-left: auto;
@@ -14,7 +14,7 @@ blueprint LiveDemo {
 		<section class="section" id="demo">
 			<div class="container demo-center">
 				<p class="section-label">Try it</p>
-				<h2 class="section-title">Field-level updates in practice</h2>
+				<h2 class="headline">Field-level updates in practice.<br/><span class="muted">A live, running blueprint.</span></h2>
 				<p class="section-desc">This counter writes to one state field and updates the subscribed text binding. A reference for runtime behavior, not a benchmark.</p>
 				<CounterDemo />
 			</div>

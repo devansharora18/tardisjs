@@ -75,9 +75,13 @@ blueprint VdomDebate {
 	ui {
 		<section class="section" id="vdom">
 			<div class="container">
-				<p class="section-label">Architecture</p>
-				<h2 class="section-title">Virtual DOM vs compiled bindings</h2>
-				<p class="section-desc">Both models are valid. TardisJS chooses compile-time binding maps and direct DOM writes to keep runtime behavior straightforward.</p>
+				<div class="sec-head">
+					<div>
+						<p class="section-label">Architecture</p>
+						<h2 class="headline">Virtual DOM vs compiled bindings.<br/><span class="muted">Both are valid.</span></h2>
+					</div>
+					<p class="sec-head-desc">TardisJS chooses compile-time binding maps and direct DOM writes to keep runtime behavior straightforward.</p>
+				</div>
 				<div class="code-split">
 					<div class="code-block">
 						<div class="code-block-header">

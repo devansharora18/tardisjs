@@ -4,6 +4,7 @@ blueprint Home {
 			<AnnounceBar />
 			<Navbar />
 			<Hero />
+			<TrustStrip />
 			<Features />
 			<Pipeline />
 			<StateComparison />

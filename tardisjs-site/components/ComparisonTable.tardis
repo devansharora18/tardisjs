@@ -97,9 +97,13 @@ blueprint ComparisonTable {
 	ui {
 		<section class="section section-alt" id="comparison">
 			<div class="container">
-				<p class="section-label">Comparison</p>
-				<h2 class="section-title">TardisJS in context</h2>
-				<p class="section-desc">Different trade-offs, not a clear winner. Runtime size comes from real benchmark data; maturity ratings reflect ecosystem age.</p>
+				<div class="sec-head">
+					<div>
+						<p class="section-label">Comparison</p>
+						<h2 class="headline">TardisJS in context.<br/><span class="muted">Different trade-offs.</span></h2>
+					</div>
+					<p class="sec-head-desc">Runtime size comes from real benchmark data; maturity ratings reflect ecosystem age, not capability.</p>
+				</div>
 				<div class="cmp-wrap">
 					<table class="cmp">
 						<thead>

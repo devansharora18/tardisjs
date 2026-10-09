@@ -6,8 +6,10 @@ blueprint GetStarted {
 		.cta h2 {
 			font-size: clamp(24px, 3.4vw, 34px);
 			font-weight: 700;
+			letter-spacing: -0.03em;
 			margin-bottom: 12px;
 		}
+		.cta h2 .muted { color: var(--text-muted); }
 		.cta p {
 			font-size: 16px;
 			color: var(--text-secondary);
@@ -83,7 +85,7 @@ blueprint GetStarted {
 	ui {
 		<section class="section section-alt" id="get-started">
 			<div class="container cta">
-				<h2>Create a project</h2>
+				<h2>Create a project.<br/><span class="muted">Inspect every line.</span></h2>
 				<p>Scaffold a minimal app, then inspect the generated output as you iterate.</p>
 				<div class="cta-install">
 					<code>npx create-tardis-app my-project</code>

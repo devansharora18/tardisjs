@@ -1,0 +1,41 @@
+blueprint TrustStrip {
+	style {
+		.trust {
+			border-top: 1px solid var(--border);
+			border-bottom: 1px solid var(--border);
+			background: var(--surface);
+		}
+		.trust-inner {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			padding: 14px 0;
+		}
+		.trust-chips {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		.trust-note {
+			text-transform: none;
+			letter-spacing: 0;
+			font-size: 12px;
+		}
+	}
+	ui {
+		<div class="trust">
+			<div class="container trust-inner">
+				<span class="mono-tag">Works with</span>
+				<span class="trust-chips">
+					<span class="chip">Tailwind</span>
+					<span class="chip">VS Code syntax</span>
+					<span class="chip">Vercel</span>
+					<span class="chip">Any static host</span>
+				</span>
+				<span class="mono-tag trust-note">.tardis → plain ESM · 0 runtime deps</span>
+			</div>
+		</div>
+	}
+}

@@ -67,9 +67,13 @@ blueprint StateComparison {
 	ui {
 		<section class="section" id="reactivity">
 			<div class="container">
-				<p class="section-label">Reactivity</p>
-				<h2 class="section-title">State without the ceremony</h2>
-				<p class="section-desc">Declare state, write update expressions, and the compiler wires the reactivity. No hooks, no dependency arrays, no stale closures.</p>
+				<div class="sec-head">
+					<div>
+						<p class="section-label">Reactivity</p>
+						<h2 class="headline">State without the ceremony.<br/><span class="muted">No hooks, no arrays.</span></h2>
+					</div>
+					<p class="sec-head-desc">Declare state, write update expressions, and the compiler wires the reactivity. Compare the same todo app in both models.</p>
+				</div>
 				<div class="code-split">
 					<div class="code-block">
 						<div class="code-block-header">
