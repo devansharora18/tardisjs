@@ -1,137 +1,184 @@
 blueprint ComparisonTable {
 	style {
-		.section { padding: clamp(56px, 8vw, 96px) 0; }
-		.section-label {
+		.cmp-wrap {
+			overflow-x: auto;
+			border: 1px solid var(--border);
+			border-radius: var(--radius-lg);
+			background: var(--surface);
+		}
+		table.cmp {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 620px;
+			font-size: 14px;
+		}
+		table.cmp th,
+		table.cmp td {
+			text-align: left;
+			padding: 14px 18px;
+			border-bottom: 1px solid var(--border);
+			vertical-align: middle;
+		}
+		table.cmp thead th {
 			font-size: 12px;
 			font-weight: 600;
-			letter-spacing: 0.08em;
+			letter-spacing: 0.04em;
 			text-transform: uppercase;
-			color: var(--accent);
-			margin-bottom: 8px;
-		}
-		.section-title {
-			font-size: clamp(24px, 3.5vw, 32px);
-			font-weight: 700;
-			letter-spacing: -0.02em;
-			margin-bottom: 12px;
-			line-height: 1.2;
-		}
-		.section-desc {
-			font-size: 16px;
-			color: var(--text-secondary);
-			max-width: 600px;
-			margin-bottom: 40px;
-			line-height: 1.5;
-		}
-		.container {
-			max-width: 1080px;
-			margin: 0 auto;
-			padding: 0 24px;
-		}
-		.compare-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-			gap: 24px;
-		}
-		.compare-item {
-			background: var(--surface);
-			border: 1px solid var(--border);
-			border-radius: 12px;
-			padding: 24px;
-		}
-		.compare-item h3 {
-			font-size: 16px;
-			font-weight: 700;
-			margin-bottom: 14px;
-			letter-spacing: -0.01em;
-		}
-		.compare-col {
-			margin-bottom: 14px;
-		}
-		.compare-col:last-child {
-			margin-bottom: 0;
-		}
-		.compare-label {
-			font-size: 11px;
-			font-weight: 600;
-			text-transform: uppercase;
-			letter-spacing: 0.06em;
-			margin-bottom: 4px;
-		}
-		.compare-label-tardis {
-			color: var(--accent);
-		}
-		.compare-label-react {
 			color: var(--text-muted);
 		}
-		.compare-col p {
-			font-size: 14px;
-			color: var(--text-secondary);
-			line-height: 1.5;
+		table.cmp thead th.is-tardis {
+			color: var(--accent);
 		}
-		.compare-divider {
-			height: 1px;
+		table.cmp tbody tr:last-child td {
+			border-bottom: none;
+		}
+		table.cmp tbody th {
+			font-weight: 500;
+			color: var(--text-secondary);
+			white-space: nowrap;
+		}
+		table.cmp td.is-tardis {
+			background: color-mix(in srgb, var(--accent) 7%, transparent);
+			color: var(--text);
+		}
+		table.cmp td {
+			color: var(--text-secondary);
+		}
+		.mark {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.mark svg { display: block; }
+		.dots {
+			display: inline-flex;
+			gap: 4px;
+		}
+		.dots i {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: var(--border-strong);
+		}
+		.dots i.on { background: var(--accent); }
+		.size-bar {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+		.size-bar .track {
+			flex: 1;
+			min-width: 60px;
+			height: 8px;
+			border-radius: 4px;
 			background: var(--border);
-			margin: 12px 0;
+			overflow: hidden;
+		}
+		.size-bar .fill {
+			height: 100%;
+			border-radius: 4px;
+		}
+		.size-bar .val {
+			font-size: 12px;
+			font-variant-numeric: tabular-nums;
+			color: var(--text-secondary);
+			min-width: 46px;
+		}
+		.take {
+			margin-top: 20px;
+			font-size: 13px;
+			color: var(--text-muted);
+			line-height: 1.6;
+			max-width: 760px;
 		}
 	}
 	ui {
-		<section class="section" id="comparison">
+		<section class="section section-alt" id="comparison">
 			<div class="container">
 				<p class="section-label">Comparison</p>
 				<h2 class="section-title">TardisJS in context</h2>
-				<p class="section-desc">This project focuses on explicit compile output and a small runtime. It explores a different set of trade-offs than React/Vue/Svelte rather than trying to replace them.</p>
-				<div class="compare-grid">
-					<div class="compare-item">
-						<h3>Rendering</h3>
-						<div class="compare-col">
-							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>Templates are compiled into direct DOM operations. Effects are field-scoped through Proxy reads, so updates target subscribed bindings.</p>
-						</div>
-						<div class="compare-divider" aria-hidden="true"></div>
-						<div class="compare-col">
-							<p class="compare-label compare-label-react">React</p>
-							<p>Components re-render to virtual nodes, then reconciliation computes DOM patches. This model is flexible and ecosystem-rich, with different runtime costs.</p>
-						</div>
-					</div>
-					<div class="compare-item">
-						<h3>State management</h3>
-						<div class="compare-col">
-							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>State fields are declared in blueprint blocks and wrapped by a Proxy. Writes trigger only effects that consumed those fields.</p>
-						</div>
-						<div class="compare-divider" aria-hidden="true"></div>
-						<div class="compare-col">
-							<p class="compare-label compare-label-react">React</p>
-							<p>Hooks (`useState`, `useReducer`) provide composable state control with mature community patterns and tooling.</p>
-						</div>
-					</div>
-					<div class="compare-item">
-						<h3>Component model</h3>
-						<div class="compare-col">
-							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>Each `.tardis` file has sectioned structure (props/state/computed/methods/events/style/ui/script). This improves consistency but is less flexible than function-based component models.</p>
-						</div>
-						<div class="compare-divider" aria-hidden="true"></div>
-						<div class="compare-col">
-							<p class="compare-label compare-label-react">React</p>
-							<p>Components are functions returning JSX. This is highly flexible and familiar, but architectural consistency depends on team conventions.</p>
-						</div>
-					</div>
-					<div class="compare-item">
-						<h3>Routing and tooling</h3>
-						<div class="compare-col">
-							<p class="compare-label compare-label-tardis">tardisjs</p>
-							<p>Routing is file-based and bundled with the CLI (`init/dev/build/preview`). Setup is compact, but integrations are still early-stage.</p>
-						</div>
-						<div class="compare-divider" aria-hidden="true"></div>
-						<div class="compare-col">
-							<p class="compare-label compare-label-react">React</p>
-							<p>Routing/build choices are modular (`react-router`, Next.js, Vite, etc.), which gives broad options and a large ecosystem footprint.</p>
-						</div>
-					</div>
+				<p class="section-desc">Different trade-offs, not a clear winner. Runtime size comes from real benchmark data; maturity ratings reflect ecosystem age.</p>
+				<div class="cmp-wrap">
+					<table class="cmp">
+						<thead>
+							<tr>
+								<th>Attribute</th>
+								<th class="is-tardis">tardisjs</th>
+								<th>Vue</th>
+								<th>React</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>Rendering</th>
+								<td class="is-tardis">Compiled bindings</td>
+								<td>Virtual DOM</td>
+								<td>Virtual DOM</td>
+							</tr>
+							<tr>
+								<th>Reactivity</th>
+								<td class="is-tardis">Proxy, field-level</td>
+								<td>Proxy + scheduler</td>
+								<td>Hooks + scheduler</td>
+							</tr>
+							<tr>
+								<th>Runtime (gzip)</th>
+								<td class="is-tardis"><span class="size-bar" data-size="tardisjs"></span></td>
+								<td><span class="size-bar" data-size="Vue"></span></td>
+								<td><span class="size-bar" data-size="React"></span></td>
+							</tr>
+							<tr>
+								<th>Server rendering</th>
+								<td class="is-tardis"><span class="mark mark-no"></span></td>
+								<td><span class="mark mark-yes"></span></td>
+								<td><span class="mark mark-yes"></span></td>
+							</tr>
+							<tr>
+								<th>Devtools</th>
+								<td class="is-tardis"><span class="dots" data-level="1"></span></td>
+								<td><span class="dots" data-level="3"></span></td>
+								<td><span class="dots" data-level="3"></span></td>
+							</tr>
+							<tr>
+								<th>Ecosystem</th>
+								<td class="is-tardis"><span class="dots" data-level="1"></span></td>
+								<td><span class="dots" data-level="3"></span></td>
+								<td><span class="dots" data-level="3"></span></td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
+				<p class="take">If you need SSR, mature tooling, or a large hiring pool today, React or Vue are the safer choice. TardisJS is worth a look if you want to inspect generated output and keep the runtime surface tiny.</p>
 			</div>
 		</section>
+	}
+	script {
+		const CHECK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="#45a557" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+		const DASH = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8h8" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round"/></svg>'
+
+		$el.querySelectorAll('.mark-yes').forEach(el => { el.innerHTML = CHECK })
+		$el.querySelectorAll('.mark-no').forEach(el => { el.innerHTML = DASH })
+		$el.querySelectorAll('.dots').forEach(el => {
+			const level = Number(el.getAttribute('data-level') || 0)
+			let html = ''
+			for (let i = 0; i < 3; i++) html += '<i class="' + (i < level ? 'on' : '') + '"></i>'
+			el.innerHTML = html
+		})
+
+		const bench = window.__TARDIS_BENCH
+		if (bench) {
+			const COLORS = { tardisjs: '#3291ff', Vue: '#41b883', React: '#61dafb' }
+			const sizes = {}
+			bench.bundle.forEach(b => { sizes[b.name] = b.gzip || 0 })
+			const max = Math.max.apply(null, Object.keys(sizes).map(k => sizes[k])) || 1
+			$el.querySelectorAll('.size-bar').forEach(el => {
+				const k = el.getAttribute('data-size')
+				const v = sizes[k] || 0
+				const pct = Math.max(6, (v / max) * 100)
+				el.innerHTML =
+					'<span class="track"><span class="fill" style="width:' + pct.toFixed(1) + '%;background:' + (COLORS[k] || '#888') + '"></span></span>' +
+					'<span class="val">' + (v / 1024).toFixed(1) + 'KB</span>'
+			})
+		}
 	}
 }
