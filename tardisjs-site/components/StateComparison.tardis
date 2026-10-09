@@ -1,6 +1,6 @@
 blueprint StateComparison {
 	style {
-		.section { padding: 80px 0; }
+		.section { padding: clamp(56px, 8vw, 96px) 0; }
 		.section-alt {
 			background: var(--surface);
 			border-top: 1px solid var(--border);
@@ -15,7 +15,7 @@ blueprint StateComparison {
 			margin-bottom: 8px;
 		}
 		.section-title {
-			font-size: 32px;
+			font-size: clamp(24px, 3.5vw, 32px);
 			font-weight: 700;
 			letter-spacing: -0.02em;
 			margin-bottom: 12px;
@@ -35,14 +35,14 @@ blueprint StateComparison {
 		}
 		.code-split {
 			display: grid;
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 			gap: 20px;
 			margin-top: 32px;
 		}
 		.code-block {
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 8px;
+			border-radius: 12px;
 			overflow: hidden;
 		}
 		.code-block-header {
@@ -74,14 +74,14 @@ blueprint StateComparison {
 		.react-points {
 			margin-top: 32px;
 			display: grid;
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 			gap: 20px;
 		}
 		.react-point {
 			padding: 20px;
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 8px;
+			border-radius: 12px;
 		}
 		.react-point h4 {
 			font-size: 14px;
@@ -93,10 +93,6 @@ blueprint StateComparison {
 			color: var(--text-secondary);
 			line-height: 1.5;
 		}
-		@media (max-width: 768px) {
-			.code-split { grid-template-columns: 1fr; }
-			.react-points { grid-template-columns: 1fr; }
-		}
 	}
 	ui {
 		<section class="section section-alt" id="reactivity">
@@ -107,18 +103,18 @@ blueprint StateComparison {
 				<div class="code-split">
 					<div class="code-block">
 						<div class="code-block-header">
-							<div class="dot-close"></div>
-							<div class="dot-min"></div>
-							<div class="dot-max"></div>
+							<div class="dot-close" aria-hidden="true"></div>
+							<div class="dot-min" aria-hidden="true"></div>
+							<div class="dot-max" aria-hidden="true"></div>
 							<span class="code-filename">todo.tardis</span>
 						</div>
 						<pre id="code-tardis-state"></pre>
 					</div>
 					<div class="code-block">
 						<div class="code-block-header">
-							<div class="dot-close"></div>
-							<div class="dot-min"></div>
-							<div class="dot-max"></div>
+							<div class="dot-close" aria-hidden="true"></div>
+							<div class="dot-min" aria-hidden="true"></div>
+							<div class="dot-max" aria-hidden="true"></div>
 							<span class="code-filename">TodoApp.jsx</span>
 						</div>
 						<pre id="code-react-state"></pre>
