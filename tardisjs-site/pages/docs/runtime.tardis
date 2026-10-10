@@ -1,0 +1,138 @@
+blueprint DocsRuntime {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Runtime API" crumb="Reference" />
+
+					<p>Compiled code imports a single runtime object. This page is the complete reference, grouped by concern. Functions listed here are what the compiler emits and what you can call from <code>methods</code> and <code>script</code>.</p>
+
+					<h2 id="state">State</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$update(state, key, value)</td><td>Set a state key and trigger dependent effects.</td></tr>
+								<tr><td>$toggle(state, key)</td><td>Flip a boolean state key.</td></tr>
+								<tr><td>$reset(state, initial)</td><td>Restore keys to their initial values.</td></tr>
+								<tr><td>$batch(fn)</td><td>Coalesce writes into one synchronous, deduplicated flush.</td></tr>
+								<tr><td>state(initial)</td><td>Create a Proxy-wrapped reactive state object.</td></tr>
+								<tr><td>registerDep(state, key, fn)</td><td>Manually register an updater for a key.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="rendering">Rendering</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$if(cond, build)</td><td>Mount or remove a block; returns the node or a comment anchor.</td></tr>
+								<tr><td>$each(list, build)</td><td>Render one node per item; clears and rebuilds on change.</td></tr>
+								<tr><td>$show(cond, build)</td><td>Toggle display without unmounting.</td></tr>
+								<tr><td>$portal(selector, build)</td><td>Render into an external DOM target.</td></tr>
+								<tr><td>text(value)</td><td>Create a text node; reactive when given a function.</td></tr>
+								<tr><td>bind(el, prop, fn)</td><td>Bind a DOM property to a reactive expression.</td></tr>
+								<tr><td>bindClass(el, fn)</td><td>Bind <code>className</code> reactively.</td></tr>
+								<tr><td>bindAttr(el, attr, fn)</td><td>Bind an attribute reactively.</td></tr>
+								<tr><td>resolveStyles(styles, key)</td><td>Resolve a style token to its class string.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>These are normally emitted by the compiler, but they are public and usable from <code>script</code> when you need to build DOM imperatively.</p>
+
+					<h2 id="navigation">Navigation</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$navigate(path)</td><td>Client-side navigation; updates history and renders the match.</td></tr>
+								<tr><td>$back()</td><td>History back.</td></tr>
+								<tr><td>$forward()</td><td>History forward.</td></tr>
+								<tr><td>$params</td><td>Object holding the current dynamic-route parameters.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="fetch">Data</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$fetch(url)</td><td>Chainable request helper. Returns a chain.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>The chain exposes <code>method</code>, <code>body</code>, <code>headers</code>, <code>done</code>, <code>fail</code>, and <code>always</code>. The request fires when the first of <code>done</code>, <code>fail</code>, or <code>always</code> is attached, and runs exactly once.</p>
+					<div class="codeblock" data-code="fetch" data-lang="tardis"></div>
+
+					<h2 id="selection">Selection</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$(selector)</td><td>Select DOM elements or mounted component instances.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>See <a href="/docs/selector">Selector</a> for the full chainable method list.</p>
+
+					<h2 id="styles">Styles</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>styles(mode, rules, props, state)</td><td>Create a styles object that resolves tokens to class strings.</td></tr>
+								<tr><td>resolveStyles(styles, key)</td><td>Resolve a single token.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="events">Events</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>events(handlers)</td><td>Register onMount / onDestroy / onUpdate; returns a dispose function.</td></tr>
+								<tr><td>flushMountCallbacks()</td><td>Run pending mount callbacks.</td></tr>
+								<tr><td>flushDestroyCallbacks()</td><td>Run pending destroy callbacks.</td></tr>
+								<tr><td>flushUpdateCallbacks()</td><td>Run pending update callbacks.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="registry">Registry</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>register(name, instance)</td><td>Register an instance; returns an id.</td></tr>
+								<tr><td>unregister(id)</td><td>Remove an instance by id.</td></tr>
+								<tr><td>getAll(name)</td><td>All instances of a blueprint.</td></tr>
+								<tr><td>getById(id)</td><td>Instance by id, or null.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="example">Putting it together</h2>
+					<div class="codeblock" data-code="combined" data-lang="tardis"></div>
+
+					<DocsPager prev="/docs/reactivity" prevLabel="Reactivity" next="/docs/router" nextLabel="Router" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			fetch: 'methods {\n  load: () => $fetch("/api/users")\n    .method("GET")\n    .done(data => $update(state.users, data))\n    .fail(err => console.error(err))\n    .always(() => $update(state.loading, false))\n}',
+			combined: 'state {\n  users: array = []\n  loading: boolean = true\n}\nmethods {\n  load: () => $fetch("/api/users")\n    .done(data => $update(state.users, data))\n    .always(() => $update(state.loading, false))\n}\nui {\n  $show(state.loading) {\n    <p>Loading...</p>\n  }\n  $each(state.users, (user) => {\n    <li>{user.name}</li>\n  })\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

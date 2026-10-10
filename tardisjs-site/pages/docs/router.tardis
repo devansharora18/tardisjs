@@ -1,0 +1,85 @@
+blueprint DocsRouter {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Router" crumb="Reference" />
+
+					<p>Routing is file-based. The build scans <code>pages/</code>, derives a route per file, generates an import for each page, and starts a router on load. There is no route config to write by hand.</p>
+
+					<h2 id="matching">Path matching</h2>
+					<p>Routes match on path segments. A segment wrapped in brackets becomes a dynamic parameter that captures any single segment.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>File</th><th>Route</th><th>Example URL</th></tr></thead>
+							<tbody>
+								<tr><td>pages/index.tardis</td><td>/</td><td>/</td></tr>
+								<tr><td>pages/about.tardis</td><td>/about</td><td>/about</td></tr>
+								<tr><td>pages/docs/index.tardis</td><td>/docs</td><td>/docs</td></tr>
+								<tr><td>pages/docs/[slug].tardis</td><td>/docs/:slug</td><td>/docs/quickstart</td></tr>
+								<tr><td>pages/blog/[id].tardis</td><td>/blog/:id</td><td>/blog/42</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="params">Reading parameters</h2>
+					<p>Dynamic segments are exposed on <code>$params</code>. Values are URL-decoded.</p>
+					<div class="codeblock" data-code="params" data-lang="tardis"></div>
+
+					<h2 id="navigation">Programmatic navigation</h2>
+					<div class="codeblock" data-code="nav" data-lang="tardis"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Call</th><th>Effect</th></tr></thead>
+							<tbody>
+								<tr><td>$navigate(path)</td><td>Push a new entry and render the match.</td></tr>
+								<tr><td>$back()</td><td>Go back in history.</td></tr>
+								<tr><td>$forward()</td><td>Go forward in history.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="links">Link interception</h2>
+					<p>A single document-level listener handles internal links. When a plain left-click hits an <code>&lt;a href&gt;</code> that points inside the app, the click is intercepted and routed client-side. These pass through to the browser:</p>
+					<ul>
+						<li>External URLs, <code>mailto:</code>, and <code>tel:</code> links.</li>
+						<li>Hash-only links such as <code>#section</code>.</li>
+						<li>Clicks with a modifier key (Ctrl, Cmd, Shift, Alt) or a non-primary button.</li>
+						<li>Links with <code>target</code> other than <code>_self</code>.</li>
+					</ul>
+
+					<h2 id="hash">Hash scrolling</h2>
+					<p>Navigating to a URL with a hash scrolls the matching element into view after the route renders, so deep links to a section work.</p>
+					<div class="codeblock" data-code="hash" data-lang="tardis"></div>
+
+					<h2 id="notfound">Not found</h2>
+					<p>When no route matches, the router renders a default not-found node and clears the current parameters. Keep a catch-all page if you need a custom 404.</p>
+
+					<h2 id="manual">Manual router setup</h2>
+					<p>The generated bootstrap calls <code>createRouter</code> for you, but the API is public if you want to mount manually or test:</p>
+					<div class="codeblock" data-code="manual" data-lang="js"></div>
+
+					<h2 id="lifecycle">Route lifecycle</h2>
+					<p>On navigation the router runs destroy callbacks for the outgoing node, disposes its event handles, mounts the next page, sets <code>$params</code>, and runs mount callbacks. This ordering keeps cleanup deterministic.</p>
+
+					<DocsPager prev="/docs/runtime" prevLabel="Runtime API" next="/docs/selector" nextLabel="Selector" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			params: 'blueprint Post {\n  ui {\n    <article>\n      <h1>Post {$params.id}</h1>\n    </article>\n  }\n}',
+			nav: 'methods {\n  openPost: (id) => $navigate("/blog/" + id)\n  goBack: () => $back()\n  goForward: () => $forward()\n}',
+			hash: '<a href="/docs/router#params">Jump to parameters</a>',
+			manual: "import { createRouter } from 'tardisjs/runtime'\nimport { Home } from '/pages/index.js'\nimport { Post } from '/pages/blog/[id].js'\n\nconst router = createRouter([\n  { path: '/', component: Home },\n  { path: '/blog/:id', component: Post },\n])\n\nrouter.start()"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

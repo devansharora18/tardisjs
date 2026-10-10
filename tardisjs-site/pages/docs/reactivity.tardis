@@ -1,0 +1,94 @@
+blueprint DocsReactivity {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Reactivity" crumb="Core concepts" />
+
+					<p>TardisJS reactivity is field-level and Proxy-based. A binding reads state through a Proxy; the read registers the binding as a dependency of that field. A write re-runs only the bindings that depend on the field that changed. There is no scheduler and no dependency array to maintain.</p>
+
+					<h2 id="model">The model</h2>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Read registers a dependency</h3>
+							<p>When a binding evaluates and reads <code>state.count</code>, the Proxy records that binding against <code>count</code>.</p>
+						</div>
+						<div class="step-row">
+							<h3>Write finds dependents</h3>
+							<p><code>$update(state.count, v)</code> sets the value and looks up the set of bindings registered for <code>count</code>.</p>
+						</div>
+						<div class="step-row">
+							<h3>Only dependents re-run</h3>
+							<p>Each registered binding re-runs and writes its own DOM node. Unrelated bindings are untouched.</p>
+						</div>
+					</div>
+
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+
+					<h2 id="updating">Updating state</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$update(state, key, value)</td><td>Set a key and trigger its dependents.</td></tr>
+								<tr><td>$toggle(state, key)</td><td>Flip a boolean key.</td></tr>
+								<tr><td>$reset(state, initial)</td><td>Restore keys to initial values.</td></tr>
+								<tr><td>$batch(fn)</td><td>Coalesce writes in the callback into one synchronous flush.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="update" data-lang="tardis"></div>
+
+					<h2 id="batching">Batching</h2>
+					<p>Multiple writes normally flush immediately. Wrap them in <code>$batch</code> to defer and deduplicate: a binding that depends on two changed keys runs once, after the callback returns. Batches are synchronous — the flush happens before <code>$batch</code> returns, so behavior does not depend on paint timing.</p>
+					<div class="codeblock" data-code="batch" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Deterministic flush</div>
+							<p>Because the flush is synchronous and deduplicated by updater identity, the same sequence of writes always produces the same set of DOM updates in the same order.</p>
+						</div>
+					</div>
+
+					<h2 id="computed">Computed values</h2>
+					<p>A <code>computed</code> entry is a getter over state and props. Reading it inside a binding subscribes the binding to whatever the getter reads. Prefer computed over a second state field you keep in sync manually.</p>
+					<div class="codeblock" data-code="computed" data-lang="tardis"></div>
+
+					<h2 id="arrays">Arrays and objects</h2>
+					<p>Reactivity is per top-level key. To change an array or object, assign a new value rather than mutating in place, so the write is observable:</p>
+					<div class="codeblock" data-code="arrays" data-lang="tardis"></div>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Prefer immutable updates</div>
+							<p><code>state.items.push(x)</code> mutates without a write to the key, so bindings will not re-run. Assign a new array instead.</p>
+						</div>
+					</div>
+
+					<h2 id="lifecycle">Effects and lifecycle</h2>
+					<p>Bindings are effects. They run once on mount and again whenever a dependency changes. Use <code>events.onUpdate</code> for side effects that should run after a state change, and <code>events.onDestroy</code> to clean up.</p>
+					<div class="codeblock" data-code="lifecycle" data-lang="tardis"></div>
+
+					<DocsPager prev="/docs/templating" prevLabel="UI &amp; templating" next="/docs/runtime" nextLabel="Runtime API" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: 'state { count: number = 0 }\nmethods {\n  increment: () => $update(state.count, state.count + 1)\n}\nui {\n  <p>{state.count}</p>\n}',
+			update: 'methods {\n  increment: () => $update(state.count, state.count + 1)\n  toggleMenu: () => $toggle(state.menuOpen)\n  reset: () => $reset(state, { count: 0, name: "" })\n}',
+			batch: 'methods {\n  load: () => $batch(() => {\n    $update(state.loading, true)\n    $update(state.items, fetched)\n    $update(state.loading, false)\n  })\n}',
+			computed: 'state {\n  items: array = []\n}\ncomputed {\n  remaining: state.items.filter(i => !i.done).length\n  isEmpty: state.items.length === 0\n}',
+			arrays: '// good — assign a new array\nmethods {\n  add: (item) => $update(state.items, [...state.items, item])\n  remove: (i) => $update(state.items, state.items.filter((_, idx) => idx !== i))\n}',
+			lifecycle: 'events {\n  onMount: () => console.log("mounted")\n  onUpdate: () => console.log("a dependency changed")\n  onDestroy: () => clearInterval(state.timer)\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
