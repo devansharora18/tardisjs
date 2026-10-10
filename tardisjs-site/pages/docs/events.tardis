@@ -1,0 +1,69 @@
+blueprint DocsEvents {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Lifecycle events" crumb="Reference" />
+
+					<p>The <code>events</code> block registers lifecycle handlers. They run around the component's mount, update, and removal, and are the place for side effects that should not live in a binding.</p>
+
+					<h2 id="hooks">Hooks</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Hook</th><th>Runs</th></tr></thead>
+							<tbody>
+								<tr><td>onMount</td><td>Once, after the node is inserted into the DOM.</td></tr>
+								<tr><td>onUpdate</td><td>After a dependency of the component changes.</td></tr>
+								<tr><td>onDestroy</td><td>Before the node is removed.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="hooks" data-lang="tardis"></div>
+
+					<h2 id="order">Ordering</h2>
+					<p>On route navigation the router runs destroy callbacks for the outgoing node, disposes its event handles, mounts the next page, sets parameters, then runs mount callbacks. Mount callbacks are flushed after insertion, so DOM queries inside <code>onMount</code> see the live tree.</p>
+					<div class="codeblock" data-code="order" data-lang="js"></div>
+
+					<h2 id="cleanup">Cleanup</h2>
+					<p>Anything that outlives the component — timers, external listeners, subscriptions — should be torn down in <code>onDestroy</code>.</p>
+					<div class="codeblock" data-code="cleanup" data-lang="tardis"></div>
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Store handles in state</div>
+							<p>Keep interval or listener handles on <code>state</code> so <code>onDestroy</code> can reach them. They do not need to be reactive.</p>
+						</div>
+					</div>
+
+					<h2 id="errors">Error isolation</h2>
+					<p>Each lifecycle callback runs inside its own try/catch. A throwing callback is logged and does not prevent the remaining callbacks from running.</p>
+
+					<h2 id="dispose">Disposal</h2>
+					<p>Registering events returns a dispose function that removes the handlers from the pending queues. The router calls it when a node is unmounted, so a component that never mounts does not leave queued callbacks behind.</p>
+					<div class="codeblock" data-code="dispose" data-lang="js"></div>
+
+					<h2 id="example">Example</h2>
+					<div class="codeblock" data-code="example" data-lang="tardis"></div>
+
+					<DocsPager prev="/docs/styles" prevLabel="Styles" next="/docs/registry" nextLabel="Component registry" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			hooks: 'events {\n  onMount: () => console.log("mounted")\n  onUpdate: () => console.log("updated")\n  onDestroy: () => console.log("cleanup")\n}',
+			order: '// on navigation:\n// 1. flushDestroyCallbacks()   -> outgoing onDestroy\n// 2. dispose outgoing node     -> __disposeEvents\n// 3. mount next page\n// 4. setParams($params)\n// 5. flushMountCallbacks()     -> incoming onMount',
+			cleanup: 'events {\n  onMount: () => {\n    state.timer = setInterval(tick, 1000)\n  }\n  onDestroy: () => {\n    clearInterval(state.timer)\n  }\n}',
+			dispose: "const dispose = $runtime.events({ onMount: fn })\n// later, before mounting:\ndispose()",
+			example: 'blueprint Clock {\n  state { now: string = "" }\n  methods {\n    tick: () => $update(state.now, new Date().toLocaleTimeString())\n  }\n  events {\n    onMount: () => {\n      state.timer = setInterval(methods.tick, 1000)\n    }\n    onDestroy: () => clearInterval(state.timer)\n  }\n  ui { <p>{state.now}</p> }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

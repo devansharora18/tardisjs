@@ -1,0 +1,84 @@
+blueprint DocsSelector {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Selector" crumb="Reference" />
+
+					<p><code>$(selector)</code> returns a chainable selection. A lowercase selector queries the DOM; a selector that starts with an uppercase letter selects mounted component instances from the registry.</p>
+
+					<h2 id="dom">DOM selection</h2>
+					<p>Any valid CSS selector works. The selection wraps the matched elements and returns the same object from every method, so calls chain.</p>
+					<div class="codeblock" data-code="dom" data-lang="js"></div>
+
+					<h2 id="components">Component selection</h2>
+					<p>An uppercase name selects registered instances. You can narrow by id, class, or an attribute filter with an operator.</p>
+					<div class="codeblock" data-code="comp" data-lang="js"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Form</th><th>Matches</th></tr></thead>
+							<tbody>
+								<tr><td>Name</td><td>All instances of the blueprint.</td></tr>
+								<tr><td>Name#id</td><td>Instances whose root element has that id.</td></tr>
+								<tr><td>Name.class</td><td>Instances whose root element has that class.</td></tr>
+								<tr><td>Name[prop=value]</td><td>Instances matching a prop or state value.</td></tr>
+								<tr><td>Name[state.count&gt;3]</td><td>Instances where a state value satisfies the operator.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Supported operators are <code>=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, and <code>&lt;=</code>.</p>
+
+					<h2 id="methods">Methods</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Method</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>show() / hide() / toggle()</td><td>Control display.</td></tr>
+								<tr><td>addClass(c) / removeClass(c) / toggleClass(c)</td><td>Class manipulation.</td></tr>
+								<tr><td>attr(key) / attr(key, val)</td><td>Read or set an attribute.</td></tr>
+								<tr><td>val() / val(v)</td><td>Read or set an input value.</td></tr>
+								<tr><td>focus() / blur()</td><td>Focus control.</td></tr>
+								<tr><td>disable() / enable()</td><td>Toggle the disabled attribute.</td></tr>
+								<tr><td>remove()</td><td>Detach matched elements.</td></tr>
+								<tr><td>rect() / width() / height()</td><td>Geometry of the first match.</td></tr>
+								<tr><td>scrollIntoView() / scrollTo(opts)</td><td>Scrolling.</td></tr>
+								<tr><td>fadeIn() / fadeOut() / slideUp() / slideDown()</td><td>Lightweight visibility effects.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="component-only">Component-only methods</h2>
+					<p>On a component selection you can also drive state and call methods across every matched instance:</p>
+					<div class="codeblock" data-code="drive" data-lang="js"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Safe chaining</div>
+							<p>On a DOM selection, the component-only methods (<code>$update</code>, <code>$reset</code>, <code>methods</code>) are no-ops that return the selection, so a chain never throws.</p>
+						</div>
+					</div>
+
+					<h2 id="example">Example</h2>
+					<div class="codeblock" data-code="example" data-lang="js"></div>
+
+					<DocsPager prev="/docs/router" prevLabel="Router" next="/docs/styles" nextLabel="Styles" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			dom: "$('.panel').hide().addClass('muted')\n$('input#email').val('me@example.com')\n$('button.primary').focus()",
+			comp: "$('Counter')                        // every Counter instance\n$('Modal#confirm')                   // the modal with id \"confirm\"\n$('Tab[active=true]')                // tabs whose active prop is true\n$('Dialog[state.status=\"open\"]')     // dialogs with status \"open\"",
+			drive: "$('Counter').$update('count', 0)\n$('Counter').methods.increment()\n$('Modal').$reset({ open: false })",
+			example: "$('.sidebar')\n  .removeClass('collapsed')\n  .show()\n\n$('Toast[visible=true]').fadeOut()"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

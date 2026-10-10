@@ -1,0 +1,93 @@
+blueprint DocsStyles {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Styles" crumb="Reference" />
+
+					<p>A <code>style</code> block maps token names to strings. Tokens are referenced from <code>class</code> bindings. The mode decides what the strings mean, and dotted keys add variants driven by props or state.</p>
+
+					<h2 id="modes">Modes</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Form</th><th>Values</th><th>Applied as</th></tr></thead>
+							<tbody>
+								<tr><td>style(tailwind)</td><td>Utility classes</td><td>Joined into <code>className</code>.</td></tr>
+								<tr><td>style(css)</td><td>Inline style strings</td><td>Joined with semicolons.</td></tr>
+								<tr><td>style</td><td>Raw CSS text</td><td>Injected as a stylesheet.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="tokens">Tokens</h2>
+					<div class="codeblock" data-code="tokens" data-lang="tardis"></div>
+
+					<h2 id="referencing">Referencing tokens</h2>
+					<p>A token is resolved when a <code>class</code> binding holds a string. Without a style block, the class binding is used as-is.</p>
+					<div class="codeblock" data-code="ref" data-lang="tardis"></div>
+
+					<h2 id="variants">Variants</h2>
+					<p>A dotted key adds a token conditionally. The part before the dot is a prop or state key; the part after is the value to match.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Key</th><th>Applied when</th></tr></thead>
+							<tbody>
+								<tr><td>base</td><td>Always.</td></tr>
+								<tr><td>variant.primary</td><td><code>props.variant === "primary"</code>.</td></tr>
+								<tr><td>loading.true</td><td><code>state.loading === true</code> (boolean shorthand).</td></tr>
+								<tr><td>disabled.false</td><td><code>state.disabled === false</code>.</td></tr>
+								<tr><td>size.lg</td><td>The prop or state key <code>size</code> equals <code>"lg"</code>.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="variant" data-lang="tardis"></div>
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Precedence</div>
+							<p>For a dotted key, props are checked before state. The <code>base</code> token is always included first.</p>
+						</div>
+					</div>
+
+					<h2 id="css">CSS mode</h2>
+					<p>In <code>css</code> mode, values are inline style declarations joined with semicolons:</p>
+					<div class="codeblock" data-code="css" data-lang="tardis"></div>
+
+					<h2 id="raw">Raw stylesheet</h2>
+					<p>A <code>style</code> block with no mode is injected as a <code>&lt;style&gt;</code> element. This is useful for keyframes, media queries, and selectors that a token map cannot express.</p>
+					<div class="codeblock" data-code="raw" data-lang="tardis"></div>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Raw CSS is global</div>
+							<p>Injected styles are not scoped to the component. Namespace your selectors to avoid collisions across blueprints.</p>
+						</div>
+					</div>
+
+					<h2 id="tailwind">Tailwind</h2>
+					<p>Add the Tailwind CDN tag to <code>head</code> and use <code>style(tailwind)</code> tokens:</p>
+					<div class="codeblock" data-code="tailwind" data-lang="js"></div>
+
+					<DocsPager prev="/docs/selector" prevLabel="Selector" next="/docs/events" nextLabel="Lifecycle events" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			tokens: 'style(tailwind) {\n  page: "min-h-screen bg-black text-white"\n  card: "rounded-xl border border-white/10 p-6"\n  btn: "rounded-lg px-4 py-2 font-medium"\n}',
+			ref: '<div class={"page"}>\n  <div class={"card"}>...</div>\n  <button class={"btn"}>Save</button>\n</div>',
+			variant: 'blueprint Button {\n  props { variant: "primary" | "secondary" = "primary" }\n  state { loading: boolean = false }\n  style(tailwind) {\n    base: "rounded-lg px-4 py-2 font-medium"\n    "variant.primary": "bg-white text-black"\n    "variant.secondary": "border border-white/20 text-white"\n    "loading.true": "opacity-50 cursor-wait"\n  }\n  ui {\n    <button class={props.variant}>{props.label}</button>\n  }\n}',
+			css: 'style(css) {\n  box: "display:flex; gap:12px; padding:16px"\n  "active.true": "border:1px solid white"\n}',
+			raw: 'style {\n  .pulse {\n    animation: pulse 2s infinite;\n  }\n  @keyframes pulse {\n    50% { opacity: 0.4; }\n  }\n}',
+			tailwind: "export default {\n  head: ['<script src=\"https://cdn.tailwindcss.com\"></script>'],\n}"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
