@@ -14,7 +14,6 @@ blueprint Docs {
 			gap: 36px;
 			align-items: start;
 		}
-		/* ── left nav ── */
 		.docs-sidebar {
 			position: sticky;
 			top: 76px;
@@ -32,10 +31,6 @@ blueprint Docs {
 			text-transform: uppercase;
 			color: var(--text-muted);
 			margin-bottom: 8px;
-		}
-		.docs-group-title .count {
-			color: var(--text-muted);
-			opacity: 0.7;
 		}
 		.docs-sidebar a {
 			display: block;
@@ -55,7 +50,6 @@ blueprint Docs {
 			background: var(--surface);
 			border-left-color: var(--accent);
 		}
-		/* ── main content ── */
 		.docs-content { min-width: 0; }
 		.docs-crumb {
 			font-family: 'Geist Mono', monospace;
@@ -100,7 +94,7 @@ blueprint Docs {
 			font-size: 24px;
 			font-weight: 700;
 			letter-spacing: -0.02em;
-			margin: 40px 0 12px;
+			margin: 44px 0 12px;
 			scroll-margin-top: 84px;
 		}
 		.docs-content h3 {
@@ -130,9 +124,7 @@ blueprint Docs {
 			padding: 1px 6px;
 		}
 		.docs-content a { color: var(--accent); }
-		/* ── code block ── */
 		.codeblock {
-			position: relative;
 			margin: 14px 0 18px;
 			border: 1px solid var(--border);
 			border-radius: var(--radius-lg);
@@ -172,7 +164,6 @@ blueprint Docs {
 			cursor: pointer;
 		}
 		.copy-code:hover { color: var(--text); border-color: var(--border-strong); }
-		/* ── callout ── */
 		.callout {
 			display: flex;
 			gap: 12px;
@@ -182,18 +173,9 @@ blueprint Docs {
 			margin: 16px 0;
 			background: var(--surface);
 		}
-		.callout-icon {
-			flex-shrink: 0;
-			width: 20px;
-			height: 20px;
-			margin-top: 1px;
-		}
+		.callout-icon { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; }
 		.callout-body { min-width: 0; }
-		.callout-title {
-			font-size: 13px;
-			font-weight: 600;
-			margin-bottom: 2px;
-		}
+		.callout-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
 		.callout p { font-size: 14px; margin: 0; }
 		.callout-note { border-left: 2px solid var(--accent); }
 		.callout-note .callout-title,
@@ -204,7 +186,6 @@ blueprint Docs {
 		.callout-warning { border-left: 2px solid var(--warning); }
 		.callout-warning .callout-title,
 		.callout-warning .callout-icon { color: var(--warning); }
-		/* ── tables ── */
 		.docs-table-wrap {
 			overflow-x: auto;
 			border: 1px solid var(--border);
@@ -234,13 +215,8 @@ blueprint Docs {
 			font-size: 13px;
 			white-space: nowrap;
 		}
-		/* ── steps ── */
 		.steps { counter-reset: step; margin: 16px 0; }
-		.step-row {
-			position: relative;
-			padding-left: 40px;
-			padding-bottom: 20px;
-		}
+		.step-row { position: relative; padding-left: 40px; padding-bottom: 20px; }
 		.step-row::before {
 			counter-increment: step;
 			content: counter(step);
@@ -269,7 +245,6 @@ blueprint Docs {
 		}
 		.step-row:last-child::after { display: none; }
 		.step-row h3 { margin: 2px 0 4px; }
-		/* ── pager ── */
 		.docs-pager {
 			display: flex;
 			justify-content: space-between;
@@ -295,7 +270,6 @@ blueprint Docs {
 		}
 		.docs-pager .label { display: block; margin-top: 3px; color: var(--text); font-size: 14px; }
 		.docs-pager .next { text-align: right; }
-		/* ── right toc ── */
 		.docs-toc {
 			position: sticky;
 			top: 76px;
@@ -314,9 +288,8 @@ blueprint Docs {
 			display: block;
 			font-size: 13px;
 			color: var(--text-muted);
-			padding: 4px 0;
+			padding: 4px 0 4px 10px;
 			border-left: 2px solid transparent;
-			padding-left: 10px;
 		}
 		.docs-toc a:hover { color: var(--text); text-decoration: none; }
 		.docs-toc a.active { color: var(--text); border-left-color: var(--accent); }
@@ -354,6 +327,29 @@ blueprint Docs {
 						<a href="#templating">UI &amp; templating</a>
 						<a href="#reactivity">Reactivity</a>
 					</div>
+					<div class="docs-group">
+						<div class="docs-group-title"><span>Reference</span><span class="count">6</span></div>
+						<a href="#runtime">Runtime API</a>
+						<a href="#router">Router</a>
+						<a href="#selector">Selector</a>
+						<a href="#styles">Styles</a>
+						<a href="#events">Lifecycle events</a>
+						<a href="#registry">Component registry</a>
+					</div>
+					<div class="docs-group">
+						<div class="docs-group-title"><span>Tooling</span><span class="count">4</span></div>
+						<a href="#cli">CLI</a>
+						<a href="#config">Configuration</a>
+						<a href="#compiler">Compiler pipeline</a>
+						<a href="#errors">Errors</a>
+					</div>
+					<div class="docs-group">
+						<div class="docs-group-title"><span>Guides</span><span class="count">4</span></div>
+						<a href="#examples">Examples</a>
+						<a href="#benchmarks">Benchmarks</a>
+						<a href="#faq">FAQ</a>
+						<a href="#contributing">Contributing</a>
+					</div>
 				</aside>
 
 				<main class="docs-content">
@@ -383,32 +379,50 @@ blueprint Docs {
 					<div class="codeblock" data-code="init" data-lang="bash"></div>
 
 					<h2 id="structure">Project structure</h2>
-					<p>A project is just pages, components, static assets, and a config file:</p>
+					<p>A project is pages, components, static assets, and a config file:</p>
 					<div class="codeblock" data-code="structure" data-lang="text"></div>
 					<p>Routes come from the <code>pages/</code> directory — <code>pages/index.tardis</code> maps to <code>/</code> and <code>pages/blog/[id].tardis</code> maps to <code>/blog/:id</code>.</p>
 
 					<h2 id="blueprints">Blueprint syntax</h2>
 					<p>A <strong>blueprint</strong> is a named unit with optional sections. Only <code>ui</code> is required.</p>
 					<div class="codeblock" data-code="blueprint" data-lang="tardis"></div>
-					<div class="callout callout-tip">
-						<span class="callout-icon" data-icon="tip"></span>
-						<div class="callout-body">
-							<div class="callout-title">Section order</div>
-							<p>Sections may appear in any order. The compiler emits them in a fixed sequence, so the generated file is deterministic regardless of source order.</p>
-						</div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Section</th><th>Purpose</th></tr></thead>
+							<tbody>
+								<tr><td>props</td><td>Typed component inputs with defaults.</td></tr>
+								<tr><td>state</td><td>Reactive local state (Proxy-wrapped).</td></tr>
+								<tr><td>computed</td><td>Derived values that re-evaluate from their dependencies.</td></tr>
+								<tr><td>methods</td><td>Event handlers and logic (arrow functions).</td></tr>
+								<tr><td>events</td><td>Lifecycle: onMount, onDestroy, onUpdate.</td></tr>
+								<tr><td>style</td><td>Named class tokens, CSS, or raw stylesheet.</td></tr>
+								<tr><td>ui</td><td>HTML-like template with reactive bindings. Required.</td></tr>
+								<tr><td>script</td><td>Escape hatch for raw DOM access via $el.</td></tr>
+							</tbody>
+						</table>
 					</div>
 
 					<h2 id="templating">UI &amp; templating</h2>
 					<p>The <code>ui</code> block is HTML-like with reactive bindings. Text interpolates with braces, attributes accept expressions, and events bind with <code>@</code>.</p>
 					<div class="codeblock" data-code="templating" data-lang="tardis"></div>
 					<h3>Control flow</h3>
-					<p>Conditionals and lists are provided by runtime helpers inside <code>ui</code>:</p>
+					<p>Conditionals and lists are runtime helpers used inside <code>ui</code>:</p>
 					<div class="codeblock" data-code="controlflow" data-lang="tardis"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Helper</th><th>Behavior</th></tr></thead>
+							<tbody>
+								<tr><td>$if(cond)</td><td>Mounts or removes the block when the condition changes.</td></tr>
+								<tr><td>$each(list, fn)</td><td>Renders one node per item and re-renders when the list changes.</td></tr>
+								<tr><td>$show(cond)</td><td>Keeps the node mounted and toggles display.</td></tr>
+							</tbody>
+						</table>
+					</div>
 					<div class="callout callout-warning">
 						<span class="callout-icon" data-icon="warn"></span>
 						<div class="callout-body">
-							<div class="callout-title">Component names are capitalized</div>
-							<p>A tag starting with an uppercase letter is treated as a component (<code>&lt;Button /&gt;</code>), not an HTML element. Lowercase tags become DOM elements.</p>
+							<div class="callout-title">Capitalized tags are components</div>
+							<p>A tag starting with an uppercase letter is a component (<code>&lt;Button /&gt;</code>), not an HTML element. Lowercase tags become DOM elements.</p>
 						</div>
 					</div>
 
@@ -430,6 +444,228 @@ blueprint Docs {
 						</div>
 					</div>
 
+					<h2 id="runtime">Runtime API</h2>
+					<p>The runtime is the single object compiled code imports. Functions are grouped by concern.</p>
+					<h3>State</h3>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$update(ref, value)</td><td>Set a state key and trigger dependent effects.</td></tr>
+								<tr><td>$toggle(ref)</td><td>Flip a boolean state key.</td></tr>
+								<tr><td>$reset(state, initial)</td><td>Reset keys back to their initial values.</td></tr>
+								<tr><td>$batch(fn)</td><td>Coalesce updates in the callback into a single synchronous flush.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<h3>Rendering</h3>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$if(cond, build)</td><td>Conditional mount/remove with a comment anchor.</td></tr>
+								<tr><td>$each(list, build)</td><td>List rendering; clears and rebuilds on change.</td></tr>
+								<tr><td>$show(cond, build)</td><td>Toggles display without unmounting.</td></tr>
+								<tr><td>$portal(selector, build)</td><td>Renders into an external DOM target.</td></tr>
+								<tr><td>text(value)</td><td>Text node, reactive when given a function.</td></tr>
+								<tr><td>bind(el, prop, fn)</td><td>Bind a DOM property to a reactive expression.</td></tr>
+								<tr><td>bindClass / bindAttr</td><td>Bind class / attribute reactively.</td></tr>
+								<tr><td>resolveStyles(styles, key)</td><td>Resolve a style token to its class string.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<h3>Navigation &amp; data</h3>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>$navigate(path)</td><td>Client-side navigation.</td></tr>
+								<tr><td>$back() / $forward()</td><td>History traversal.</td></tr>
+								<tr><td>$params</td><td>Live dynamic-route parameters.</td></tr>
+								<tr><td>$fetch(url)</td><td>Chainable request helper.</td></tr>
+								<tr><td>$(selector)</td><td>DOM / component selection.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="router">Router</h2>
+					<p>Routing is file-based and mounted by <code>createRouter</code>. The build emits routes from the pages directory and starts the router.</p>
+					<div class="codeblock" data-code="router" data-lang="js"></div>
+					<ul>
+						<li><strong>Dynamic segments</strong> — <code>pages/blog/[id].tardis</code> becomes <code>/blog/:id</code>; read values from <code>$params</code>.</li>
+						<li><strong>Link interception</strong> — internal <code>&lt;a href&gt;</code> clicks are captured; external, hash, and modifier-key clicks pass through.</li>
+						<li><strong>Hash scroll</strong> — navigating to <code>#section</code> scrolls to the element after render.</li>
+						<li><strong>404</strong> — unmatched paths render a default not-found node.</li>
+					</ul>
+
+					<h2 id="selector">Selector</h2>
+					<p><code>$(selector)</code> returns a jQuery-inspired selection. Lowercase selectors query the DOM; an uppercase name selects mounted component instances.</p>
+					<div class="codeblock" data-code="selector" data-lang="js"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Method</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>show() / hide() / toggle()</td><td>Toggle display.</td></tr>
+								<tr><td>addClass / removeClass / toggleClass</td><td>Class manipulation.</td></tr>
+								<tr><td>attr(key, val?)</td><td>Get or set an attribute.</td></tr>
+								<tr><td>val(value?)</td><td>Get or set an input value.</td></tr>
+								<tr><td>focus() / blur()</td><td>Focus control.</td></tr>
+								<tr><td>remove()</td><td>Detach elements.</td></tr>
+								<tr><td>rect() / width() / height()</td><td>Geometry.</td></tr>
+								<tr><td>scrollIntoView() / scrollTo(opts)</td><td>Scrolling.</td></tr>
+								<tr><td>fadeIn / fadeOut / slideUp / slideDown</td><td>Lightweight effects.</td></tr>
+								<tr><td>$update / $reset / methods</td><td>Component instances only.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="styles">Styles</h2>
+					<p>A <code>style</code> block maps tokens to class strings. Referencing a token in <code>class</code> resolves it; dotted keys add variants driven by props or state.</p>
+					<div class="codeblock" data-code="styles" data-lang="tardis"></div>
+					<ul>
+						<li><strong>style(tailwind)</strong> — tokens are utility classes.</li>
+						<li><strong>style(css)</strong> — tokens are inline style strings.</li>
+						<li><strong>style</strong> (raw) — the block is injected as a stylesheet.</li>
+						<li><strong>variant.primary</strong> — applied when <code>props.variant === "primary"</code>.</li>
+						<li><strong>loading.true</strong> — boolean shorthand for a state key.</li>
+					</ul>
+
+					<h2 id="events">Lifecycle events</h2>
+					<p>The <code>events</code> block registers lifecycle handlers. Mount callbacks run after the node is inserted; destroy callbacks run before it is removed.</p>
+					<div class="codeblock" data-code="events" data-lang="tardis"></div>
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Cleanup</div>
+							<p>Use <code>onDestroy</code> to clear timers, listeners, or subscriptions. The router disposes the outgoing route node and its event handles on navigation.</p>
+						</div>
+					</div>
+
+					<h2 id="registry">Component registry</h2>
+					<p>Every mounted blueprint is registered by name. The registry powers component selection and cross-component queries.</p>
+					<div class="codeblock" data-code="registry" data-lang="js"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>register(name, instance)</td><td>Register an instance, returns an id.</td></tr>
+								<tr><td>unregister(id)</td><td>Remove an instance by id.</td></tr>
+								<tr><td>getAll(name)</td><td>All instances of a blueprint.</td></tr>
+								<tr><td>getById(id)</td><td>Instance by id, or null.</td></tr>
+								<tr><td>getByClass(name, cls)</td><td>Instances whose element has a class.</td></tr>
+								<tr><td>getByPropValue(name, k, v)</td><td>Instances matching a prop value.</td></tr>
+								<tr><td>getByStateValue(name, k, v)</td><td>Instances matching a state value.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="cli">CLI</h2>
+					<p>The bundled CLI scaffolds, develops, builds, and previews projects.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Command</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>tardis init</td><td>Scaffold pages, components, config, and package.json in the current directory.</td></tr>
+								<tr><td>tardis dev</td><td>Dev server with a WebSocket reload channel.</td></tr>
+								<tr><td>tardis build</td><td>Compile pages and components into the output directory.</td></tr>
+								<tr><td>tardis preview</td><td>Serve the built output locally.</td></tr>
+								<tr><td>create-tardis-app name</td><td>Create a new project in a subdirectory.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="config">Configuration</h2>
+					<p><code>tardis.config.js</code> drives page scanning, output, head tags, and static copying.</p>
+					<div class="codeblock" data-code="config" data-lang="js"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Key</th><th>Default</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>pages</td><td>./pages</td><td>Directory scanned for route blueprints.</td></tr>
+								<tr><td>components</td><td>./components</td><td>Directory scanned for reusable components.</td></tr>
+								<tr><td>outDir</td><td>./dist</td><td>Build output directory.</td></tr>
+								<tr><td>port</td><td>3000</td><td>Dev server port (auto-increments if busy).</td></tr>
+								<tr><td>title</td><td>tardis app</td><td>Document title.</td></tr>
+								<tr><td>head</td><td>[]</td><td>Raw tags injected into the document head.</td></tr>
+								<tr><td>staticDir</td><td>./public</td><td>Static assets copied to the output root.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="compiler">Compiler pipeline</h2>
+					<p>Build-time does the structural work; the runtime only binds.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>lex()</h3>
+							<p>Tokenize source into section keywords, literals, operators, and raw UI/script blocks.</p>
+						</div>
+						<div class="step-row">
+							<h3>parse()</h3>
+							<p>Build a typed AST: props, state, computed, methods, events, style, and UI nodes.</p>
+						</div>
+						<div class="step-row">
+							<h3>compile()</h3>
+							<p>Emit JavaScript that creates DOM nodes, registers bindings, and wires events against the runtime.</p>
+						</div>
+						<div class="step-row">
+							<h3>transpile + emit</h3>
+							<p>TypeScript-transpile the output, rewrite runtime imports, and emit route modules plus the runtime bundle.</p>
+						</div>
+					</div>
+					<p>A blueprint compiles to a module that imports the runtime and returns a root element:</p>
+					<div class="codeblock" data-code="compiled" data-lang="js"></div>
+
+					<h2 id="errors">Errors</h2>
+					<p>Compile-time problems throw a <code>TardisError</code> with file, line, and column.</p>
+					<div class="codeblock" data-code="error" data-lang="text"></div>
+					<ul>
+						<li><strong>Unknown section</strong> — a top-level key that is not a valid blueprint section.</li>
+						<li><strong>Bad prop type</strong> — the parser suggests the closest valid type (Levenshtein distance ≤ 2).</li>
+						<li><strong>Missing ui</strong> — every blueprint must declare a <code>ui</code> block.</li>
+						<li><strong>Unknown style mode</strong> — valid modes are <code>tailwind</code> and <code>css</code>.</li>
+					</ul>
+
+					<h2 id="examples">Examples</h2>
+					<p>Working examples live in the repository under <code>examples/</code>.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Example</th><th>Demonstrates</th></tr></thead>
+							<tbody>
+								<tr><td>examples/counter</td><td>State, computed, methods, and styled buttons.</td></tr>
+								<tr><td>examples/todo</td><td>Lists, boolean state, filters, and computed counts.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="benchmarks">Benchmarks</h2>
+					<p>A jsdom benchmark harness compares TardisJS with React and Vue on the same workload: mount a 200-item list, then write one field 500 times. Numbers are generated by <code>bench/run.mjs</code>.</p>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Read with care</div>
+							<p>These are jsdom micro-benchmarks, not real-browser results, and are specific to this workload. See the <a href="/#benchmarks">benchmark charts</a> on the landing page.</p>
+						</div>
+					</div>
+
+					<h2 id="faq">FAQ</h2>
+					<h3>Is TardisJS a React replacement?</h3>
+					<p>No. It is an experimental, blueprint-first model with a smaller ecosystem. React, Vue, and Svelte are more mature choices for most production teams today.</p>
+					<h3>Does it support server-side rendering?</h3>
+					<p>Not yet. The build produces a client SPA. SSR and hydration are not implemented.</p>
+					<h3>How does reactivity differ from Vue?</h3>
+					<p>Both use Proxies, but TardisJS binds at the field level with no scheduler or virtual tree — a write runs the bound effects directly.</p>
+					<h3>Can I use Tailwind?</h3>
+					<p>Yes. Add the Tailwind CDN tag to <code>head</code> and use <code>style(tailwind)</code> tokens, or use <code>style(css)</code> / raw stylesheets.</p>
+
+					<h2 id="contributing">Contributing</h2>
+					<ol>
+						<li>Create a branch scoped to one concern.</li>
+						<li>Add or update tests next to the affected subsystem.</li>
+						<li>Run <code>npm run typecheck</code> and <code>npm test</code> before review.</li>
+						<li>Provide a minimal reproduction for parser or compiler defects.</li>
+					</ol>
+					<p>The project is MIT licensed. Source: <a href="https://github.com/devansharora18/tardisjs" target="_blank" rel="noreferrer">github.com/devansharora18/tardisjs</a>.</p>
+
 					<div class="docs-pager">
 						<a class="prev" href="/"><span class="dir">← Home</span><span class="label">Landing page</span></a>
 						<a class="next" href="#quickstart"><span class="dir">Next →</span><span class="label">Quick start</span></a>
@@ -444,6 +680,20 @@ blueprint Docs {
 					<a href="#blueprints">Blueprint syntax</a>
 					<a href="#templating">UI &amp; templating</a>
 					<a href="#reactivity">Reactivity</a>
+					<a href="#runtime">Runtime API</a>
+					<a href="#router">Router</a>
+					<a href="#selector">Selector</a>
+					<a href="#styles">Styles</a>
+					<a href="#events">Lifecycle events</a>
+					<a href="#registry">Component registry</a>
+					<a href="#cli">CLI</a>
+					<a href="#config">Configuration</a>
+					<a href="#compiler">Compiler pipeline</a>
+					<a href="#errors">Errors</a>
+					<a href="#examples">Examples</a>
+					<a href="#benchmarks">Benchmarks</a>
+					<a href="#faq">FAQ</a>
+					<a href="#contributing">Contributing</a>
 				</aside>
 			</div>
 			<Footer />
@@ -456,13 +706,23 @@ blueprint Docs {
 		function hiTardis(code) {
 			let h = esc(code)
 			h = h.replace(/(\/\/[^\n]*)/g, '<span class="syn-cmt">$1</span>')
-			h = h.replace(/"([^"]*)"/g, '<span class="syn-str">"$1"</span>')
-			h = h.replace(/\b(blueprint|props|state|computed|methods|events|style|script|ui|tailwind)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/"([^"\n]*)"/g, '<span class="syn-str">"$1"</span>')
+			h = h.replace(/\b(blueprint|props|state|computed|methods|events|style|script|ui|tailwind|css)\b/g, '<span class="syn-kw">$1</span>')
 			h = h.replace(/\b(number|string|boolean|array|object|function)\b/g, '<span class="syn-kw">$1</span>')
-			h = h.replace(/(\$update|\$toggle|\$reset|\$batch|\$if|\$each|\$show|\$navigate|\$params|\$fetch|\$portal)\b/g, '<span class="syn-fn">$1</span>')
+			h = h.replace(/(\$update|\$toggle|\$reset|\$batch|\$if|\$each|\$show|\$navigate|\$params|\$fetch|\$portal|\$back|\$forward)\b/g, '<span class="syn-fn">$1</span>')
 			h = h.replace(/\b(\d+)\b/g, '<span class="syn-num">$1</span>')
 			h = h.replace(/(&lt;\/?)([A-Za-z][\w-]*)/g, '$1<span class="syn-tag">$2</span>')
 			h = h.replace(/(@[\w]+)/g, '<span class="syn-attr">$1</span>')
+			return h
+		}
+		function hiJs(code) {
+			let h = esc(code)
+			h = h.replace(/(\/\/[^\n]*)/g, '<span class="syn-cmt">$1</span>')
+			h = h.replace(/"([^"\n]*)"/g, '<span class="syn-str">"$1"</span>')
+			h = h.replace(/'([^'\n]*)'/g, '<span class="syn-str">\'$1\'</span>')
+			h = h.replace(/\b(import|from|export|function|return|const|let|new|document|window)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/(\$runtime|\$el|\$navigate|\$update|\$fetch)\b/g, '<span class="syn-fn">$1</span>')
+			h = h.replace(/\b(\d+)\b/g, '<span class="syn-num">$1</span>')
 			return h
 		}
 		function hiBash(code) {
@@ -479,10 +739,18 @@ blueprint Docs {
 			blueprint: 'blueprint Counter {\n  props { step: number = 1 }\n  state { count: number = 0 }\n  computed { doubled: state.count * 2 }\n  methods {\n    increment: () => $update(state.count, state.count + 1)\n  }\n  events { onMount: () => console.log("mounted") }\n  style(tailwind) { value: "text-6xl font-bold" }\n  ui {\n    <button class={"value"} @click={methods.increment}>\n      {state.count}\n    </button>\n  }\n}',
 			templating: '<main>\n  <p>{state.count}</p>\n  <input value={state.name} @input={methods.setName} />\n  <button class={"btn"} @click={methods.increment}>+1</button>\n  <Button label={props.title} />\n</main>',
 			controlflow: '$if(state.loggedIn) {\n  <p>Welcome back</p>\n}\n\n$show(state.open) {\n  <div class="panel">...</div>\n}\n\n$each(state.items, (item) => {\n  <li>{item.label}</li>\n})',
-			reactivity: 'state {\n  count: number = 0\n}\nmethods {\n  increment: () => $update(state.count, state.count + 1)\n}\nui {\n  <p>{state.count}</p>\n}'
+			reactivity: 'state {\n  count: number = 0\n}\nmethods {\n  increment: () => $update(state.count, state.count + 1)\n}\nui {\n  <p>{state.count}</p>\n}',
+			router: "import { createRouter } from 'tardisjs/runtime'\nimport { Home } from '/pages/index.js'\nimport { Post } from '/pages/blog/[id].js'\n\nconst router = createRouter([\n  { path: '/', component: Home },\n  { path: '/blog/:id', component: Post },\n])\n\nrouter.start()\n// inside a component:\n$navigate('/blog/42')",
+			selector: "$('.panel').hide().addClass('muted')\n$('input#email').val('me@example.com')\n\n// component selection (uppercase = component)\n$('Modal#confirm').$update('open', false)\n$('Counter').methods.increment()",
+			styles: 'blueprint Button {\n  props { variant: "primary" | "secondary" = "primary" }\n  style(tailwind) {\n    base: "rounded-lg px-4 py-2"\n    "variant.primary": "bg-white text-black"\n    "variant.secondary": "border border-white/20"\n  }\n  ui {\n    <button class={props.variant}>{props.label}</button>\n  }\n}',
+			events: 'blueprint Ticker {\n  state { n: number = 0 }\n  events {\n    onMount: () => console.log("mounted")\n    onUpdate: () => console.log("updated")\n    onDestroy: () => console.log("cleanup")\n  }\n  ui { <p>{state.n}</p> }\n}',
+			registry: "import { getAll, getById, getByPropValue } from 'tardisjs/runtime'\n\ngetAll('Counter')                 // every Counter instance\ngetById('Counter_ab12cd')         // one instance by id\ngetByPropValue('Tab', 'active', true)",
+			config: "export default {\n  pages: './pages',\n  components: './components',\n  outDir: './dist',\n  port: 3000,\n  title: 'my app',\n  head: ['<script src=\"https://cdn.tailwindcss.com\"></script>'],\n  staticDir: './public',\n}",
+			compiled: "import { $runtime } from 'tardisjs/runtime'\n\nexport function Counter(props = {}) {\n  const _state = $runtime.state({ count: 0 })\n  const _methods = {\n    increment: () => $runtime.update(_state, 'count', _state.count + 1),\n  }\n  const _root = (() => {\n    const el = document.createElement('p')\n    const text = document.createTextNode('')\n    $runtime.bind(text, 'textContent', () => String(_state.count))\n    el.appendChild(text)\n    return el\n  })()\n  return _root\n}",
+			error: 'TardisError: Counter.tardis line 3 col 12\n  Unknown prop type "nubmer" — did you mean "number"?'
 		}
 
-		const LANG = { bash: hiBash, text: hiText, tardis: hiTardis }
+		const LANG = { bash: hiBash, text: hiText, tardis: hiTardis, js: hiJs }
 		document.querySelectorAll('.codeblock').forEach(block => {
 			const key = block.getAttribute('data-code')
 			const lang = block.getAttribute('data-lang') || 'text'
@@ -510,14 +778,12 @@ blueprint Docs {
 		const copyLlm = document.getElementById('copy-llm')
 		if (copyLlm) {
 			copyLlm.addEventListener('click', () => {
-				const url = location.origin + location.pathname
-				if (navigator.clipboard) navigator.clipboard.writeText(url)
+				if (navigator.clipboard) navigator.clipboard.writeText(location.origin + location.pathname)
 				copyLlm.textContent = 'Copied'
 				setTimeout(() => { copyLlm.textContent = 'Copy for LLM' }, 1500)
 			})
 		}
 
-		// active-section highlighting for sidebar + toc
 		const anchors = Array.prototype.slice.call(document.querySelectorAll('.docs-content h2[id]'))
 		const navLinks = Array.prototype.slice.call(document.querySelectorAll('.docs-sidebar a, .docs-toc a'))
 		function syncActive() {
