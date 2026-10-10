@@ -1,0 +1,71 @@
+blueprint DocsConfig {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Configuration" crumb="Tooling" />
+
+					<p>A project is configured by a single <code>tardis.config.js</code> at the root. It is loaded by the CLI and drives page scanning, output location, head tags, and static asset copying.</p>
+
+					<h2 id="file">The config file</h2>
+					<div class="codeblock" data-code="full" data-lang="js"></div>
+
+					<h2 id="keys">Keys</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Key</th><th>Default</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>pages</td><td>./pages</td><td>Directory scanned for route blueprints.</td></tr>
+								<tr><td>components</td><td>./components</td><td>Directory scanned for reusable components.</td></tr>
+								<tr><td>outDir</td><td>./dist</td><td>Build output directory.</td></tr>
+								<tr><td>port</td><td>3000</td><td>Dev server port; auto-increments when busy.</td></tr>
+								<tr><td>title</td><td>tardis app</td><td>Document title written into index.html.</td></tr>
+								<tr><td>head</td><td>[]</td><td>Raw tags injected into the document head.</td></tr>
+								<tr><td>staticDir</td><td>./public</td><td>Directory copied to the output root.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="head">head</h2>
+					<p>Each entry is a raw string written into <code>&lt;head&gt;</code>. This is where fonts, stylesheets, CDN scripts, and analytics go.</p>
+					<div class="codeblock" data-code="head" data-lang="js"></div>
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Load order</div>
+							<p>Head tags are emitted in array order. Put blocking stylesheets before scripts that depend on them.</p>
+						</div>
+					</div>
+
+					<h2 id="static">staticDir</h2>
+					<p>Everything in <code>staticDir</code> is copied to the output root unchanged. Reference assets by absolute path:</p>
+					<div class="codeblock" data-code="static" data-lang="js"></div>
+
+					<h2 id="minimal">Minimal config</h2>
+					<p>Only the directories are required; everything else has a default.</p>
+					<div class="codeblock" data-code="minimal" data-lang="js"></div>
+
+					<h2 id="loading">How it is loaded</h2>
+					<p>The CLI imports the config as an ES module and merges it with defaults. Missing keys fall back to the values in the table above; an invalid file or a missing default export produces a clear CLI error.</p>
+
+					<DocsPager prev="/docs/cli" prevLabel="CLI" next="/docs/compiler" nextLabel="Compiler pipeline" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			full: "export default {\n  pages: './pages',\n  components: './components',\n  outDir: './dist',\n  port: 3000,\n  title: 'my app',\n  head: ['<script src=\"https://cdn.tailwindcss.com\"></script>'],\n  staticDir: './public',\n}",
+			head: "head: [\n  '<link rel=\"stylesheet\" href=\"/styles.css\">',\n  '<script src=\"https://cdn.tailwindcss.com\"></script>',\n]",
+			static: "staticDir: './public'\n// public/logo.svg  ->  /logo.svg",
+			minimal: "export default {\n  pages: './pages',\n  components: './components',\n}"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

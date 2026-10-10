@@ -1,0 +1,81 @@
+blueprint DocsRegistry {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Component registry" crumb="Reference" />
+
+					<p>Every mounted blueprint is registered by name with an id, its root element, its state, methods, and props. The registry powers component selection and lets one part of the app query another without passing references around.</p>
+
+					<h2 id="instance">Instance shape</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>name</td><td>string</td><td>Blueprint name.</td></tr>
+								<tr><td>id</td><td>string</td><td>Unique id, prefixed with the name.</td></tr>
+								<tr><td>el</td><td>HTMLElement | null</td><td>Root element, populated after mount.</td></tr>
+								<tr><td>state</td><td>object</td><td>The reactive state object.</td></tr>
+								<tr><td>methods</td><td>object</td><td>The component's methods.</td></tr>
+								<tr><td>props</td><td>object</td><td>The resolved props.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="api">API</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>register(name, instance)</td><td>Register an instance and return its id.</td></tr>
+								<tr><td>unregister(id)</td><td>Remove an instance by id.</td></tr>
+								<tr><td>getAll(name)</td><td>All instances of a blueprint.</td></tr>
+								<tr><td>getById(id)</td><td>Instance by id, or null.</td></tr>
+								<tr><td>getByClass(name, cls)</td><td>Instances whose root element has a class.</td></tr>
+								<tr><td>getByPropValue(name, key, value)</td><td>Instances whose prop equals a value.</td></tr>
+								<tr><td>getByStateValue(name, key, value)</td><td>Instances whose state key equals a value.</td></tr>
+								<tr><td>clearRegistry()</td><td>Remove all instances (useful in tests).</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="usage">Usage</h2>
+					<div class="codeblock" data-code="usage" data-lang="js"></div>
+
+					<h2 id="selector">Through the selector</h2>
+					<p>Most queries are simpler through <code>$()</code>, which reads the same registry:</p>
+					<div class="codeblock" data-code="viaSelector" data-lang="js"></div>
+
+					<h2 id="patterns">Common patterns</h2>
+					<ul>
+						<li><strong>Broadcast</strong> — update every instance of a component at once, e.g. close all open dialogs.</li>
+						<li><strong>Inspect</strong> — read a component's state for debugging or analytics.</li>
+						<li><strong>Drive</strong> — call a method on instances matched by a prop or state value.</li>
+					</ul>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Registry ids are runtime-generated</div>
+							<p>Ids are created when a component registers and are not stable across reloads. Persist your own identifiers on state or props if you need durable keys.</p>
+						</div>
+					</div>
+
+					<DocsPager prev="/docs/events" prevLabel="Lifecycle events" next="/docs/cli" nextLabel="CLI" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			usage: "import {\n  getAll, getById, getByClass,\n  getByPropValue, getByStateValue\n} from 'tardisjs/runtime'\n\ngetAll('Counter')                       // all counters\ngetById('Counter_ab12cd')               // one instance\ngetByPropValue('Tab', 'active', true)   // active tabs\ngetByStateValue('Dialog', 'status', 'open')",
+			viaSelector: "$('Counter').methods.reset()\n$('Dialog[state.status=\"open\"]').$update('status', 'closed')\n$('Tab[active=true]').addClass('current')"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

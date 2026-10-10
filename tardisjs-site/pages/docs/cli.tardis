@@ -1,0 +1,83 @@
+blueprint DocsCli {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="CLI" crumb="Tooling" />
+
+					<p>The framework ships a CLI that scaffolds, develops, builds, and previews a project. Two binaries are installed: <code>tardis</code> and <code>create-tardis-app</code>.</p>
+
+					<h2 id="commands">Commands</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Command</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>tardis init</td><td>Scaffold pages, components, config, package.json, and .gitignore in the current directory.</td></tr>
+								<tr><td>tardis dev</td><td>Start the dev server with a WebSocket reload channel.</td></tr>
+								<tr><td>tardis build</td><td>Compile pages and components into the output directory.</td></tr>
+								<tr><td>tardis preview</td><td>Serve the built output locally.</td></tr>
+								<tr><td>create-tardis-app name</td><td>Create a new project in a subdirectory and rename the package.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="init">tardis init</h2>
+					<p>Creates the directory structure and starter files. It refuses to overwrite existing files, so it is safe to run in a populated directory.</p>
+					<div class="codeblock" data-code="init" data-lang="bash"></div>
+					<p>Starter files:</p>
+					<ul>
+						<li><code>pages/index.tardis</code> — a styled counter page.</li>
+						<li><code>components/Button.tardis</code> — a component with props and style variants.</li>
+						<li><code>tardis.config.js</code>, <code>package.json</code>, <code>.gitignore</code>.</li>
+					</ul>
+
+					<h2 id="dev">tardis dev</h2>
+					<p>Starts a dev server, compiles pages and components in memory, watches for changes, and reloads the browser over a WebSocket. If the configured port is busy it probes upward and prints the port it uses.</p>
+					<div class="codeblock" data-code="dev" data-lang="bash"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Reload, not state-preserving HMR</div>
+							<p>A save triggers a full page reload. State is not preserved across edits.</p>
+						</div>
+					</div>
+
+					<h2 id="build">tardis build</h2>
+					<p>Compiles every page and component, transpiles the output, rewrites runtime imports, writes the runtime bundle, copies static assets, and generates <code>index.html</code>. It reports the number of files, time, and output size.</p>
+					<div class="codeblock" data-code="build" data-lang="bash"></div>
+
+					<h2 id="preview">tardis preview</h2>
+					<p>Serves the built output with a single-page fallback so client-side routes resolve. Fails if there is no build output yet.</p>
+					<div class="codeblock" data-code="preview" data-lang="bash"></div>
+
+					<h2 id="create">create-tardis-app</h2>
+					<p>Creates a new project in a subdirectory named after the argument, then prints the next steps.</p>
+					<div class="codeblock" data-code="create" data-lang="bash"></div>
+
+					<h2 id="scripts">npm scripts</h2>
+					<p>Scaffolded projects wire the CLI into package scripts:</p>
+					<div class="codeblock" data-code="scripts" data-lang="js"></div>
+
+					<DocsPager prev="/docs/registry" prevLabel="Component registry" next="/docs/config" nextLabel="Configuration" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			init: 'npx tardis init\n\n# ✨ Tardis project initialized',
+			dev: 'npx tardis dev\n\n# 🚀 Dev server running at http://localhost:3000',
+			build: 'npx tardis build\n\n# ✅ Build complete\n# - files compiled: 14\n# - time: 1130ms\n# - output size: 224.84 KB',
+			preview: 'npx tardis preview\n\n# 🔎 Preview server at http://localhost:4000',
+			create: 'npx create-tardis-app my-app\ncd my-app\nnpm install\nnpm run dev',
+			scripts: '{\n  "scripts": {\n    "dev": "tardis dev",\n    "build": "tardis build",\n    "preview": "tardis preview"\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
