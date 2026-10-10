@@ -1,0 +1,83 @@
+blueprint DocsStructure {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Project structure" crumb="Getting started" />
+
+					<p>A TardisJS project is small: pages, components, optional static assets, and a config file. There is no required build tooling beyond the bundled CLI.</p>
+
+					<h2 id="layout">Directory layout</h2>
+					<div class="codeblock" data-code="layout" data-lang="text"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+							<tbody>
+								<tr><td>pages/</td><td>Route blueprints. One file per route.</td></tr>
+								<tr><td>components/</td><td>Reusable blueprints, registered globally.</td></tr>
+								<tr><td>public/</td><td>Static assets copied to the output root.</td></tr>
+								<tr><td>tardis.config.js</td><td>Project configuration.</td></tr>
+								<tr><td>dist/</td><td>Build output (generated).</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="routing">Pages and routes</h2>
+					<p>Route paths are derived from file paths under <code>pages/</code>. The file name becomes the path; <code>index</code> collapses to the parent path.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>File</th><th>Route</th></tr></thead>
+							<tbody>
+								<tr><td>pages/index.tardis</td><td>/</td></tr>
+								<tr><td>pages/about.tardis</td><td>/about</td></tr>
+								<tr><td>pages/blog/index.tardis</td><td>/blog</td></tr>
+								<tr><td>pages/blog/[id].tardis</td><td>/blog/:id</td></tr>
+								<tr><td>pages/docs/quickstart.tardis</td><td>/docs/quickstart</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>A segment wrapped in brackets becomes a dynamic parameter. Read the value from <code>$params</code>:</p>
+					<div class="codeblock" data-code="params" data-lang="tardis"></div>
+
+					<h2 id="components">Components</h2>
+					<p>Anything under <code>components/</code> is compiled and registered globally. Reference it by tag from any page or component — no import statements are needed in blueprint source.</p>
+					<div class="codeblock" data-code="component" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Nested component directories</div>
+							<p>Components may be nested in subdirectories; the directory path does not affect how they are referenced. Only the blueprint name matters.</p>
+						</div>
+					</div>
+
+					<h2 id="static">Static assets</h2>
+					<p>Files in <code>public/</code> are copied to the output root unchanged. Reference them with an absolute path:</p>
+					<div class="codeblock" data-code="static" data-lang="tardis"></div>
+
+					<h2 id="output">Build output</h2>
+					<p><code>tardis build</code> writes compiled modules, the runtime, a bootstrap <code>index.html</code>, and any copied static files:</p>
+					<div class="codeblock" data-code="out" data-lang="text"></div>
+					<p>The generated <code>index.html</code> imports the runtime, registers every component, builds the route table, and starts the router.</p>
+
+					<DocsPager prev="/docs/quickstart" prevLabel="Quick start" next="/docs/blueprints" nextLabel="Blueprint syntax" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			layout: 'my-app/\n  pages/\n    index.tardis\n    about.tardis\n    blog/\n      index.tardis\n      [id].tardis\n  components/\n    Button.tardis\n  public/\n    logo.svg\n  tardis.config.js\n  package.json',
+			params: 'blueprint Post {\n  ui {\n    <article>\n      <h1>Post {$params.id}</h1>\n    </article>\n  }\n}',
+			component: 'blueprint Card {\n  props { title: string = "" }\n  ui {\n    <section class="card">\n      <h2>{props.title}</h2>\n    </section>\n  }\n}',
+			static: '<img src="/logo.svg" alt="Logo" />',
+			out: 'dist/\n  index.html\n  tardis-runtime.js\n  runtime/\n  pages/\n    index.js\n    blog/\n      [id].js\n  components/\n    Button.js\n  logo.svg'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

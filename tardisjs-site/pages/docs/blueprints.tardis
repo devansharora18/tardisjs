@@ -1,0 +1,112 @@
+blueprint DocsBlueprints {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Blueprint syntax" crumb="Core concepts" />
+
+					<p>A <strong>blueprint</strong> is a named unit with optional sections. Only <code>ui</code> is required, so a component can be as small as a template and as complete as typed inputs, state, derived values, methods, lifecycle hooks, and styles.</p>
+
+					<div class="codeblock" data-code="full" data-lang="tardis"></div>
+
+					<h2 id="order">Section order</h2>
+					<p>Sections may appear in any order. The compiler emits them in a fixed sequence — props, state, computed, methods, events, styles, registration, UI — so the generated module is deterministic regardless of source order.</p>
+
+					<h2 id="props">props</h2>
+					<p>Typed inputs with optional defaults. A prop without a default is required. Props are read-only from the component's perspective.</p>
+					<div class="codeblock" data-code="props" data-lang="tardis"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Meaning</th></tr></thead>
+							<tbody>
+								<tr><td>string</td><td>Text value.</td></tr>
+								<tr><td>number</td><td>Numeric value.</td></tr>
+								<tr><td>boolean</td><td>True / false.</td></tr>
+								<tr><td>array</td><td>List of values.</td></tr>
+								<tr><td>object</td><td>Key / value map.</td></tr>
+								<tr><td>function</td><td>Callback, commonly an event handler.</td></tr>
+								<tr><td>"a" | "b"</td><td>A union of literal values.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>A <code>function</code> prop is treated as optional and is never required.</p>
+
+					<h2 id="state">state</h2>
+					<p>Reactive local state. Each field is declared with a type and a default and is wrapped in a Proxy at runtime.</p>
+					<div class="codeblock" data-code="state" data-lang="tardis"></div>
+					<p>Reading a field inside a binding subscribes that effect to the field; writing it re-runs only the subscribed effects.</p>
+
+					<h2 id="computed">computed</h2>
+					<p>Derived values expressed as expressions. A computed value re-evaluates when the state or props it reads change. Use it instead of keeping a second field in sync.</p>
+					<div class="codeblock" data-code="computed" data-lang="tardis"></div>
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Derive, don't sync</div>
+							<p>If a value can be computed from state, prefer <code>computed</code> over an extra <code>state</code> field that you update manually.</p>
+						</div>
+					</div>
+
+					<h2 id="methods">methods</h2>
+					<p>Event handlers and logic, written as arrow functions. Parameters are supported, and bodies may span multiple lines.</p>
+					<div class="codeblock" data-code="methods" data-lang="tardis"></div>
+
+					<h2 id="events">events</h2>
+					<p>Lifecycle hooks: <code>onMount</code>, <code>onUpdate</code>, and <code>onDestroy</code>. Mount runs after the node is inserted; destroy runs before removal.</p>
+					<div class="codeblock" data-code="events" data-lang="tardis"></div>
+
+					<h2 id="style">style</h2>
+					<p>Named class tokens. The mode decides what the values mean.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Form</th><th>Meaning</th></tr></thead>
+							<tbody>
+								<tr><td>style(tailwind)</td><td>Values are utility classes.</td></tr>
+								<tr><td>style(css)</td><td>Values are inline style strings.</td></tr>
+								<tr><td>style</td><td>Raw stylesheet injected into the document.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="style" data-lang="tardis"></div>
+
+					<h2 id="ui">ui</h2>
+					<p>An HTML-like template with reactive bindings. Text interpolates with braces, attributes accept expressions, and events bind with <code>@</code>. See <a href="/docs/templating">UI &amp; templating</a> for control flow and component usage.</p>
+					<div class="codeblock" data-code="ui" data-lang="tardis"></div>
+
+					<h2 id="script">script</h2>
+					<p>An escape hatch for direct DOM access. Inside <code>script</code>, <code>$el</code> is the component root and <code>props</code>, <code>state</code>, <code>methods</code>, and <code>computed</code> are in scope.</p>
+					<div class="codeblock" data-code="script" data-lang="tardis"></div>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Prefer bindings over script</div>
+							<p>Use <code>script</code> only when a binding cannot express what you need. Direct DOM writes bypass reactivity and are your responsibility to keep in sync.</p>
+						</div>
+					</div>
+
+					<DocsPager prev="/docs/structure" prevLabel="Project structure" next="/docs/templating" nextLabel="UI &amp; templating" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			full: 'blueprint Counter {\n  props {\n    step: number = 1\n    label: string = "Count"\n  }\n  state {\n    count: number = 0\n  }\n  computed {\n    doubled: state.count * 2\n  }\n  methods {\n    increment: () => $update(state.count, state.count + props.step)\n    reset: () => $reset(state, { count: 0 })\n  }\n  events {\n    onMount: () => console.log("mounted")\n    onDestroy: () => console.log("cleanup")\n  }\n  style(tailwind) {\n    value: "text-6xl font-bold"\n    btn: "rounded-lg bg-white px-4 py-2 text-black"\n  }\n  ui {\n    <main>\n      <p class={"value"}>{state.count}</p>\n      <p>Doubled: {computed.doubled}</p>\n      <button class={"btn"} @click={methods.increment}>{props.label}</button>\n      <button class={"btn"} @click={methods.reset}>Reset</button>\n    </main>\n  }\n}',
+			props: 'props {\n  label: string = "Click"\n  size: "sm" | "md" | "lg" = "md"\n  count: number = 0\n  disabled: boolean = false\n  items: array = []\n  onClick: function\n}',
+			state: 'state {\n  count: number = 0\n  name: string = ""\n  open: boolean = false\n  items: array = []\n}',
+			computed: 'computed {\n  doubled: state.count * 2\n  remaining: state.items.filter(i => !i.done).length\n  label: state.count === 0 ? "empty" : "has items"\n}',
+			methods: 'methods {\n  increment: () => $update(state.count, state.count + 1)\n  add: (value) => {\n    $update(state.items, [...state.items, value])\n    $update(state.name, "")\n  }\n}',
+			events: 'events {\n  onMount: () => console.log("mounted")\n  onUpdate: () => console.log("state changed")\n  onDestroy: () => console.log("removed")\n}',
+			style: 'style(tailwind) {\n  base: "rounded-lg px-4 py-2 font-medium"\n  "variant.primary": "bg-white text-black"\n  "variant.secondary": "border border-white/20"\n  "loading.true": "opacity-50 cursor-wait"\n}',
+			ui: 'ui {\n  <main>\n    <p>{state.count}</p>\n    <button @click={methods.increment}>+1</button>\n  </main>\n}',
+			script: 'script {\n  // $el is the component root\n  const btn = $el.querySelector(".btn")\n  btn.setAttribute("data-ready", "true")\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

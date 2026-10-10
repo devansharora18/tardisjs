@@ -1,0 +1,104 @@
+blueprint DocsTemplating {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="UI &amp; templating" crumb="Core concepts" />
+
+					<p>The <code>ui</code> block is an HTML-like template. It supports text interpolation, reactive attributes, event binding, conditional and list rendering, and component composition. It is compiled to direct DOM operations, not interpreted at runtime.</p>
+
+					<h2 id="text">Text interpolation</h2>
+					<p>Wrap an expression in braces to render its value into a text node. The node is reactive: it re-renders when the state it reads changes.</p>
+					<div class="codeblock" data-code="text" data-lang="tardis"></div>
+					<p>Expressions can combine state, props, and computed values:</p>
+					<div class="codeblock" data-code="expr" data-lang="tardis"></div>
+
+					<h2 id="attributes">Attributes</h2>
+					<p>A quoted attribute is static; an attribute with braces is a reactive binding. Bindings update the DOM attribute when their dependencies change.</p>
+					<div class="codeblock" data-code="attrs" data-lang="tardis"></div>
+					<ul>
+						<li><strong>Static</strong> — <code>type="text"</code> is written once.</li>
+						<li><strong>Reactive</strong> — <code>value=&#123;state.name&#125;</code> re-applies on change.</li>
+						<li><strong>Boolean</strong> — a bound value of <code>false</code>, <code>null</code>, or <code>undefined</code> removes the attribute.</li>
+					</ul>
+
+					<h2 id="classes">Classes</h2>
+					<p>With a <code>style</code> block, a <code>class</code> binding resolves a token to its class string. Without one, the expression is used as the class string directly.</p>
+					<div class="codeblock" data-code="classes" data-lang="tardis"></div>
+
+					<h2 id="events">Events</h2>
+					<p>Prefix an attribute with <code>@</code> to attach a listener. The value is a handler from <code>methods</code>.</p>
+					<div class="codeblock" data-code="events" data-lang="tardis"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Binding</th><th>DOM event</th></tr></thead>
+							<tbody>
+								<tr><td>@click</td><td>click</td></tr>
+								<tr><td>@input</td><td>input</td></tr>
+								<tr><td>@change</td><td>change</td></tr>
+								<tr><td>@submit</td><td>submit</td></tr>
+								<tr><td>@keydown / @keyup</td><td>keyboard events</td></tr>
+								<tr><td>@focus / @blur</td><td>focus events</td></tr>
+								<tr><td>@hover</td><td>mouseenter</td></tr>
+								<tr><td>@scroll</td><td>scroll</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="control-flow">Control flow</h2>
+					<p>Conditionals and lists are written as helpers inside the template.</p>
+					<div class="codeblock" data-code="flow" data-lang="tardis"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Helper</th><th>Behavior</th></tr></thead>
+							<tbody>
+								<tr><td>$if(cond)</td><td>Mounts the block when true and removes it when false, using a comment anchor.</td></tr>
+								<tr><td>$show(cond)</td><td>Keeps the block mounted and toggles its display.</td></tr>
+								<tr><td>$each(list, fn)</td><td>Renders one node per item; re-renders when the list changes.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">$if vs $show</div>
+							<p>Use <code>$if</code> when the block should not exist in the DOM while hidden, and <code>$show</code> when it should stay mounted but be visually hidden.</p>
+						</div>
+					</div>
+
+					<h2 id="components">Components</h2>
+					<p>A tag that starts with an uppercase letter is a component. Lowercase tags are DOM elements. Props are passed as attributes, and a braced value is passed reactively.</p>
+					<div class="codeblock" data-code="comp" data-lang="tardis"></div>
+
+					<h2 id="whitespace">Whitespace</h2>
+					<p>Whitespace between inline elements is preserved as a single space, so text and inline tags read naturally. Inside <code>&lt;pre&gt;</code> and <code>&lt;textarea&gt;</code>, whitespace is preserved exactly.</p>
+
+					<h2 id="portal">Portals</h2>
+					<p>Render a subtree into an external DOM target with <code>$portal</code>:</p>
+					<div class="codeblock" data-code="portal" data-lang="tardis"></div>
+
+					<DocsPager prev="/docs/blueprints" prevLabel="Blueprint syntax" next="/docs/reactivity" nextLabel="Reactivity" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			text: '<p>{state.count}</p>\n<h1>{props.title}</h1>\n<span>{computed.remaining} left</span>',
+			expr: '<p>{state.first + " " + state.last}</p>\n<p>{state.items.length} items</p>',
+			attrs: '<input type="text" value={state.name} placeholder="Name" />\n<img src={state.avatar} alt="Avatar" />\n<button disabled={state.saving}>Save</button>',
+			classes: '<button class={"btn"} @click={methods.increment}>+1</button>\n<div class={state.active ? "panel active" : "panel"}></div>',
+			events: '<input value={state.name} @input={methods.setName} />\n<form @submit={methods.save}>...</form>\n<div @hover={methods.onHover}></div>',
+			flow: '$if(state.loggedIn) {\n  <p>Welcome back</p>\n}\n\n$show(state.panelOpen) {\n  <aside class="panel">...</aside>\n}\n\n$each(state.items, (item) => {\n  <li>{item.label}</li>\n})',
+			comp: '<Button label="Save" />\n<Card title={props.title} />\n<UserAvatar user={state.currentUser} />',
+			portal: '$portal("#modal-root") {\n  <div class="modal">...</div>\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
