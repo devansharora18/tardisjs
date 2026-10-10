@@ -1,0 +1,28 @@
+blueprint DocsHead {
+	props {
+		title: string = ""
+		crumb: string = ""
+	}
+	ui {
+		<div>
+			<nav class="docs-crumb"><a href="/docs">Docs</a> / {props.crumb}</nav>
+			<div class="docs-head">
+				<h1>{props.title}</h1>
+				<div class="docs-actions">
+					<button class="docs-action" id="copy-llm">Copy for LLM</button>
+					<a class="docs-action" href="https://github.com/devansharora18/tardisjs" target="_blank" rel="noreferrer">Open</a>
+				</div>
+			</div>
+		</div>
+	}
+	script {
+		const btn = $el.querySelector('#copy-llm')
+		if (btn) {
+			btn.addEventListener('click', () => {
+				if (navigator.clipboard) navigator.clipboard.writeText(location.origin + location.pathname)
+				btn.textContent = 'Copied'
+				setTimeout(() => { btn.textContent = 'Copy for LLM' }, 1500)
+			})
+		}
+	}
+}

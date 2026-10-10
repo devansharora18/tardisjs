@@ -1,0 +1,29 @@
+blueprint DocsToc {
+	ui {
+		<aside class="docs-toc" aria-label="On this page">
+			<h3>On this page</h3>
+			<div id="toc-items"></div>
+		</aside>
+	}
+	script {
+		const container = $el.querySelector('#toc-items')
+		const heads = Array.prototype.slice.call(document.querySelectorAll('.docs-content h2[id]'))
+		heads.forEach(h => {
+			const a = document.createElement('a')
+			a.setAttribute('href', '#' + h.id)
+			a.textContent = h.textContent
+			container.appendChild(a)
+		})
+		const links = Array.prototype.slice.call(container.querySelectorAll('a'))
+		function syncActive() {
+			let current = heads.length ? heads[0].id : null
+			const y = window.scrollY + 120
+			heads.forEach(h => { if (h.offsetTop <= y) current = h.id })
+			links.forEach(l => {
+				l.classList.toggle('active', (l.getAttribute('href') || '').slice(1) === current)
+			})
+		}
+		window.addEventListener('scroll', syncActive, { passive: true })
+		syncActive()
+	}
+}

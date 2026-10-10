@@ -1,0 +1,14 @@
+blueprint DocsPager {
+	props {
+		prev: string = ""
+		prevLabel: string = ""
+		next: string = ""
+		nextLabel: string = ""
+	}
+	ui {
+		<div class="docs-pager">
+			<a class="prev" href={props.prev}><span class="dir">← Prev</span><span class="label">{props.prevLabel}</span></a>
+			<a class="next" href={props.next}><span class="dir">Next →</span><span class="label">{props.nextLabel}</span></a>
+		</div>
+	}
+}

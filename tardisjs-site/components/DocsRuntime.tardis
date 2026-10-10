@@ -1,0 +1,67 @@
+blueprint DocsRuntime {
+	ui {
+		<span hidden></span>
+	}
+	script {
+		function esc(s) {
+			return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+		}
+		function hiTardis(code) {
+			let h = esc(code)
+			h = h.replace(/(\/\/[^\n]*)/g, '<span class="syn-cmt">$1</span>')
+			h = h.replace(/"([^"\n]*)"/g, '<span class="syn-str">"$1"</span>')
+			h = h.replace(/\b(blueprint|props|state|computed|methods|events|style|script|ui|tailwind|css)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/\b(number|string|boolean|array|object|function)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/(\$update|\$toggle|\$reset|\$batch|\$if|\$each|\$show|\$navigate|\$params|\$fetch|\$portal|\$back|\$forward)\b/g, '<span class="syn-fn">$1</span>')
+			h = h.replace(/\b(\d+)\b/g, '<span class="syn-num">$1</span>')
+			h = h.replace(/(&lt;\/?)([A-Za-z][\w-]*)/g, '$1<span class="syn-tag">$2</span>')
+			h = h.replace(/(@[\w]+)/g, '<span class="syn-attr">$1</span>')
+			return h
+		}
+		function hiJs(code) {
+			let h = esc(code)
+			h = h.replace(/(\/\/[^\n]*)/g, '<span class="syn-cmt">$1</span>')
+			h = h.replace(/"([^"\n]*)"/g, '<span class="syn-str">"$1"</span>')
+			h = h.replace(/'([^'\n]*)'/g, "<span class=\"syn-str\">'$1'</span>")
+			h = h.replace(/\b(import|from|export|function|return|const|let|new|document|window)\b/g, '<span class="syn-kw">$1</span>')
+			h = h.replace(/(\$runtime|\$el|\$navigate|\$update|\$fetch|\$params)\b/g, '<span class="syn-fn">$1</span>')
+			h = h.replace(/\b(\d+)\b/g, '<span class="syn-num">$1</span>')
+			return h
+		}
+		function hiBash(code) {
+			let h = esc(code)
+			h = h.replace(/(#[^\n]*)/g, '<span class="syn-cmt">$1</span>')
+			return h
+		}
+		function hiText(code) { return esc(code) }
+
+		const ICONS = {
+			info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+			tip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></svg>',
+			warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>'
+		}
+
+		window.__tardisDocs = {
+			renderCodeblocks(snippets) {
+				const LANG = { bash: hiBash, text: hiText, tardis: hiTardis, js: hiJs }
+				document.querySelectorAll('.codeblock').forEach(block => {
+					const key = block.getAttribute('data-code')
+					const lang = block.getAttribute('data-lang') || 'text'
+					const raw = snippets[key] || ''
+					block.innerHTML =
+						'<div class="codeblock-bar"><span class="codeblock-lang">' + lang + '</span><button class="copy-code">Copy</button></div>' +
+						'<pre><code>' + (LANG[lang] || hiText)(raw) + '</code></pre>'
+					const btn = block.querySelector('.copy-code')
+					btn.addEventListener('click', () => {
+						if (navigator.clipboard) navigator.clipboard.writeText(raw)
+						btn.textContent = 'Copied'
+						setTimeout(() => { btn.textContent = 'Copy' }, 1500)
+					})
+				})
+				document.querySelectorAll('.callout-icon').forEach(el => {
+					el.innerHTML = ICONS[el.getAttribute('data-icon')] || ''
+				})
+			}
+		}
+	}
+}

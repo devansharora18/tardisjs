@@ -1,0 +1,48 @@
+blueprint DocsSidebar {
+	ui {
+		<aside class="docs-sidebar" aria-label="Documentation">
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Getting started</span><span class="count">3</span></div>
+				<a href="/docs">Introduction</a>
+				<a href="/docs/quickstart">Quick start</a>
+				<a href="/docs/structure">Project structure</a>
+			</div>
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Core concepts</span><span class="count">3</span></div>
+				<a href="/docs/blueprints">Blueprint syntax</a>
+				<a href="/docs/templating">UI &amp; templating</a>
+				<a href="/docs/reactivity">Reactivity</a>
+			</div>
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Reference</span><span class="count">6</span></div>
+				<a href="/docs/runtime">Runtime API</a>
+				<a href="/docs/router">Router</a>
+				<a href="/docs/selector">Selector</a>
+				<a href="/docs/styles">Styles</a>
+				<a href="/docs/events">Lifecycle events</a>
+				<a href="/docs/registry">Component registry</a>
+			</div>
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Tooling</span><span class="count">4</span></div>
+				<a href="/docs/cli">CLI</a>
+				<a href="/docs/config">Configuration</a>
+				<a href="/docs/compiler">Compiler pipeline</a>
+				<a href="/docs/errors">Errors</a>
+			</div>
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Guides</span><span class="count">4</span></div>
+				<a href="/docs/examples">Examples</a>
+				<a href="/docs/benchmarks">Benchmarks</a>
+				<a href="/docs/faq">FAQ</a>
+				<a href="/docs/contributing">Contributing</a>
+			</div>
+		</aside>
+	}
+	script {
+		const path = (location.pathname.replace(/\/+$/, '') || '/')
+		$el.querySelectorAll('a').forEach(a => {
+			const href = a.getAttribute('href') || ''
+			a.classList.toggle('active', href === path)
+		})
+	}
+}

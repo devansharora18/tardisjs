@@ -1,0 +1,87 @@
+blueprint DocsIntro {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Introduction" crumb="Getting started" />
+
+					<p><strong>TardisJS</strong> is a compiler-driven frontend framework built around a blueprint DSL. It compiles <code>.tardis</code> files to plain JavaScript modules plus a small runtime (~7KB gzipped), using Proxy-based reactivity and direct DOM bindings — no virtual DOM, no reconciliation, no scheduler.</p>
+
+					<p>The name comes from the design goal: make web development more deterministic. The same blueprint always produces the same generated JavaScript, and a state write runs exactly the bindings that read that field.</p>
+
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Experimental</div>
+							<p>TardisJS is blueprint-first by design and meant for teams who want explicit generated output and a small runtime surface. For SSR and a large ecosystem today, React or Vue remain safer choices.</p>
+						</div>
+					</div>
+
+					<h2 id="what-it-is">What it is</h2>
+					<p>A blueprint is a single file that declares typed inputs, reactive state, derived values, methods, lifecycle hooks, styles, and a template. The compiler turns that into imperative DOM code. There is no runtime template interpreter and no diffing step.</p>
+
+					<div class="codeblock" data-code="hello" data-lang="tardis"></div>
+
+					<h2 id="why">Why it exists</h2>
+					<p>Most frameworks trade compile-time work for runtime flexibility. TardisJS makes the opposite trade: it moves structure to build time so the runtime stays small and its behavior stays predictable.</p>
+					<ul>
+						<li><strong>Deterministic output</strong> — the same source compiles to the same module, so you can read and review generated code.</li>
+						<li><strong>Small runtime</strong> — the shipped runtime is under 7KB gzipped and focused on binding, routing, and selection.</li>
+						<li><strong>Field-level reactivity</strong> — a write re-runs only the effects that read that field, with no dependency arrays to maintain.</li>
+						<li><strong>Explicit structure</strong> — sections make a component's shape obvious instead of emerging from conventions.</li>
+					</ul>
+
+					<h2 id="how-it-works">How it works</h2>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Write a blueprint</h3>
+							<p>A <code>.tardis</code> file declares state, methods, styles, and a UI template.</p>
+						</div>
+						<div class="step-row">
+							<h3>Compile</h3>
+							<p>The CLI runs <code>lex()</code>, <code>parse()</code>, and <code>compile()</code> to emit a JavaScript module.</p>
+						</div>
+						<div class="step-row">
+							<h3>Transpile and emit</h3>
+							<p>Output is TypeScript-transpiled, runtime imports are rewritten, and routes plus a runtime bundle are written to disk.</p>
+						</div>
+						<div class="step-row">
+							<h3>Run</h3>
+							<p>The browser loads plain ES modules. State writes trigger bound effects directly.</p>
+						</div>
+					</div>
+
+					<h2 id="where-it-fits">Where it fits</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Need</th><th>Better choice today</th></tr></thead>
+							<tbody>
+								<tr><td>Server rendering</td><td>Next.js, Nuxt, SvelteKit</td></tr>
+								<tr><td>Largest ecosystem</td><td>React</td></tr>
+								<tr><td>Inspectable compiled output</td><td>tardisjs</td></tr>
+								<tr><td>Smallest runtime</td><td>tardisjs</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="next-steps">Next steps</h2>
+					<p>Start with <a href="/docs/quickstart">Quick start</a> to scaffold a project, or read <a href="/docs/blueprints">Blueprint syntax</a> for the full section reference.</p>
+
+					<DocsPager prev="/" prevLabel="Landing page" next="/docs/quickstart" nextLabel="Quick start" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			hello: 'blueprint Counter {\n  state { count: number = 0 }\n  methods {\n    increment: () => $update(state.count, state.count + 1)\n  }\n  ui {\n    <button @click={methods.increment}>{state.count}</button>\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

@@ -1,0 +1,91 @@
+blueprint DocsQuickstart {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Quick start" crumb="Getting started" />
+
+					<p>This page takes you from an empty directory to a running dev server, then to a first component and a production build.</p>
+
+					<h2 id="prerequisites">Prerequisites</h2>
+					<ul>
+						<li><strong>Node.js</strong> 18 or newer (the CLI uses ES modules and the built-in TypeScript compiler).</li>
+						<li><strong>npm</strong> (or any package manager that can run <code>npx</code>).</li>
+						<li>A terminal and a browser.</li>
+					</ul>
+
+					<h2 id="scaffold">Scaffold a project</h2>
+					<p>The scaffolder creates a new directory with starter pages, a component, config, and a package manifest.</p>
+					<div class="codeblock" data-code="create" data-lang="bash"></div>
+					<p>To initialize inside a directory you already have, use <code>tardis init</code> instead:</p>
+					<div class="codeblock" data-code="init" data-lang="bash"></div>
+
+					<h2 id="install-run">Install and run</h2>
+					<p>Install dependencies and start the dev server. The dev server watches <code>pages/</code> and <code>components/</code>, recompiles on save, and reloads the browser over a WebSocket.</p>
+					<div class="codeblock" data-code="run" data-lang="bash"></div>
+					<p>Open <code>http://localhost:3000</code>. If the port is busy, the CLI picks the next free one and prints it.</p>
+
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Editing is the loop</div>
+							<p>Change a <code>.tardis</code> file and save — the page reloads with your change. There is no separate build step during development.</p>
+						</div>
+					</div>
+
+					<h2 id="first-page">Your first page</h2>
+					<p>Pages live in <code>pages/</code>. Each file becomes a route. Create <code>pages/about.tardis</code>:</p>
+					<div class="codeblock" data-code="page" data-lang="tardis"></div>
+					<p>It is now available at <code>/about</code>. The file name is the route; <code>index.tardis</code> maps to the root.</p>
+
+					<h2 id="first-component">Your first component</h2>
+					<p>Reusable components live in <code>components/</code>. Create <code>components/Button.tardis</code>:</p>
+					<div class="codeblock" data-code="component" data-lang="tardis"></div>
+					<p>Use it in a page by importing nothing — components are registered globally at build time and referenced by tag:</p>
+					<div class="codeblock" data-code="use" data-lang="tardis"></div>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Capitalized tags are components</div>
+							<p><code>&lt;Button /&gt;</code> is a component. <code>&lt;button /&gt;</code> is a DOM element. The case is the signal.</p>
+						</div>
+					</div>
+
+					<h2 id="build">Production build</h2>
+					<p>Build compiles every page and component into the output directory, writes the runtime, copies static assets, and generates <code>index.html</code>.</p>
+					<div class="codeblock" data-code="build" data-lang="bash"></div>
+					<p>Preview the built output locally:</p>
+					<div class="codeblock" data-code="preview" data-lang="bash"></div>
+
+					<h2 id="next-steps">Next steps</h2>
+					<ul>
+						<li><a href="/docs/structure">Project structure</a> — how files map to routes and components.</li>
+						<li><a href="/docs/blueprints">Blueprint syntax</a> — every section in detail.</li>
+						<li><a href="/docs/reactivity">Reactivity</a> — how state and bindings work.</li>
+					</ul>
+
+					<DocsPager prev="/docs" prevLabel="Introduction" next="/docs/structure" nextLabel="Project structure" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			create: 'npx create-tardis-app my-app\ncd my-app',
+			init: 'npx tardis init\nnpx tardis dev',
+			run: 'npm install\nnpm run dev\n\n# -> http://localhost:3000',
+			page: 'blueprint About {\n  ui {\n    <main>\n      <h1>About</h1>\n      <p>Hello from a page.</p>\n    </main>\n  }\n}',
+			component: 'blueprint Button {\n  props {\n    label: string = "Click"\n    variant: "primary" | "secondary" = "primary"\n  }\n  style(tailwind) {\n    base: "rounded-lg px-4 py-2 font-medium"\n    "variant.primary": "bg-white text-black"\n    "variant.secondary": "border border-white/20 text-white"\n  }\n  ui {\n    <button class={props.variant}>{props.label}</button>\n  }\n}',
+			use: '<main>\n  <Button label="Save" />\n  <Button label="Cancel" variant="secondary" />\n</main>',
+			build: 'npm run build\n\n# ✅ Build complete\n# - files compiled: 2\n# - output size: ...',
+			preview: 'npm run preview\n\n# -> http://localhost:4000'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
