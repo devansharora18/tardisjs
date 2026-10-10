@@ -1,0 +1,72 @@
+blueprint DocsErrors {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Errors" crumb="Tooling" />
+
+					<p>Compile-time problems throw a <code>TardisError</code> that carries the file, line, and column, so you can jump straight to the source. Runtime problems surface as ordinary JavaScript errors.</p>
+
+					<h2 id="format">Error format</h2>
+					<div class="codeblock" data-code="format" data-lang="text"></div>
+
+					<h2 id="compile">Compile-time errors</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Error</th><th>Cause</th></tr></thead>
+							<tbody>
+								<tr><td>Unknown section</td><td>A top-level key that is not a valid blueprint section.</td></tr>
+								<tr><td>Unknown prop type</td><td>A type outside the supported set; suggests the closest match.</td></tr>
+								<tr><td>Missing ui</td><td>A blueprint without a <code>ui</code> block.</td></tr>
+								<tr><td>Unknown style mode</td><td>A mode other than <code>tailwind</code> or <code>css</code>.</td></tr>
+								<tr><td>Unknown event</td><td>A lifecycle name outside onMount / onDestroy / onUpdate.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="suggestions">Suggestions</h2>
+					<p>When a type is close to a valid one, the parser suggests the nearest match using edit distance. A typo of a single or double character is caught.</p>
+					<div class="codeblock" data-code="suggest" data-lang="text"></div>
+
+					<h2 id="runtime">Runtime errors</h2>
+					<p>Errors thrown from lifecycle callbacks are isolated: each callback runs in its own try/catch, the error is logged, and the remaining callbacks still run. A throwing binding surfaces in the console like any DOM error.</p>
+					<div class="callout callout-tip">
+						<span class="callout-icon" data-icon="tip"></span>
+						<div class="callout-body">
+							<div class="callout-title">Debugging a compile error</div>
+							<p>Read the file, line, and column, then check the section named in the message. For parser defects, reduce the file to the smallest blueprint that still fails.</p>
+						</div>
+					</div>
+
+					<h2 id="common">Common mistakes</h2>
+					<ul>
+						<li><strong>Mutating instead of assigning</strong> — <code>state.items.push(x)</code> does not trigger bindings. Assign a new array.</li>
+						<li><strong>Lowercase component</strong> — <code>&lt;button /&gt;</code> is a DOM element; a component must be capitalized.</li>
+						<li><strong>Stray brace in text</strong> — a literal <code>&#123;</code> in UI text is parsed as an expression. Escape it or wrap it in a code block.</li>
+						<li><strong>Unbalanced braces in script</strong> — the script block is read as a balanced region; an unmatched brace ends it early.</li>
+					</ul>
+
+					<h2 id="cli">CLI errors</h2>
+					<p>CLI failures print a message and exit non-zero. Missing config, an invalid config file, and a missing build output for <code>preview</code> are reported explicitly.</p>
+					<div class="codeblock" data-code="cli" data-lang="text"></div>
+
+					<DocsPager prev="/docs/compiler" prevLabel="Compiler pipeline" next="/docs/examples" nextLabel="Examples" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			format: 'TardisError: Counter.tardis line 3 col 12\n  Unknown prop type "nubmer" — did you mean "number"?',
+			suggest: 'TardisError: Button.tardis line 2 col 10\n  Unknown prop type "strng" — did you mean "string"?',
+			cli: 'TardisError: no tardis.config.js found\n  Run "npx tardis init" to create a new project'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

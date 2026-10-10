@@ -1,0 +1,74 @@
+blueprint DocsExamples {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Examples" crumb="Guides" />
+
+					<p>Two complete examples ship in the repository under <code>examples/</code>. Each is a runnable project with its own config and package manifest.</p>
+
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Example</th><th>Demonstrates</th></tr></thead>
+							<tbody>
+								<tr><td>examples/counter</td><td>State, computed, methods, and styled buttons.</td></tr>
+								<tr><td>examples/todo</td><td>Lists, boolean state, filters, and computed counts.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="counter">Counter</h2>
+					<p>The counter keeps a single number, derives a doubled value, and updates through methods. It is the smallest useful blueprint.</p>
+					<div class="codeblock" data-code="counter" data-lang="tardis"></div>
+					<p>Points worth noting:</p>
+					<ul>
+						<li><code>computed.doubled</code> is derived, not stored, so it can never drift out of sync.</li>
+						<li>Each button binds a method with <code>@click</code>.</li>
+						<li>Style tokens keep class strings out of the markup.</li>
+					</ul>
+
+					<h2 id="button">Reusable button</h2>
+					<p>The counter example includes a component with a prop-driven variant:</p>
+					<div class="codeblock" data-code="button" data-lang="tardis"></div>
+
+					<h2 id="todo">Todo list</h2>
+					<p>The todo example exercises lists, boolean state, and computed counts. It shows the immutable-update pattern that reactivity requires.</p>
+					<div class="codeblock" data-code="todo" data-lang="tardis"></div>
+					<p>Points worth noting:</p>
+					<ul>
+						<li>Adding and toggling items assigns a new array, so bindings re-run.</li>
+						<li><code>computed</code> derives the remaining count and the open / done totals.</li>
+						<li>A filter value drives which items are shown.</li>
+					</ul>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">$each re-renders the list</div>
+							<p>When the list changes, <code>$each</code> clears and rebuilds its children. Keep item builders cheap and avoid side effects inside them.</p>
+						</div>
+					</div>
+
+					<h2 id="running">Running an example</h2>
+					<div class="codeblock" data-code="run" data-lang="bash"></div>
+
+					<DocsPager prev="/docs/errors" prevLabel="Errors" next="/docs/benchmarks" nextLabel="Benchmarks" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			counter: 'blueprint Home {\n  state { count: number = 0 }\n  computed { doubled: state.count * 2 }\n  methods {\n    increment: () => $update(state.count, state.count + 1)\n    decrement: () => $update(state.count, state.count - 1)\n    reset: () => $update(state.count, 0)\n  }\n  style(tailwind) {\n    value: "text-6xl font-bold"\n    btn: "rounded-lg bg-white px-5 py-2 text-black"\n  }\n  ui {\n    <main>\n      <p class={"value"}>{state.count}</p>\n      <p>Doubled: {computed.doubled}</p>\n      <button class={"btn"} @click={methods.decrement}>-1</button>\n      <button class={"btn"} @click={methods.increment}>+1</button>\n      <button class={"btn"} @click={methods.reset}>Reset</button>\n    </main>\n  }\n}',
+			button: 'blueprint Button {\n  props {\n    label: string = "Action"\n    variant: "primary" | "secondary" = "primary"\n    onClick: function\n  }\n  style(tailwind) {\n    base: "inline-flex rounded-lg px-4 py-2 font-medium"\n    "variant.primary": "bg-white text-black"\n    "variant.secondary": "border border-white/20 text-white"\n  }\n  ui {\n    <button class={props.variant} @click={props.onClick}>{props.label}</button>\n  }\n}',
+			todo: 'blueprint Home {\n  state {\n    items: array = [\n      { text: "Write the docs", done: false }\n    ]\n    filter: "all" | "open" | "done" = "all"\n  }\n  computed {\n    total: state.items.length\n    done: state.items.filter(i => i.done).length\n    open: state.items.filter(i => !i.done).length\n  }\n  methods {\n    toggle: (i) => $update(state.items,\n      state.items.map((it, idx) => idx === i ? { text: it.text, done: !it.done } : it))\n    setFilter: (f) => $update(state.filter, f)\n  }\n  ui {\n    <p>{computed.open} open of {computed.total}</p>\n    $each(state.items, (item) => {\n      <li>{item.text}</li>\n    })\n  }\n}',
+			run: 'cd examples/counter\nnpm install\nnpm run dev'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

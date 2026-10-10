@@ -1,0 +1,97 @@
+blueprint DocsCompiler {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Compiler pipeline" crumb="Tooling" />
+
+					<p>The compiler turns a <code>.tardis</code> file into a JavaScript module. Build time does the structural work so the runtime stays small and predictable. The pipeline has four stages.</p>
+
+					<h2 id="stages">Stages</h2>
+					<div class="steps">
+						<div class="step-row">
+							<h3>lex()</h3>
+							<p>Tokenize the source into section keywords, identifiers, literals, operators, and raw UI/script blocks.</p>
+						</div>
+						<div class="step-row">
+							<h3>parse()</h3>
+							<p>Build a typed AST: props, state, computed, methods, events, style, ui, and script nodes.</p>
+						</div>
+						<div class="step-row">
+							<h3>compile()</h3>
+							<p>Emit JavaScript that creates DOM nodes, registers bindings, and wires events against the runtime.</p>
+						</div>
+						<div class="step-row">
+							<h3>transpile + emit</h3>
+							<p>TypeScript-transpile the output, rewrite runtime imports, and write route modules, the runtime bundle, and index.html.</p>
+						</div>
+					</div>
+
+					<h2 id="ast">AST nodes</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Node</th><th>Holds</th></tr></thead>
+							<tbody>
+								<tr><td>BlueprintNode</td><td>Name and every section of one blueprint.</td></tr>
+								<tr><td>PropNode</td><td>Name, type, default.</td></tr>
+								<tr><td>StateNode</td><td>Name, type, default.</td></tr>
+								<tr><td>ComputedNode</td><td>Name and expression.</td></tr>
+								<tr><td>MethodNode</td><td>Name, params, body.</td></tr>
+								<tr><td>EventsNode</td><td>onMount, onDestroy, onUpdate.</td></tr>
+								<tr><td>StyleNode</td><td>Mode, rules, raw text.</td></tr>
+								<tr><td>UINode</td><td>Raw template source.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="output">Generated output</h2>
+					<p>Each blueprint becomes a function that returns a root element. State, computed, and methods become locals; the UI block becomes an immediately-invoked builder that creates nodes and registers bindings.</p>
+					<div class="codeblock" data-code="generated" data-lang="js"></div>
+
+					<h2 id="determinism">Determinism</h2>
+					<p>The compiler is a pure function of the AST. The same source always produces the same module: sections are emitted in a fixed order, bindings are emitted in source order, and there is no runtime template interpretation. This is the core of the framework's design goal.</p>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Inspectable by design</div>
+							<p>Generated modules are plain JavaScript. You can read them, diff them in review, and reason about exactly which DOM operations a change produces.</p>
+						</div>
+					</div>
+
+					<h2 id="ui-compile">How UI compiles</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Source</th><th>Emitted</th></tr></thead>
+							<tbody>
+								<tr><td>Lowercase tag</td><td><code>document.createElement</code></td></tr>
+								<tr><td>Uppercase tag</td><td>Component lookup and instantiation</td></tr>
+								<tr><td>Text</td><td>Text node</td></tr>
+								<tr><td>Braced expression</td><td>Reactive text binding</td></tr>
+								<tr><td>@event</td><td><code>addEventListener</code></td></tr>
+								<tr><td>class binding</td><td>Reactive class binding with style resolution</td></tr>
+								<tr><td>$if / $each / $show</td><td>Runtime conditional / list / show helpers</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="runtime-size">Runtime surface</h2>
+					<p>The emitted modules import a single runtime object. The runtime is focused on binding, routing, selection, styles, events, and the fetch chain — nothing about diffing or scheduling exists, because those concerns were resolved at build time.</p>
+
+					<DocsPager prev="/docs/config" prevLabel="Configuration" next="/docs/errors" nextLabel="Errors" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			generated: "import { $runtime } from 'tardisjs/runtime'\n\nexport function Counter(props = {}) {\n  const _props = { step: 1, ...props }\n  const _state = $runtime.state({ count: 0 })\n  const _methods = {\n    increment: () => $runtime.update(_state, 'count', _state.count + 1),\n  }\n  $runtime.register('Counter', { state: _state, methods: _methods })\n  const _root = (() => {\n    const _el_2 = document.createElement('button')\n    _el_2.addEventListener('click', _methods.increment)\n    const _text = document.createTextNode('')\n    $runtime.bind(_text, 'textContent', () => String(_state.count))\n    _el_2.appendChild(_text)\n    return _el_2\n  })()\n  return _root\n}"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
