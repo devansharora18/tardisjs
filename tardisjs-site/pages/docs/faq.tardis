@@ -1,0 +1,68 @@
+blueprint DocsFaq {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="FAQ" crumb="Guides" />
+
+					<h2 id="general">General</h2>
+					<h3>Is TardisJS a React replacement?</h3>
+					<p>No. It is an experimental, blueprint-first model with a smaller ecosystem. React, Vue, and Svelte are more mature choices for most production teams today.</p>
+
+					<h3>Why build another framework?</h3>
+					<p>To explore a design point: move structure to build time so the runtime stays small and its behavior stays predictable. The output is readable JavaScript, and reactivity is field-level with no scheduler.</p>
+
+					<h3>Is it stable?</h3>
+					<p>It is experimental. APIs are small but may change between minor versions. Pin a version if you depend on it.</p>
+
+					<h2 id="reactivity">Reactivity</h2>
+					<h3>How does it differ from Vue's reactivity?</h3>
+					<p>Both use Proxies. Vue schedules updates and tracks dependencies through a component render effect. TardisJS binds at the field level and runs bound effects directly, with a synchronous batch for grouping writes.</p>
+
+					<h3>Why didn't my list update?</h3>
+					<p>You probably mutated it in place. <code>state.items.push(x)</code> does not write the key, so bindings do not re-run. Assign a new array instead.</p>
+
+					<h3>Do I need dependency arrays?</h3>
+					<p>No. Dependencies are discovered at read time. There is nothing to list and nothing to forget.</p>
+
+					<h2 id="features">Features</h2>
+					<h3>Does it support server-side rendering?</h3>
+					<p>Not yet. The build produces a client single-page app. SSR and hydration are not implemented.</p>
+
+					<h3>Is there a global store?</h3>
+					<p>Not built in. Share state by passing props, by using the component registry, or by lifting state to a parent page.</p>
+
+					<h3>Can I use TypeScript?</h3>
+					<p>You write <code>.tardis</code> files, not TypeScript. The compiler emits TypeScript-transpiled JavaScript and generates prop types for the output. State and methods are authored in the blueprint DSL.</p>
+
+					<h3>Can I use Tailwind?</h3>
+					<p>Yes. Add the Tailwind CDN tag to <code>head</code> and use <code>style(tailwind)</code> tokens, or use <code>style(css)</code> or a raw stylesheet.</p>
+
+					<h2 id="tooling">Tooling</h2>
+					<h3>Does the dev server preserve state on reload?</h3>
+					<p>No. A save triggers a full page reload; component state resets.</p>
+
+					<h3>How do I preview a production build?</h3>
+					<p>Run <code>tardis build</code>, then <code>tardis preview</code> to serve the output with a single-page fallback.</p>
+
+					<h3>Where do generated files live?</h3>
+					<p>In the configured <code>outDir</code>, by default <code>dist/</code>. They are plain ES modules plus the runtime and an <code>index.html</code>.</p>
+
+					<h2 id="comparison">Comparison</h2>
+					<h3>Is it faster than React?</h3>
+					<p>In the repository's synthetic jsdom workload, field-level updates do less work per write, and the runtime is smaller. That is not a general claim — real apps, real browsers, and real workloads differ. See <a href="/docs/benchmarks">Benchmarks</a>.</p>
+
+					<h3>What is the trade-off?</h3>
+					<p>A smaller runtime and inspectable output, in exchange for a smaller ecosystem, no SSR, and less abstraction. If you need those, choose a mainstream framework.</p>
+
+					<DocsPager prev="/docs/benchmarks" prevLabel="Benchmarks" next="/docs/contributing" nextLabel="Contributing" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+}

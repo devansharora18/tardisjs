@@ -1,0 +1,92 @@
+blueprint DocsContributing {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Contributing" crumb="Guides" />
+
+					<p>TardisJS is MIT licensed and developed in the open. Contributions are welcome across the compiler, runtime, CLI, examples, and documentation.</p>
+
+					<h2 id="process">Process</h2>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Scope one concern</h3>
+							<p>Create a branch for a single change. Smaller branches are easier to review and revert.</p>
+						</div>
+						<div class="step-row">
+							<h3>Add tests</h3>
+							<p>Put tests next to the subsystem you touched — lexer, parser, compiler, runtime, or CLI.</p>
+						</div>
+						<div class="step-row">
+							<h3>Check and test</h3>
+							<p>Run the type check and the test suite before opening a pull request.</p>
+						</div>
+						<div class="step-row">
+							<h3>Open the pull request</h3>
+							<p>Describe the change and, for parser or compiler defects, include a minimal reproduction.</p>
+						</div>
+					</div>
+
+					<h2 id="setup">Local setup</h2>
+					<div class="codeblock" data-code="setup" data-lang="bash"></div>
+
+					<h2 id="scripts">Scripts</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Script</th><th>Purpose</th></tr></thead>
+							<tbody>
+								<tr><td>npm run build</td><td>Clean, build the library, and build the CLI binaries.</td></tr>
+								<tr><td>npm run build:lib</td><td>Compiler and runtime only.</td></tr>
+								<tr><td>npm run build:bin</td><td>CLI binaries only.</td></tr>
+								<tr><td>npm test</td><td>Run the test suite once.</td></tr>
+								<tr><td>npm run test:watch</td><td>Run tests in watch mode.</td></tr>
+								<tr><td>npm run typecheck</td><td>Type-check the project.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="style">Code style</h2>
+					<ul>
+						<li>Write the least code that solves the problem. No speculative abstractions.</li>
+						<li>Comment only where the why is not obvious from the code.</li>
+						<li>Prefer editing existing files over adding new ones unless a new file is warranted.</li>
+						<li>Match the surrounding style rather than introducing a new convention.</li>
+					</ul>
+
+					<h2 id="structure">Where things live</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Path</th><th>Contains</th></tr></thead>
+							<tbody>
+								<tr><td>src/lexer</td><td>Tokenizer.</td></tr>
+								<tr><td>src/parser</td><td>AST types, parser, errors.</td></tr>
+								<tr><td>src/compiler</td><td>Code generation.</td></tr>
+								<tr><td>src/runtime</td><td>State, render, router, selector, styles, events, registry, fetch.</td></tr>
+								<tr><td>bin</td><td>CLI and scaffolder.</td></tr>
+								<tr><td>test</td><td>Unit tests and fixtures.</td></tr>
+								<tr><td>bench</td><td>Benchmark harness.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="license">License</h2>
+					<p>MIT. See the repository for the full text.</p>
+
+					<DocsPager prev="/docs/faq" prevLabel="FAQ" next="/docs" nextLabel="Introduction" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			setup: 'git clone https://github.com/devansharora18/tardisjs.git\ncd tardisjs\nnpm install\nnpm run build\nnpm test'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

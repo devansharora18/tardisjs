@@ -1,0 +1,92 @@
+blueprint DocsBenchmarks {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Benchmarks" crumb="Guides" />
+
+					<p>The repository includes a benchmark harness that runs the same workload against TardisJS, React, and Vue. Results below are read from the generated data file, not typed by hand.</p>
+
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Read with care</div>
+							<p>These are jsdom micro-benchmarks, not real-browser numbers. They measure one specific workload and should not be read as a general verdict on any framework.</p>
+						</div>
+					</div>
+
+					<h2 id="workload">Workload</h2>
+					<ul>
+						<li><strong>Mount</strong> — build a 200-item list of reactive text nodes.</li>
+						<li><strong>Update</strong> — write a single field 500 times, re-running every subscribed binding.</li>
+						<li><strong>Bundle</strong> — gzip size of each runtime build.</li>
+					</ul>
+
+					<h2 id="results">Results</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Runtime</th><th>Mount</th><th>500 updates</th><th>Gzip</th></tr></thead>
+							<tbody id="bench-rows">
+								<tr><td>tardisjs</td><td id="b-mount-tardisjs">—</td><td id="b-update-tardisjs">—</td><td id="b-bundle-tardisjs">—</td></tr>
+								<tr><td>Vue</td><td id="b-mount-Vue">—</td><td id="b-update-Vue">—</td><td id="b-bundle-Vue">—</td></tr>
+								<tr><td>React</td><td id="b-mount-React">—</td><td id="b-update-React">—</td><td id="b-bundle-React">—</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p id="bench-meta"></p>
+
+					<h2 id="interpretation">Interpretation</h2>
+					<p>The update workload is where the models diverge most. TardisJS binds at the field level, so a write runs only the effects that read the field, with no tree to diff. React and Vue re-render the affected subtree and reconcile it, which costs more per write in this synthetic case.</p>
+					<p>Mount time favors TardisJS because there is no virtual tree to construct. Bundle size favors it because the runtime has no renderer or scheduler.</p>
+
+					<h2 id="caveats">Caveats</h2>
+					<ul>
+						<li>jsdom is slower and less representative than a real browser; absolute numbers will differ.</li>
+						<li>The workload is intentionally simple and favors field-level updates.</li>
+						<li>React and Vue are far more capable; a smaller runtime is not the same as a better framework.</li>
+						<li>Numbers vary run to run; treat the ordering as the signal, not the exact milliseconds.</li>
+					</ul>
+
+					<h2 id="running">Running the harness</h2>
+					<div class="codeblock" data-code="run" data-lang="bash"></div>
+					<p>The harness writes <code>bench/results.json</code> and a data file the site reads. Re-run it after changes to regenerate both.</p>
+
+					<DocsPager prev="/docs/examples" prevLabel="Examples" next="/docs/faq" nextLabel="FAQ" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			run: 'cd bench\nnpm install\nnpm run bench\n\n# tardisjs   mount 9.11ms  update(500) 117.11ms\n# React      mount 24.77ms update(500) 1033.31ms\n# Vue        mount 15.86ms update(500) 875.28ms'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+
+		const bench = window.__TARDIS_BENCH
+		if (bench) {
+			const byName = {}
+			bench.runtimes.forEach(r => { byName[r.name] = r })
+			const sizes = {}
+			bench.bundle.forEach(b => { sizes[b.name] = b.gzip })
+			const set = (id, text) => {
+				const el = document.getElementById(id)
+				if (el) el.textContent = text
+			}
+			['tardisjs', 'Vue', 'React'].forEach(n => {
+				const r = byName[n]
+				if (!r) return
+				set('b-mount-' + n, r.mountMs.toFixed(1) + ' ms')
+				set('b-update-' + n, r.updateMs.toFixed(1) + ' ms')
+				set('b-bundle-' + n, sizes[n] ? (sizes[n] / 1024).toFixed(1) + ' KB' : '—')
+			})
+			const meta = document.getElementById('bench-meta')
+			if (meta) meta.textContent = bench.environment + '. Generated ' + bench.generatedAt.slice(0, 10) + '.'
+		}
+	}
+}
