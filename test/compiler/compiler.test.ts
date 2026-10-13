@@ -881,6 +881,22 @@ describe('ui compiler', () => {
       expect(out).toContain('$runtime.each(')
       expect(out).not.toContain('$runtime.text("$each')
     })
+
+    it('rewrites $params to $runtime.params', () => {
+      const out = compileSource(`
+        blueprint Post {
+          ui {
+            <div>
+              $if($params.slug === "hello") {
+                <p>hello post</p>
+              }
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.params.slug')
+      expect(out).not.toContain('$runtime.text("$if')
+    })
   })
 
   describe('component usage', () => {

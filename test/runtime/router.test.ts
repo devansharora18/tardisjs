@@ -52,6 +52,23 @@ describe('runtime router', () => {
     expect(document.getElementById('app')?.textContent).toContain('post')
   })
 
+  it('sets params before the component mounts', () => {
+    setupDom('http://localhost/post/one')
+
+    const Post = () => {
+      const el = document.createElement('div')
+      el.textContent = `slug:${$params.slug}`
+      return el
+    }
+
+    const router = createRouter([{ path: '/post/:slug', component: Post }])
+    router.start()
+    expect(document.getElementById('app')?.textContent).toContain('slug:one')
+
+    $navigate('/post/two')
+    expect(document.getElementById('app')?.textContent).toContain('slug:two')
+  })
+
   it('navigates programmatically with $navigate', () => {
     const Home = () => {
       const el = document.createElement('div')

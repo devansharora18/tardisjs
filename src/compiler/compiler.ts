@@ -224,7 +224,8 @@ function rewriteRefs(expr: string): string {
 		.replace(/(?<![_a-zA-Z])state\./g, "_state.")
 		.replace(/(?<![_a-zA-Z])props\./g, "_props.")
 		.replace(/(?<![_a-zA-Z])computed\./g, "_computed.")
-		.replace(/(?<![_a-zA-Z])methods\./g, "_methods.");
+		.replace(/(?<![_a-zA-Z])methods\./g, "_methods.")
+		.replace(/(?<![\w$])\$params\./g, "$runtime.params.");
 
 	return rewritten
 		.replace(/\$update\(\s*_state\.([a-zA-Z_$][\w$]*)\s*,/g, "$runtime.update(_state, '$1',")
@@ -810,11 +811,15 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 				// by its brace block. Splitting between the head and the block
 				// would degrade the head into literal text and the block into
 				// a bogus expression — so keep accumulating and let `{` open it.
+				// Likewise, never split inside the head's own parens
+				// (e.g. the `$params` in `$if($params.slug === "x")`).
 				const head = current.trim();
+				const parenBalance = (head.match(/\(/g) || []).length - (head.match(/\)/g) || []).length;
+				const inControlHead = /^\$(if|each|show)\(/.test(head) && parenBalance > 0;
 				const opensBlock = next.startsWith("{") && (
 					/^\$(if|each|show)\([\s\S]*\)$/.test(head) || /=>$/.test(head)
 				);
-				if (!opensBlock) {
+				if (!inControlHead && !opensBlock) {
 					const isEl = current.trimStart().startsWith('<') ||
 						current.trimStart().startsWith('$') ||
 						current.trimStart().startsWith('{<');

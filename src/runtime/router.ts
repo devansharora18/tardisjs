@@ -142,10 +142,12 @@ export function createRouter(
 			disposeNode(currentNode)
 		}
 
+		// Params must be set before the component mounts so that
+		// $params reads during construction see the fresh values.
+		setParams(params)
 		const nextNode = route.component()
 		currentNode = nextNode
 
-		setParams(params)
 		target.innerHTML = ''
 		target.appendChild(nextNode)
 		flushMountCallbacks()
