@@ -206,6 +206,58 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('09-kanban behaves', () => {
+  async function mount() {
+    buildFile('examples/09-kanban/pages/index.tardis', 'KanbanHome.mjs')
+    const home = await import('./gen/KanbanHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+    const { flushMountCallbacks } = await import('../../src/runtime/events')
+    flushMountCallbacks()
+  }
+
+  function colCount(id: string): number {
+    return qa(`#${id} .card`).length
+  }
+
+  function colTitles(id: string): string[] {
+    return qa(`#${id} .card p`).map((e) => e.textContent || '')
+  }
+
+  it('seeds three columns on mount', async () => {
+    await mount()
+    expect(colCount('col-todo')).toBe(2)
+    expect(colCount('col-doing')).toBe(1)
+    expect(colCount('col-done')).toBe(1)
+    expect(q('.head p')?.textContent).toContain('4 cards')
+  })
+
+  it('moves cards across columns', async () => {
+    await mount()
+    click(qa('#col-todo .moves button')[0])
+    expect(colCount('col-todo')).toBe(1)
+    expect(colCount('col-doing')).toBe(2)
+    expect(colTitles('col-doing')).toContain('Ship the landing page')
+    click(qa('#col-doing .moves button')[1])
+    expect(colCount('col-doing')).toBe(1)
+    expect(colCount('col-done')).toBe(2)
+    click(qa('#col-done .moves button')[0])
+    expect(colCount('col-done')).toBe(1)
+    expect(colCount('col-doing')).toBe(2)
+  })
+
+  it('adds cards and clears done', async () => {
+    await mount()
+    type(q('.addrow input') as HTMLInputElement, 'Write tests')
+    click(q('.addrow button'))
+    expect(colCount('col-todo')).toBe(3)
+    expect(colTitles('col-todo')).toContain('Write tests')
+    expect((q('.addrow input') as HTMLInputElement).value).toBe('')
+    click(q('.col-foot button'))
+    expect(colCount('col-done')).toBe(0)
+    expect(q('.head p')?.textContent).toContain('4 cards')
+  })
+})
+
 describe('08-chat behaves', () => {
   async function mount() {
     vi.stubGlobal('requestAnimationFrame', (fn: FrameRequestCallback) => { fn(0); return 0 })

@@ -1,0 +1,210 @@
+blueprint Home {
+	state {
+		todo: array = []
+		doing: array = []
+		done: array = []
+		title: string = ""
+	}
+	computed {
+		todoCount: state.todo.length
+		doingCount: state.doing.length
+		doneCount: state.done.length
+		totalCount: state.todo.length + state.doing.length + state.done.length
+	}
+	methods {
+		toDoing: (id) => $batch(() => ($update(state.doing, [...state.doing, state.todo.find((c) => c.id === id)]), $update(state.todo, state.todo.filter((c) => c.id !== id))))
+		toTodo: (id) => $batch(() => ($update(state.todo, [...state.todo, state.doing.find((c) => c.id === id)]), $update(state.doing, state.doing.filter((c) => c.id !== id))))
+		toDone: (id) => $batch(() => ($update(state.done, [...state.done, state.doing.find((c) => c.id === id)]), $update(state.doing, state.doing.filter((c) => c.id !== id))))
+		backToDoing: (id) => $batch(() => ($update(state.doing, [...state.doing, state.done.find((c) => c.id === id)]), $update(state.done, state.done.filter((c) => c.id !== id))))
+		addCard: () => $batch(() => ($update(state.todo, state.title === "" ? state.todo : [...state.todo, { id: state.title, title: state.title }]), $update(state.title, "")))
+		clearDone: () => $update(state.done, [])
+	}
+	events {
+		onMount: () => $batch(() => ($update(state.todo, [{ id: "ship", title: "Ship the landing page" }, { id: "review", title: "Review pull requests" }]), $update(state.doing, [{ id: "docs", title: "Write migration guide" }]), $update(state.done, [{ id: "setup", title: "Set up the repo" }])))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.head {
+			padding: 48px 0 8px;
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: 12px;
+		}
+		.head h1 {
+			font-size: 34px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+		}
+		.head p {
+			font-size: 14px;
+			color: #888888;
+			margin-top: 6px;
+		}
+		.addrow {
+			display: flex;
+			gap: 8px;
+			margin: 24px 0;
+			max-width: 520px;
+		}
+		.addrow input {
+			flex: 1;
+			background: #111111;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 11px 12px;
+			font-family: inherit;
+		}
+		.addrow button {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 11px 20px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.board {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 14px;
+			align-items: start;
+		}
+		.col {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 16px;
+		}
+		.col-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 12px;
+		}
+		.col-head h2 {
+			font-size: 14px;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+		}
+		.count {
+			font-size: 12px;
+			font-weight: 700;
+			color: #a1a1a1;
+			background: #262626;
+			border-radius: 999px;
+			padding: 2px 10px;
+		}
+		.card {
+			background: #0a0a0a;
+			border: 1px solid #2e2e2e;
+			border-radius: 9px;
+			padding: 14px;
+			margin-bottom: 10px;
+		}
+		.card p {
+			font-size: 14px;
+			line-height: 1.5;
+			margin-bottom: 12px;
+		}
+		.moves {
+			display: flex;
+			gap: 6px;
+		}
+		.moves button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 6px 10px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.moves button:hover {
+			border-color: #888888;
+			color: #ededed;
+		}
+		.col-foot {
+			margin-top: 4px;
+		}
+		.col-foot button {
+			background: none;
+			border: none;
+			color: #666666;
+			font-size: 12.5px;
+			cursor: pointer;
+			padding: 4px 0;
+			font-family: inherit;
+		}
+		.col-foot button:hover {
+			color: #ff7b72;
+		}
+		@media (max-width: 860px) {
+			.board { grid-template-columns: 1fr; }
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<div class="head">
+					<div>
+						<h1>Flowboard</h1>
+						<p>{computed.totalCount} cards across 3 columns. Moves flush as one update.</p>
+					</div>
+				</div>
+				<div class="addrow">
+					<input value={state.title} @input={(e) => $update(state.title, e.target.value)} placeholder="New card title…" />
+					<button @click={methods.addCard}>Add to Todo</button>
+				</div>
+				<div class="board">
+					<div class="col" id="col-todo">
+						<div class="col-head"><h2>Todo</h2><span class="count">{computed.todoCount}</span></div>
+						$each(state.todo, (c) => {
+							<div class="card">
+								<p>{c.title}</p>
+								<div class="moves"><button @click={() => methods.toDoing(c.id)}>Move →</button></div>
+							</div>
+						})
+					</div>
+					<div class="col" id="col-doing">
+						<div class="col-head"><h2>Doing</h2><span class="count">{computed.doingCount}</span></div>
+						$each(state.doing, (c) => {
+							<div class="card">
+								<p>{c.title}</p>
+								<div class="moves"><button @click={() => methods.toTodo(c.id)}>← Back</button><button @click={() => methods.toDone(c.id)}>Done →</button></div>
+							</div>
+						})
+					</div>
+					<div class="col" id="col-done">
+						<div class="col-head"><h2>Done</h2><span class="count">{computed.doneCount}</span></div>
+						$each(state.done, (c) => {
+							<div class="card">
+								<p>{c.title}</p>
+								<div class="moves"><button @click={() => methods.backToDoing(c.id)}>← Reopen</button></div>
+							</div>
+						})
+						<div class="col-foot"><button @click={methods.clearDone}>Clear done</button></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
