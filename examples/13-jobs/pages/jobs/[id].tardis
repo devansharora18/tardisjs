@@ -1,0 +1,220 @@
+blueprint Job {
+	state {
+		applied: boolean = false
+	}
+	methods {
+		apply: () => $update(state.applied, true)
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 680px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.back {
+			display: inline-block;
+			margin: 40px 0 28px;
+			font-size: 14px;
+			color: #a1a1a1;
+		}
+		.back:hover {
+			color: #ededed;
+			text-decoration: none;
+		}
+		.tags {
+			display: flex;
+			gap: 8px;
+			margin-bottom: 14px;
+			flex-wrap: wrap;
+		}
+		.tags span {
+			font-size: 12px;
+			color: #a1a1a1;
+			background: #1c1c1c;
+			border: 1px solid #2e2e2e;
+			border-radius: 999px;
+			padding: 3px 11px;
+		}
+		.tags span.pay {
+			color: #7ee787;
+			background: #0e2a1a;
+			border-color: #1f6b3a;
+		}
+		.job h1 {
+			font-size: 36px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+			margin-bottom: 20px;
+		}
+		.job h2 {
+			font-size: 19px;
+			font-weight: 800;
+			margin: 26px 0 10px;
+		}
+		.job p {
+			font-size: 16px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 12px;
+		}
+		.job ul {
+			margin: 0 0 8px 20px;
+			padding: 0;
+		}
+		.job li {
+			font-size: 15px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 6px;
+		}
+		.apply {
+			margin-top: 28px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 24px;
+			text-align: center;
+		}
+		.apply button {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 12px 28px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.applied {
+			font-size: 15px;
+			color: #7ee787;
+		}
+		.missing {
+			text-align: center;
+			padding: 80px 0;
+		}
+		.missing h1 {
+			font-size: 30px;
+			font-weight: 800;
+			margin-bottom: 12px;
+		}
+		.missing p {
+			color: #a1a1a1;
+			margin-bottom: 24px;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<a class="back" href="/">← All roles</a>
+				$if($params.id === "senior-frontend") {
+					<div class="job">
+						<div class="tags"><span>Engineering</span><span>Remote</span><span class="pay">$160–195k</span></div>
+						<h1>Senior Frontend Engineer</h1>
+						<p>Own the marketing site and docs platform end to end. You will work in small cycles, review generated output like any other code, and keep Lighthouse green.</p>
+						<h2>What you will do</h2>
+						<ul>
+							<li>Ship accessible, fast pages with a tiny runtime budget</li>
+							<li>Maintain the design-token pipeline and component library</li>
+							<li>Review UI diffs the way backend engineers review migrations</li>
+						</ul>
+						<h2>What you bring</h2>
+						<ul>
+							<li>5+ years building production frontends</li>
+							<li>Strong CSS fundamentals and a11y habits</li>
+							<li>Written English for docs-heavy work</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "platform-engineer") {
+					<div class="job">
+						<div class="tags"><span>Engineering</span><span>NYC</span><span class="pay">$175–210k</span></div>
+						<h1>Platform Engineer</h1>
+						<p>Keep builds fast and deploys boring. Own CI, preview environments, and the edge configuration behind every demo on this page.</p>
+						<h2>What you will do</h2>
+						<ul>
+							<li>Cut p95 build times across 20+ demo projects</li>
+							<li>Harden preview deployments and rollbacks</li>
+							<li>Automate the boring parts of releases</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "product-designer") {
+					<div class="job">
+						<div class="tags"><span>Design</span><span>Berlin</span><span class="pay">€85–105k</span></div>
+						<h1>Product Designer</h1>
+						<p>Design the flows behind the job board you are reading. Research, prototype, and sweat the empty states.</p>
+						<h2>What you will do</h2>
+						<ul>
+							<li>Lead design for two product squads</li>
+							<li>Prototype in code when static mocks lie</li>
+							<li>Evolve the shared component library</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "brand-designer") {
+					<div class="job">
+						<div class="tags"><span>Design</span><span>Remote</span><span class="pay">$120–145k</span></div>
+						<h1>Brand Designer</h1>
+						<p>Give every demo site a visual voice. Identity systems, illustration direction, and launch pages.</p>
+						<h2>What you will do</h2>
+						<ul>
+							<li>Own brand across web and print</li>
+							<li>Direct illustration and motion style</li>
+							<li>Ship launch sites with marketing</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "office-manager") {
+					<div class="job">
+						<div class="tags"><span>Ops</span><span>NYC</span><span class="pay">$90–110k</span></div>
+						<h1>Office Manager</h1>
+						<p>Run the NYC studio where half these demos were debugged. Vendors, events, and the espresso machine SLA.</p>
+						<h2>What you will do</h2>
+						<ul>
+							<li>Own facilities, vendors, and budgets</li>
+							<li>Plan onsites and demo days</li>
+							<li>Keep the studio the best room in the city</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "people-partner") {
+					<div class="job">
+						<div class="tags"><span>Ops</span><span>Berlin</span><span class="pay">€75–95k</span></div>
+						<h1>People Partner</h1>
+						<p>Grow the Berlin team from 12 to 30 without losing what makes it good. Hiring, onboarding, and honest feedback loops.</p>
+						<h2>What you will do</h2>
+						<ul>
+							<li>Partner with hiring managers end to end</li>
+							<li>Design onboarding that actually onboards</li>
+							<li>Run compensation reviews twice a year</li>
+						</ul>
+					</div>
+				}
+				$if($params.id !== "senior-frontend" && $params.id !== "platform-engineer" && $params.id !== "product-designer" && $params.id !== "brand-designer" && $params.id !== "office-manager" && $params.id !== "people-partner") {
+					<div class="missing">
+						<h1>Role filled or never existed</h1>
+						<p>That posting is gone. The good ones go fast.</p>
+					</div>
+				}
+				$show($params.id === "senior-frontend" || $params.id === "platform-engineer" || $params.id === "product-designer" || $params.id === "brand-designer" || $params.id === "office-manager" || $params.id === "people-partner") {
+					<div class="apply">
+						$show(!state.applied) {
+							<button @click={methods.apply}>Apply for this role</button>
+						}
+						$show(state.applied) {
+							<p class="applied">Application received. We reply to every candidate.</p>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

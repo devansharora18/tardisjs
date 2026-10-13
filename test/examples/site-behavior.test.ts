@@ -206,6 +206,71 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('13-jobs behaves', () => {
+  async function mountIndex() {
+    buildFile('examples/13-jobs/components/JobCard.tardis', 'JobCard.mjs')
+    buildFile('examples/13-jobs/pages/index.tardis', 'JobsHome.mjs')
+    const card = await import('./gen/JobCard.mjs')
+    ;(dom.window as unknown as Record<string, unknown>).__tardis_JobCard = card.JobCard
+    const home = await import('./gen/JobsHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+  }
+
+  function visibleJobs(): number {
+    return qa('.list .job').filter((j) => {
+      let el: HTMLElement | null = j as HTMLElement
+      while (el) {
+        if (el.style && el.style.display === 'none') return false
+        el = el.parentElement
+      }
+      return true
+    }).length
+  }
+
+  it('filters by department and location independently', async () => {
+    await mountIndex()
+    expect(qa('.list .job').length).toBe(6)
+    expect(q('.count')?.textContent).toContain('6 open roles')
+    click(qa('.frow')[0].querySelectorAll('button')[1])
+    expect(visibleJobs()).toBe(2)
+    expect(q('.count')?.textContent).toContain('2 open roles')
+    click(qa('.frow')[1].querySelectorAll('button')[2])
+    expect(visibleJobs()).toBe(1)
+    click(qa('.frow')[0].querySelectorAll('button')[0])
+    click(qa('.frow')[1].querySelectorAll('button')[0])
+    expect(visibleJobs()).toBe(6)
+  })
+
+  it('shows empty state and resets', async () => {
+    await mountIndex()
+    click(qa('.frow')[0].querySelectorAll('button')[1])
+    click(qa('.frow')[1].querySelectorAll('button')[3])
+    expect(visibleJobs()).toBe(0)
+    expect(q('.empty')?.style.display).toBe('')
+    click(q('.count button'))
+    expect(visibleJobs()).toBe(6)
+  })
+
+  it('renders job detail with apply flow', async () => {
+    buildFile('examples/13-jobs/pages/jobs/[id].tardis', 'JobPage.mjs')
+    const { createRouter, $navigate } = await import('../../src/runtime/router')
+    const page = await import('./gen/JobPage.mjs')
+    const router = createRouter([
+      { path: '/', component: () => dom.window.document.createElement('div') },
+      { path: '/jobs/:id', component: page.Job },
+    ])
+    router.start()
+    $navigate('/jobs/product-designer')
+    expect(q('.job h1')?.textContent).toContain('Product Designer')
+    expect(q('.apply button')?.textContent).toContain('Apply for this role')
+    click(q('.apply button'))
+    expect(q('.applied')?.textContent).toContain('Application received')
+    $navigate('/jobs/nope')
+    expect(q('.missing h1')?.textContent).toContain('never existed')
+    expect(q('.apply')?.style.display).toBe('none')
+  })
+})
+
 describe('12-recipes behaves', () => {
   async function mountIndex() {
     buildFile('examples/12-recipes/components/RecipeCard.tardis', 'RecipeCard.mjs')

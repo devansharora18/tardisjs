@@ -1,0 +1,170 @@
+blueprint Home {
+	state {
+		dept: string = "all"
+		loc: string = "all"
+	}
+	computed {
+		visible: ((state.dept === "all" || state.dept === "Engineering") && (state.loc === "all" || state.loc === "Remote") ? 1 : 0) + ((state.dept === "all" || state.dept === "Engineering") && (state.loc === "all" || state.loc === "NYC") ? 1 : 0) + ((state.dept === "all" || state.dept === "Design") && (state.loc === "all" || state.loc === "Berlin") ? 1 : 0) + ((state.dept === "all" || state.dept === "Design") && (state.loc === "all" || state.loc === "Remote") ? 1 : 0) + ((state.dept === "all" || state.dept === "Ops") && (state.loc === "all" || state.loc === "NYC") ? 1 : 0) + ((state.dept === "all" || state.dept === "Ops") && (state.loc === "all" || state.loc === "Berlin") ? 1 : 0)
+	}
+	methods {
+		setDept: (d) => $update(state.dept, d)
+		setLoc: (l) => $update(state.loc, l)
+		reset: () => $batch(() => ($update(state.dept, "all"), $update(state.loc, "all")))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 760px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.hero {
+			text-align: center;
+			padding: 64px 0 12px;
+		}
+		.hero-name {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: #3291ff;
+			margin-bottom: 12px;
+		}
+		.hero h1 {
+			font-size: 42px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 10px;
+		}
+		.hero p {
+			font-size: 16px;
+			color: #a1a1a1;
+		}
+		.filters {
+			margin: 32px 0 8px;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+		.frow {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+		.flabel {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: #666666;
+			width: 88px;
+		}
+		.frow button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 999px;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 7px 16px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.frow button.on {
+			background: #ededed;
+			border-color: #ededed;
+			color: #0a0a0a;
+		}
+		.count {
+			font-size: 13px;
+			color: #666666;
+			margin: 18px 0;
+		}
+		.count button {
+			background: none;
+			border: none;
+			color: #3291ff;
+			font-size: 13px;
+			cursor: pointer;
+			padding: 0;
+			font-family: inherit;
+		}
+		.list {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+		.empty {
+			border: 1px dashed #404040;
+			border-radius: 10px;
+			padding: 32px;
+			text-align: center;
+			font-size: 14px;
+			color: #888888;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 64px;
+			font-size: 13px;
+			color: #666666;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<header class="hero">
+					<div class="hero-name">Hireline</div>
+					<h1>Work with us.</h1>
+					<p>Six open roles across engineering, design, and ops.</p>
+				</header>
+				<div class="filters">
+					<div class="frow">
+						<span class="flabel">Department</span>
+						<button class={state.dept === "all" ? "on" : ""} @click={() => methods.setDept("all")}>All</button>
+						<button class={state.dept === "Engineering" ? "on" : ""} @click={() => methods.setDept("Engineering")}>Engineering</button>
+						<button class={state.dept === "Design" ? "on" : ""} @click={() => methods.setDept("Design")}>Design</button>
+						<button class={state.dept === "Ops" ? "on" : ""} @click={() => methods.setDept("Ops")}>Ops</button>
+					</div>
+					<div class="frow">
+						<span class="flabel">Location</span>
+						<button class={state.loc === "all" ? "on" : ""} @click={() => methods.setLoc("all")}>All</button>
+						<button class={state.loc === "Remote" ? "on" : ""} @click={() => methods.setLoc("Remote")}>Remote</button>
+						<button class={state.loc === "NYC" ? "on" : ""} @click={() => methods.setLoc("NYC")}>NYC</button>
+						<button class={state.loc === "Berlin" ? "on" : ""} @click={() => methods.setLoc("Berlin")}>Berlin</button>
+					</div>
+				</div>
+				<p class="count">{computed.visible} open roles <button @click={methods.reset}>reset filters</button></p>
+				<div class="list">
+					$show((state.dept === "all" || state.dept === "Engineering") && (state.loc === "all" || state.loc === "Remote")) {
+						<JobCard id="senior-frontend" title="Senior Frontend Engineer" dept="Engineering" loc="Remote" salary="$160–195k" />
+					}
+					$show((state.dept === "all" || state.dept === "Engineering") && (state.loc === "all" || state.loc === "NYC")) {
+						<JobCard id="platform-engineer" title="Platform Engineer" dept="Engineering" loc="NYC" salary="$175–210k" />
+					}
+					$show((state.dept === "all" || state.dept === "Design") && (state.loc === "all" || state.loc === "Berlin")) {
+						<JobCard id="product-designer" title="Product Designer" dept="Design" loc="Berlin" salary="€85–105k" />
+					}
+					$show((state.dept === "all" || state.dept === "Design") && (state.loc === "all" || state.loc === "Remote")) {
+						<JobCard id="brand-designer" title="Brand Designer" dept="Design" loc="Remote" salary="$120–145k" />
+					}
+					$show((state.dept === "all" || state.dept === "Ops") && (state.loc === "all" || state.loc === "NYC")) {
+						<JobCard id="office-manager" title="Office Manager" dept="Ops" loc="NYC" salary="$90–110k" />
+					}
+					$show((state.dept === "all" || state.dept === "Ops") && (state.loc === "all" || state.loc === "Berlin")) {
+						<JobCard id="people-partner" title="People Partner" dept="Ops" loc="Berlin" salary="€75–95k" />
+					}
+				</div>
+				$show(computed.visible === 0) {
+					<div class="empty">No roles match both filters. Try widening one of them.</div>
+				}
+				<p class="foot">© 2026 Hireline · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}
