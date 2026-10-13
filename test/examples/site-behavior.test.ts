@@ -206,6 +206,64 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('12-recipes behaves', () => {
+  async function mountIndex() {
+    buildFile('examples/12-recipes/components/RecipeCard.tardis', 'RecipeCard.mjs')
+    buildFile('examples/12-recipes/pages/index.tardis', 'RecipesHome.mjs')
+    const card = await import('./gen/RecipeCard.mjs')
+    ;(dom.window as unknown as Record<string, unknown>).__tardis_RecipeCard = card.RecipeCard
+    const home = await import('./gen/RecipesHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+  }
+
+  function visibleCards(): number {
+    return qa('.grid .card').filter((c) => {
+      let el: HTMLElement | null = c as HTMLElement
+      while (el) {
+        if (el.style && el.style.display === 'none') return false
+        el = el.parentElement
+      }
+      return true
+    }).length
+  }
+
+  it('searches recipes and clears', async () => {
+    await mountIndex()
+    expect(qa('.grid .card').length).toBe(4)
+    expect(q('.count')?.textContent).toContain('4 of 4')
+    type(q('.searchrow input') as HTMLInputElement, 'pizza')
+    expect(visibleCards()).toBe(1)
+    expect(q('.count')?.textContent).toContain('1 of 4')
+    type(q('.searchrow input') as HTMLInputElement, 'zzz')
+    expect(visibleCards()).toBe(0)
+    expect(q('.empty')?.style.display).toBe('')
+    click(q('.searchrow button'))
+    expect(visibleCards()).toBe(4)
+  })
+
+  it('links cards to detail pages', async () => {
+    await mountIndex()
+    expect(qa('.grid .card')[2].getAttribute('href')).toBe('/recipes/tacos')
+  })
+
+  it('renders recipe detail and missing fallback', async () => {
+    buildFile('examples/12-recipes/pages/recipes/[slug].tardis', 'RecipePage.mjs')
+    const { createRouter, $navigate } = await import('../../src/runtime/router')
+    const page = await import('./gen/RecipePage.mjs')
+    const router = createRouter([
+      { path: '/', component: () => dom.window.document.createElement('div') },
+      { path: '/recipes/:slug', component: page.Recipe },
+    ])
+    router.start()
+    $navigate('/recipes/margherita')
+    expect(q('.article h1')?.textContent).toContain('Blistered Margherita')
+    expect(qa('.article li').length).toBe(8)
+    $navigate('/recipes/nope')
+    expect(q('.missing h1')?.textContent).toContain('Not on the menu')
+    expect(qa('.rel-link').length).toBe(4)
+  })
+})
+
 describe('11-gallery behaves', () => {
   async function mount() {
     buildFile('examples/11-gallery/pages/index.tardis', 'GalleryHome.mjs')

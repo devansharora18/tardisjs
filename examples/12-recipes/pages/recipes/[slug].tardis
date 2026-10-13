@@ -1,0 +1,211 @@
+blueprint Recipe {
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 680px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.back {
+			display: inline-block;
+			margin: 40px 0 28px;
+			font-size: 14px;
+			color: #a1a1a1;
+		}
+		.back:hover {
+			color: #ededed;
+			text-decoration: none;
+		}
+		.meta {
+			font-size: 12.5px;
+			font-weight: 600;
+			color: #ffa657;
+			margin-bottom: 12px;
+		}
+		.article h1 {
+			font-size: 38px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+			line-height: 1.15;
+			margin-bottom: 12px;
+		}
+		.lede {
+			font-size: 17px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 28px;
+		}
+		.article h2 {
+			font-size: 20px;
+			font-weight: 800;
+			margin: 28px 0 12px;
+		}
+		.article ul,
+		.article ol {
+			margin: 0 0 8px 20px;
+			padding: 0;
+		}
+		.article li {
+			font-size: 15.5px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 8px;
+		}
+		.rel {
+			margin-top: 48px;
+			border-top: 1px solid #262626;
+			padding-top: 24px;
+		}
+		.rel h2 {
+			font-size: 17px;
+			font-weight: 800;
+			margin-bottom: 12px;
+		}
+		.rel-link {
+			display: block;
+			font-size: 14px;
+			color: #a1a1a1;
+			padding: 8px 0;
+			border-top: 1px solid #1c1c1c;
+			font-family: 'JetBrains Mono', monospace;
+		}
+		.rel-link:hover {
+			color: #ffa657;
+			text-decoration: none;
+		}
+		.missing {
+			text-align: center;
+			padding: 80px 0;
+		}
+		.missing h1 {
+			font-size: 30px;
+			font-weight: 800;
+			margin-bottom: 12px;
+		}
+		.missing p {
+			color: #a1a1a1;
+			margin-bottom: 24px;
+		}
+		.btn {
+			display: inline-block;
+			background: #ededed;
+			color: #0a0a0a;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 10px 20px;
+			border-radius: 8px;
+		}
+		.btn:hover {
+			text-decoration: none;
+			color: #0a0a0a;
+			opacity: 0.88;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<a class="back" href="/">← All recipes</a>
+				$if($params.slug === "miso-ramen") {
+					<article class="article">
+						<div class="meta">Japanese · 35 min · Medium · Serves 2</div>
+						<h1>Midnight Miso Ramen</h1>
+						<p class="lede">A weeknight broth that tastes like the weekend: rich, salty, deeply savory, ready in about half an hour.</p>
+						<h2>Ingredients</h2>
+						<ul>
+							<li>4 cups chicken or dashi stock</li>
+							<li>3 tbsp red miso paste</li>
+							<li>2 portions ramen noodles</li>
+							<li>2 soft eggs, 6½ minutes, iced</li>
+							<li>Scallions, nori, and chili oil to finish</li>
+						</ul>
+						<h2>Steps</h2>
+						<ol>
+							<li>Simmer the stock gently — never a rolling boil, which clouds it.</li>
+							<li>Whisk miso with a ladle of hot stock, then stir back in off the heat.</li>
+							<li>Cook noodles separately until just springy; divide between bowls.</li>
+							<li>Ladle over broth, halve the eggs on top, finish and serve immediately.</li>
+						</ol>
+					</article>
+				}
+				$if($params.slug === "margherita") {
+					<article class="article">
+						<div class="meta">Italian · 90 min + ferment · Medium · Makes 2 pies</div>
+						<h1>Blistered Margherita</h1>
+						<p class="lede">A 72-hour dough baked as hot as your oven goes. Leopard-spotted crust, molten center.</p>
+						<h2>Ingredients</h2>
+						<ul>
+							<li>500g 00 flour, 325g water, 10g salt, 3g yeast</li>
+							<li>200g San Marzano tomatoes, crushed by hand</li>
+							<li>250g fior di latte, torn and drained</li>
+							<li>Basil, olive oil, flaky salt</li>
+						</ul>
+						<h2>Steps</h2>
+						<ol>
+							<li>Mix, rest 20 minutes, knead smooth; cold-ferment 72 hours.</li>
+							<li>Ball into 250g portions 4 hours before baking.</li>
+							<li>Heat oven to max with a steel or stone inside for 45 minutes.</li>
+							<li>Stretch, sauce lightly, bake 5–7 minutes; basil and oil after.</li>
+						</ol>
+					</article>
+				}
+				$if($params.slug === "tacos") {
+					<article class="article">
+						<div class="meta">Mexican · 25 min · Easy · Serves 4</div>
+						<h1>Street Corn Tacos</h1>
+						<p class="lede">Charred corn, lime crema, quick-pickled onion. Everything a Tuesday should be.</p>
+						<h2>Ingredients</h2>
+						<ul>
+							<li>3 ears corn, kernels cut</li>
+							<li>12 small corn tortillas</li>
+							<li>120g crema + lime juice and zest</li>
+							<li>1 red onion, quick-pickled; cotija and cilantro</li>
+						</ul>
+						<h2>Steps</h2>
+						<ol>
+							<li>Char corn in a dry skillet until blackened in spots.</li>
+							<li>Warm tortillas directly over the flame, 20 seconds a side.</li>
+							<li>Assemble: corn, crema, onion, cotija, cilantro, lime.</li>
+						</ol>
+					</article>
+				}
+				$if($params.slug === "chocolate-cake") {
+					<article class="article">
+						<div class="meta">Dessert · 60 min · Easy · Serves 10</div>
+						<h1>Dark Chocolate Cake</h1>
+						<p class="lede">One bowl, deep cocoa, glossy ganache. The birthday default for a reason.</p>
+						<h2>Ingredients</h2>
+						<ul>
+							<li>250g flour, 400g sugar, 75g dark cocoa</li>
+							<li>2 eggs, 240ml milk, 120ml oil, 240ml hot coffee</li>
+							<li>200g dark chocolate + 200ml cream, for ganache</li>
+						</ul>
+						<h2>Steps</h2>
+						<ol>
+							<li>Whisk dry, whisk wet, combine; stream in hot coffee last.</li>
+							<li>Bake at 175°C for 32–35 minutes; cool fully in tins.</li>
+							<li>Pour warm ganache over; set 30 minutes before slicing.</li>
+						</ol>
+					</article>
+				}
+				$if($params.slug !== "miso-ramen" && $params.slug !== "margherita" && $params.slug !== "tacos" && $params.slug !== "chocolate-cake") {
+					<div class="missing">
+						<h1>Not on the menu</h1>
+						<p>No recipe with that slug. Back to the kitchen.</p>
+						<a class="btn" href="/">All recipes</a>
+					</div>
+				}
+				<div class="rel">
+					<h2>More from the kitchen</h2>
+					$each(["miso-ramen", "margherita", "tacos", "chocolate-cake"], (s) => {
+						<a class="rel-link" href={"/recipes/" + s}>{s}</a>
+					})
+				</div>
+			</div>
+		</div>
+	}
+}

@@ -1,0 +1,136 @@
+blueprint Home {
+	state {
+		q: string = ""
+	}
+	computed {
+		visible: ("ramen japanese noodles soup".includes(state.q) ? 1 : 0) + ("pizza italian margherita cheese".includes(state.q) ? 1 : 0) + ("tacos mexican street corn".includes(state.q) ? 1 : 0) + ("chocolate cake dessert baking sweet".includes(state.q) ? 1 : 0)
+	}
+	methods {
+		clear: () => $update(state.q, "")
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 860px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.hero {
+			text-align: center;
+			padding: 64px 0 12px;
+		}
+		.hero-name {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: #ffa657;
+			margin-bottom: 12px;
+		}
+		.hero h1 {
+			font-size: 42px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 10px;
+		}
+		.hero p {
+			font-size: 16px;
+			color: #a1a1a1;
+		}
+		.searchrow {
+			display: flex;
+			gap: 8px;
+			max-width: 480px;
+			margin: 28px auto 8px;
+		}
+		.searchrow input {
+			flex: 1;
+			background: #111111;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 11px 14px;
+			font-family: inherit;
+		}
+		.searchrow button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 8px;
+			font-size: 13px;
+			padding: 11px 16px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.count {
+			text-align: center;
+			font-size: 12.5px;
+			color: #666666;
+			margin-bottom: 28px;
+		}
+		.grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 14px;
+		}
+		.empty {
+			border: 1px dashed #404040;
+			border-radius: 10px;
+			padding: 32px;
+			text-align: center;
+			font-size: 14px;
+			color: #888888;
+			margin-top: 8px;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 64px;
+			font-size: 13px;
+			color: #666666;
+		}
+		@media (max-width: 700px) {
+			.grid { grid-template-columns: 1fr; }
+			.hero h1 { font-size: 32px; }
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<header class="hero">
+					<div class="hero-name">Salt &amp; Ember</div>
+					<h1>Cook something tonight.</h1>
+					<p>Four tested recipes. Search by craving, cuisine, or ingredient.</p>
+				</header>
+				<div class="searchrow">
+					<input value={state.q} @input={(e) => $update(state.q, e.target.value.toLowerCase())} placeholder="Try ramen, pizza, tacos…" />
+					<button @click={methods.clear}>Clear</button>
+				</div>
+				<p class="count">{computed.visible} of 4 recipes</p>
+				<div class="grid">
+					$show(state.q === "" || "ramen japanese noodles soup".includes(state.q)) {
+						<RecipeCard slug="miso-ramen" title="Midnight Miso Ramen" meta="Japanese · 35 min · Medium" desc="Rich pork broth, jammy eggs, and noodles with bite. Weeknight luxury." />
+					}
+					$show(state.q === "" || "pizza italian margherita cheese".includes(state.q)) {
+						<RecipeCard slug="margherita" title="Blistered Margherita" meta="Italian · 90 min · Medium" desc="72-hour dough, San Marzano sauce, fior di latte. Worth the wait." />
+					}
+					$show(state.q === "" || "tacos mexican street corn".includes(state.q)) {
+						<RecipeCard slug="tacos" title="Street Corn Tacos" meta="Mexican · 25 min · Easy" desc="Charred corn, lime crema, and warm tortillas. Tuesday, upgraded." />
+					}
+					$show(state.q === "" || "chocolate cake dessert baking sweet".includes(state.q)) {
+						<RecipeCard slug="chocolate-cake" title="Dark Chocolate Cake" meta="Dessert · 60 min · Easy" desc="One bowl, deep cocoa, glossy ganache. The birthday default." />
+					}
+				</div>
+				$show(state.q !== "" && computed.visible === 0) {
+					<div class="empty">Nothing matches "{state.q}". Try "pizza" or "cake".</div>
+				}
+				<p class="foot">© 2026 Salt &amp; Ember · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}
