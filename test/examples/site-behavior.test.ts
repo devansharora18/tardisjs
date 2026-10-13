@@ -206,6 +206,56 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('08-chat behaves', () => {
+  async function mount() {
+    vi.stubGlobal('requestAnimationFrame', (fn: FrameRequestCallback) => { fn(0); return 0 })
+    buildFile('examples/08-chat/pages/index.tardis', 'ChatHome.mjs')
+    const home = await import('./gen/ChatHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+    const { flushMountCallbacks } = await import('../../src/runtime/events')
+    flushMountCallbacks()
+  }
+
+  function texts(): string[] {
+    return qa('.msg').map((m) => m.textContent || '')
+  }
+
+  it('greets on mount and sends messages with bot replies', async () => {
+    await mount()
+    expect(texts().length).toBe(1)
+    expect(texts()[0]).toContain('demo bot')
+    type(q('.composer input') as HTMLInputElement, 'What is the price?')
+    click(q('.composer button'))
+    expect(texts().length).toBe(3)
+    expect(texts()[1]).toContain('What is the price?')
+    expect(texts()[2]).toContain('$19/mo')
+    expect((q('.composer input') as HTMLInputElement).value).toBe('')
+  })
+
+  it('ignores empty sends', async () => {
+    await mount()
+    click(q('.composer button'))
+    expect(texts().length).toBe(1)
+  })
+
+  it('answers quick replies and human requests', async () => {
+    await mount()
+    click(qa('.quick button')[2])
+    const t = texts()
+    expect(t[t.length - 2]).toContain('human')
+    expect(t[t.length - 1]).toContain('2 minutes')
+  })
+
+  it('sends on Enter', async () => {
+    await mount()
+    const input = q('.composer input') as HTMLInputElement
+    type(input, 'hello there')
+    input.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+    expect(texts().length).toBe(3)
+    expect(texts()[2]).toContain('follow up')
+  })
+})
+
 describe('07-auth behaves', () => {
   async function mount() {
     buildFile('examples/07-auth/pages/index.tardis', 'AuthHome.mjs')

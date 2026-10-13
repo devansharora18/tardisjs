@@ -1,0 +1,169 @@
+blueprint Home {
+	state {
+		messages: array = []
+		input: string = ""
+	}
+	methods {
+		send: () => $batch(() => ($update(state.messages, state.input === "" ? state.messages : [...state.messages, { from: "me", text: state.input }, { from: "bot", text: state.input.includes("price") ? "Our plans start at $19/mo yearly. Want a tour?" : (state.input.includes("human") ? "Connecting you — median wait is 2 minutes." : "Got it! A specialist will follow up here shortly.") }]), $update(state.input, "")))
+		ask: (q) => $batch(() => ($update(state.messages, [...state.messages, { from: "me", text: q }, { from: "bot", text: q.includes("price") ? "Our plans start at $19/mo yearly. Want a tour?" : (q.includes("human") ? "Connecting you — median wait is 2 minutes." : "Great question — check the docs, or ask for a human anytime.") }]), $update(state.input, "")))
+	}
+	events {
+		onMount: () => $update(state.messages, [{ from: "bot", text: "Hi! I am the demo bot. Ask about pricing, or type human." }])
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			display: flex;
+			justify-content: center;
+			padding: 48px 24px;
+		}
+		.shell {
+			width: 100%;
+			max-width: 560px;
+		}
+		.head {
+			text-align: center;
+			margin-bottom: 20px;
+		}
+		.head h1 {
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		.head p {
+			font-size: 13.5px;
+			color: #888888;
+			margin-top: 6px;
+		}
+		.status {
+			display: inline-block;
+			font-size: 12px;
+			font-weight: 600;
+			color: #7ee787;
+			background: #0e2a1a;
+			border: 1px solid #1f6b3a;
+			padding: 3px 10px;
+			border-radius: 999px;
+			margin-top: 10px;
+		}
+		.chat {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 14px;
+			overflow: hidden;
+		}
+		.thread {
+			height: 380px;
+			overflow-y: auto;
+			padding: 20px;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+		.msg {
+			max-width: 80%;
+			padding: 10px 14px;
+			border-radius: 12px;
+			font-size: 14px;
+			line-height: 1.55;
+		}
+		.me {
+			align-self: flex-end;
+			background: #ededed;
+			color: #0a0a0a;
+			border-bottom-right-radius: 4px;
+		}
+		.bot {
+			align-self: flex-start;
+			background: #1c1c1c;
+			color: #ededed;
+			border: 1px solid #2e2e2e;
+			border-bottom-left-radius: 4px;
+		}
+		.quick {
+			display: flex;
+			gap: 8px;
+			padding: 0 20px 12px;
+			flex-wrap: wrap;
+		}
+		.quick button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 999px;
+			font-size: 12.5px;
+			padding: 7px 14px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.quick button:hover {
+			border-color: #888888;
+			color: #ededed;
+		}
+		.composer {
+			display: flex;
+			gap: 8px;
+			padding: 14px 20px 20px;
+			border-top: 1px solid #262626;
+		}
+		.composer input {
+			flex: 1;
+			background: #0a0a0a;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 11px 12px;
+			font-family: inherit;
+		}
+		.composer button {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 11px 20px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="shell">
+				<div class="head">
+					<h1>Helpdesk</h1>
+					<p>A support chat. The bot answers instantly from keyword rules.</p>
+					<span class="status">● Bot online</span>
+				</div>
+				<div class="chat">
+					<div class="thread" id="thread">
+						$each(state.messages, (m) => {
+							<div class={m.from === "me" ? "msg me" : "msg bot"}>{m.text}</div>
+						})
+					</div>
+					<div class="quick">
+						<button @click={() => methods.ask("What is the price?")}>Pricing?</button>
+						<button @click={() => methods.ask("How do I start?")}>How do I start?</button>
+						<button @click={() => methods.ask("Talk to a human")}>Talk to a human</button>
+					</div>
+					<div class="composer">
+						<input value={state.input} @input={(e) => $update(state.input, e.target.value)} @keydown={(e) => e.key === "Enter" ? methods.send() : null} placeholder="Type a message…" />
+						<button @click={methods.send}>Send</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+	script {
+		const thread = $el.querySelector('.thread')
+		if (thread && window.MutationObserver) {
+			const scroll = () => { thread.scrollTop = thread.scrollHeight }
+			new window.MutationObserver(scroll).observe(thread, { childList: true })
+			scroll()
+		}
+	}
+}
