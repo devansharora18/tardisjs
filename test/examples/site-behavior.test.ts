@@ -206,6 +206,43 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('06-portfolio behaves', () => {
+  async function mount() {
+    buildFile('examples/06-portfolio/components/ProjectCard.tardis', 'FolioCard.mjs')
+    buildFile('examples/06-portfolio/pages/index.tardis', 'FolioHome.mjs')
+    const card = await import('./gen/FolioCard.mjs')
+    ;(dom.window as unknown as Record<string, unknown>).__tardis_ProjectCard = card.ProjectCard
+    const home = await import('./gen/FolioHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+  }
+
+  function visibleCards(): number {
+    return qa('.grid .card').filter((c) => (c as HTMLElement).style.display !== 'none').length
+  }
+
+  it('filters the grid by discipline', async () => {
+    await mount()
+    expect(qa('.grid .card').length).toBe(6)
+    expect(visibleCards()).toBe(6)
+    click(qa('.filters button')[1])
+    expect(visibleCards()).toBe(2)
+    click(qa('.filters button')[2])
+    expect(visibleCards()).toBe(2)
+    click(qa('.filters button')[0])
+    expect(visibleCards()).toBe(6)
+  })
+
+  it('opens and closes the lightbox with case content', async () => {
+    await mount()
+    expect(q('.lightbox')?.style.display).toBe('none')
+    click(qa('.card .open')[2])
+    expect(q('.lightbox')?.style.display).toBe('')
+    expect(q('.case h2')?.textContent).toContain('Ledger App')
+    click(q('.case-close'))
+    expect(q('.lightbox')?.style.display).toBe('none')
+  })
+})
+
 describe('04-store behaves', () => {
   async function mount() {
     buildFile('examples/04-store/components/ProductCard.tardis', 'StoreCard.mjs')

@@ -1,0 +1,70 @@
+blueprint ProjectCard {
+	props {
+		id: string = ""
+		title: string = ""
+		category: string = ""
+		year: string = ""
+		thumb: string = ""
+		onOpen: function
+	}
+	style {
+		.card {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			overflow: hidden;
+			transition: border-color 0.15s;
+		}
+		.card:hover {
+			border-color: #404040;
+		}
+		.thumb {
+			height: 180px;
+		}
+		.thumb-1 { background: radial-gradient(circle at 30% 20%, #3291ff, #0e2338 70%); }
+		.thumb-2 { background: radial-gradient(circle at 70% 30%, #7ee787, #0e2a1a 70%); }
+		.thumb-3 { background: radial-gradient(circle at 50% 80%, #d2a8ff, #241238 70%); }
+		.thumb-4 { background: radial-gradient(circle at 20% 70%, #ffa657, #3a1f0e 70%); }
+		.thumb-5 { background: radial-gradient(circle at 80% 80%, #ff7b72, #3a0e0e 70%); }
+		.thumb-6 { background: radial-gradient(circle at 50% 20%, #61dafb, #0e2a38 70%); }
+		.body {
+			padding: 20px;
+		}
+		.body h3 {
+			font-size: 17px;
+			font-weight: 800;
+			color: #ededed;
+			margin-bottom: 4px;
+		}
+		.meta {
+			font-size: 12.5px;
+			color: #888888;
+			margin-bottom: 14px;
+		}
+		.open {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #ededed;
+			border-radius: 8px;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 9px 16px;
+			cursor: pointer;
+			font-family: inherit;
+			width: 100%;
+		}
+		.open:hover {
+			border-color: #888888;
+		}
+	}
+	ui {
+		<div class="card">
+			<div class={props.thumb}></div>
+			<div class="body">
+				<h3>{props.title}</h3>
+				<div class="meta">{props.category} · {props.year}</div>
+				<button class="open" @click={props.onOpen}>View case study</button>
+			</div>
+		</div>
+	}
+}
