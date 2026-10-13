@@ -897,6 +897,22 @@ describe('ui compiler', () => {
       expect(out).toContain('$runtime.params.slug')
       expect(out).not.toContain('$runtime.text("$if')
     })
+
+    it('rewrites $batch and $reset to runtime calls', () => {
+      const out = compileSource(`
+        blueprint Cart {
+          state { total: number = 0 }
+          methods {
+            add: (price) => $batch(() => ($update(state.total, state.total + price)))
+            clear: () => $reset(state, { total: 0 })
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('$runtime.batch(')
+      expect(out).toContain("$runtime.reset(_state,")
+      expect(out).not.toContain('$batch(')
+    })
   })
 
   describe('component usage', () => {

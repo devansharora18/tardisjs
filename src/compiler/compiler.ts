@@ -229,7 +229,10 @@ function rewriteRefs(expr: string): string {
 
 	return rewritten
 		.replace(/\$update\(\s*_state\.([a-zA-Z_$][\w$]*)\s*,/g, "$runtime.update(_state, '$1',")
-		.replace(/\$toggle\(\s*_state\.([a-zA-Z_$][\w$]*)\s*\)/g, "$runtime.toggle(_state, '$1')");
+		.replace(/\$toggle\(\s*_state\.([a-zA-Z_$][\w$]*)\s*\)/g, "$runtime.toggle(_state, '$1')")
+		.replace(/(?<![\w$])\$batch\(/g, "$runtime.batch(")
+		.replace(/(?<![\w$])\$reset\(\s*state\s*,/g, "$runtime.reset(_state,")
+		.replace(/(?<![\w$])\$reset\(/g, "$runtime.reset(");
 }
 
 // ── ui compiler ────────────────────────────────────────────────────────────
