@@ -942,6 +942,36 @@ describe('ui compiler', () => {
       `)
       expect(out).toContain('if (typeof _props.onClick === "function") _props.onClick = _props.onClick();')
     })
+
+    it('keeps braced attributes on self-closing component tags', () => {
+      const out = compileSource(`
+        blueprint Page {
+          methods { go: () => $update(state.x, 1) }
+          ui {
+            <div>
+              <Button id="a" onClick={() => methods.go("x", 1)} />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("$runtime.component('Button'")
+      expect(out).not.toContain('&lt;Button')
+    })
+
+    it('keeps braced attributes on self-closing input tags', () => {
+      const out = compileSource(`
+        blueprint Form {
+          state { email: string = "" }
+          ui {
+            <div>
+              <input value={state.email} @input={(e) => $update(state.email, e.target.value)} />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("document.createElement('input')")
+      expect(out).toContain("addEventListener('input'")
+    })
     it('compiles PascalCase tag as component', () => {
       const out = compileSource(`
         blueprint Home {

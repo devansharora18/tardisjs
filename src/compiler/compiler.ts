@@ -816,19 +816,19 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 				next.startsWith("$") ||
 				next.startsWith("{")
 			) {
-				// A control-flow head ($if/$each/$show ...) is always followed
-				// by its brace block. Splitting between the head and the block
-				// would degrade the head into literal text and the block into
-				// a bogus expression — so keep accumulating and let `{` open it.
-				// Likewise, never split inside the head's own parens
-				// (e.g. the `$params` in `$if($params.slug === "x")`).
+				// A `{...}` never starts a new child when it continues the
+				// current one: a control-flow block (`$if(c) {`), an $each
+				// item body (`=> {`), or an attribute value (`attr={`).
+				// Splitting any of those produces garbage — and self-closing
+				// tags (`<input value={...} />`) rely on this, since unlike
+				// open tags they never raise `<` depth to protect the braces.
 				const head = current.trim();
 				const parenBalance = (head.match(/\(/g) || []).length - (head.match(/\)/g) || []).length;
 				const inControlHead = /^\$(if|each|show)\(/.test(head) && parenBalance > 0;
-				const opensBlock = next.startsWith("{") && (
-					/^\$(if|each|show)\([\s\S]*\)$/.test(head) || /=>$/.test(head)
+				const continuesHere = next.startsWith("{") && (
+					/^\$(if|each|show)\([\s\S]*\)$/.test(head) || /=$/.test(head)
 				);
-				if (!inControlHead && !opensBlock) {
+				if (!inControlHead && !continuesHere) {
 					const isEl = current.trimStart().startsWith('<') ||
 						current.trimStart().startsWith('$') ||
 						current.trimStart().startsWith('{<');
