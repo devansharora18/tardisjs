@@ -1,0 +1,185 @@
+blueprint Product {
+	state {
+		qty: number = 1
+		added: boolean = false
+	}
+	methods {
+		inc: () => $update(state.qty, state.qty + 1)
+		dec: () => $update(state.qty, state.qty > 1 ? state.qty - 1 : 1)
+		add: () => $update(state.added, true)
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 680px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.back {
+			display: inline-block;
+			margin: 40px 0 28px;
+			font-size: 14px;
+			color: #a1a1a1;
+		}
+		.back:hover {
+			color: #ededed;
+			text-decoration: none;
+		}
+		.tag {
+			display: inline-block;
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: #3291ff;
+			background: #0e2338;
+			padding: 2px 8px;
+			border-radius: 4px;
+			margin-bottom: 12px;
+		}
+		.detail h1 {
+			font-size: 38px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+			margin-bottom: 8px;
+		}
+		.price {
+			font-size: 24px;
+			font-weight: 800;
+			margin-bottom: 16px;
+		}
+		.detail p {
+			font-size: 16px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 24px;
+		}
+		.buy {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 20px;
+		}
+		.qty {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			font-size: 17px;
+			font-weight: 700;
+		}
+		.qty button {
+			width: 34px;
+			height: 34px;
+			background: transparent;
+			border: 1px solid #404040;
+			color: #ededed;
+			border-radius: 8px;
+			font-size: 17px;
+			cursor: pointer;
+		}
+		.add {
+			flex: 1;
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.added {
+			margin-top: 16px;
+			background: #0e2a1a;
+			border: 1px solid #1f6b3a;
+			border-radius: 10px;
+			padding: 16px 20px;
+			font-size: 14px;
+			color: #7ee787;
+		}
+		.added a {
+			color: #ededed;
+			font-weight: 600;
+		}
+		.missing {
+			text-align: center;
+			padding: 80px 0;
+		}
+		.missing h1 {
+			font-size: 30px;
+			font-weight: 800;
+			margin-bottom: 12px;
+		}
+		.missing p {
+			color: #a1a1a1;
+			margin-bottom: 24px;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<a class="back" href="/">← All products</a>
+				$if($params.id === "drift") {
+					<div class="detail">
+						<span class="tag">Keyboards</span>
+						<h1>Drift Keyboard</h1>
+						<div class="price">$129</div>
+						<p>A gasket-mounted 75% board with silent linear switches, PBT keycaps, and a machined aluminum case. Connects over USB-C, Bluetooth, or 2.4GHz — and holds the connection.</p>
+						<div class="buy">
+							<div class="qty"><button @click={methods.dec}>−</button>{state.qty}<button @click={methods.inc}>+</button></div>
+							<button class="add" @click={methods.add}>Add to bag</button>
+						</div>
+						$show(state.added) {
+							<p class="added">{state.qty} × Drift Keyboard added. <a href="/">Keep shopping →</a></p>
+						}
+					</div>
+				}
+				$if($params.id === "aero") {
+					<div class="detail">
+						<span class="tag">Mice</span>
+						<h1>Aero Mouse</h1>
+						<div class="price">$79</div>
+						<p>A 58-gram wireless mouse with a 90-hour battery, optical switches rated for 90M clicks, and a shape that disappears into your hand.</p>
+						<div class="buy">
+							<div class="qty"><button @click={methods.dec}>−</button>{state.qty}<button @click={methods.inc}>+</button></div>
+							<button class="add" @click={methods.add}>Add to bag</button>
+						</div>
+						$show(state.added) {
+							<p class="added">{state.qty} × Aero Mouse added. <a href="/">Keep shopping →</a></p>
+						}
+					</div>
+				}
+				$if($params.id === "mono") {
+					<div class="detail">
+						<span class="tag">Audio</span>
+						<h1>Mono Headphones</h1>
+						<div class="price">$199</div>
+						<p>Closed-back studio sound with memory-foam cups and a fold-flat hinge. Tuned flat, built to be repaired — every part is replaceable.</p>
+						<div class="buy">
+							<div class="qty"><button @click={methods.dec}>−</button>{state.qty}<button @click={methods.inc}>+</button></div>
+							<button class="add" @click={methods.add}>Add to bag</button>
+						</div>
+						$show(state.added) {
+							<p class="added">{state.qty} × Mono Headphones added. <a href="/">Keep shopping →</a></p>
+						}
+					</div>
+				}
+				$if($params.id !== "drift" && $params.id !== "aero" && $params.id !== "mono") {
+					<div class="missing">
+						<h1>Product not found</h1>
+						<p>That product does not exist. Back to the shelf.</p>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

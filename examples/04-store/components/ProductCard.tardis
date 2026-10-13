@@ -1,0 +1,93 @@
+blueprint ProductCard {
+	props {
+		id: string = ""
+		name: string = ""
+		price: string = ""
+		tag: string = ""
+		desc: string = ""
+		onAdd: function
+	}
+	style {
+		.card {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 24px;
+			display: flex;
+			flex-direction: column;
+		}
+		.card:hover {
+			border-color: #404040;
+		}
+		.tag {
+			align-self: flex-start;
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: #3291ff;
+			background: #0e2338;
+			padding: 2px 8px;
+			border-radius: 4px;
+			margin-bottom: 12px;
+		}
+		.card h3 {
+			font-size: 19px;
+			font-weight: 800;
+			color: #ededed;
+			margin-bottom: 6px;
+		}
+		.card p {
+			font-size: 14px;
+			color: #a1a1a1;
+			line-height: 1.6;
+			flex: 1;
+			margin-bottom: 16px;
+		}
+		.row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 16px;
+		}
+		.price {
+			font-size: 22px;
+			font-weight: 800;
+		}
+		.view {
+			font-size: 13px;
+			color: #a1a1a1;
+		}
+		.view:hover {
+			color: #ededed;
+			text-decoration: none;
+		}
+		.add {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 10px;
+			cursor: pointer;
+			font-family: inherit;
+			width: 100%;
+		}
+		.add:hover {
+			opacity: 0.88;
+		}
+	}
+	ui {
+		<div class="card">
+			<span class="tag">{props.tag}</span>
+			<h3>{props.name}</h3>
+			<p>{props.desc}</p>
+			<div class="row">
+				<span class="price">${props.price}</span>
+				<a class="view" href={"/product/" + props.id}>Details →</a>
+			</div>
+			<button class="add" @click={props.onAdd}>Add to bag</button>
+		</div>
+	}
+}
