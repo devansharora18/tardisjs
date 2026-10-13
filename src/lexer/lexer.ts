@@ -138,6 +138,8 @@ export function lex(source: string): Token[] {
     }
 
     if (ch === '}') { advance(); emit('RBRACE', '}'); continue }
+    if (ch === '[') { advance(); emit('LBRACKET', '['); continue }
+    if (ch === ']') { advance(); emit('RBRACKET', ']'); continue }
     if (ch === ':') { advance(); emit('COLON', ':'); continue }
     if (ch === '|') { advance(); emit('PIPE', '|'); continue }
     if (ch === '.') { advance(); emit('DOT', '.'); continue }

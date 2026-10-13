@@ -26,6 +26,8 @@ export type TokenType =
   | 'DOT'
   | 'LBRACE'
   | 'RBRACE'
+  | 'LBRACKET'
+  | 'RBRACKET'
   | 'LPAREN'
   | 'RPAREN'
   | 'ARROW'

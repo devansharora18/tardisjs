@@ -177,6 +177,20 @@ describe('compiler', () => {
       expect(out).toContain('loading: false')
     })
 
+    it('emits empty array and object defaults', () => {
+      const out = compileSource(`
+        blueprint Cart {
+          state {
+            cart: array = []
+            meta: object = {}
+          }
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain('cart: []')
+      expect(out).toContain('meta: {}')
+    })
+
     it('uses _props reference for state default referencing props', () => {
       const out = compileSource(`
         blueprint Counter {

@@ -236,8 +236,15 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
         defaultVal = parseFloat(advance().value)
       } else if (check('BOOLEAN')) {
         defaultVal = advance().value === 'true'
+      } else if (check('LBRACKET')) {
+        // [] default
+        advance() // consume [
+        if (check('RBRACKET')) {
+          advance() // consume ]
+          defaultVal = '[]'
+        }
       } else if (check('LBRACE')) {
-        // [] or {} default
+        // {} default
         advance() // consume {
         if (check('RBRACE')) {
           advance() // consume }

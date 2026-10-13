@@ -157,6 +157,12 @@ describe('lexer', () => {
       expect(tokens).toContain('RBRACE')
     })
 
+    it('tokenizes brackets', () => {
+      const tokens = types(lex('[ ]'))
+      expect(tokens).toContain('LBRACKET')
+      expect(tokens).toContain('RBRACKET')
+    })
+
     it('tokenizes parens', () => {
       const tokens = types(lex('( )'))
       expect(tokens).toContain('LPAREN')

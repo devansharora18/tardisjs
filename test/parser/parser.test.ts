@@ -115,6 +115,7 @@ describe('parser', () => {
         }
       `)
       expect(ast.props[0].type).toBe('array')
+      expect(ast.props[0].default).toBe('[]')
     })
 
     it('parses object prop', () => {
@@ -125,6 +126,7 @@ describe('parser', () => {
         }
       `)
       expect(ast.props[0].type).toBe('object')
+      expect(ast.props[0].default).toBe('{}')
     })
 
     it('parses union type prop', () => {
@@ -238,6 +240,7 @@ describe('parser', () => {
         }
       `)
       expect(ast.state).toHaveLength(3)
+      expect(ast.state[2].default).toBe('[]')
     })
 
     it('returns empty array when no state block', () => {
