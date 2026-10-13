@@ -206,6 +206,66 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('10-player behaves', () => {
+  async function mount() {
+    buildFile('examples/10-player/pages/index.tardis', 'PlayerHome.mjs')
+    const home = await import('./gen/PlayerHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+    const { flushMountCallbacks } = await import('../../src/runtime/events')
+    flushMountCallbacks()
+  }
+
+  function elapsedText(): string {
+    return qa('.times span')[0].textContent || ''
+  }
+
+  it('seeds the playlist on mount', async () => {
+    vi.useFakeTimers()
+    try {
+      await mount()
+      expect(qa('.row, .row-on').length).toBe(3)
+      expect(q('.now h1')?.textContent).toBe('Midnight Run')
+      expect(elapsedText()).toBe('0:00')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('plays a track and advances the clock', async () => {
+    vi.useFakeTimers()
+    try {
+      await mount()
+      click(qa('.row, .row-on')[1])
+      expect(q('.now h1')?.textContent).toBe('Paper Planes')
+      expect(q('.play')?.textContent).toBe('❚❚')
+      vi.advanceTimersByTime(5000)
+      expect(elapsedText()).toBe('0:05')
+      expect(q('.fill')?.getAttribute('style')).toContain('width:')
+      click(q('.play'))
+      vi.advanceTimersByTime(5000)
+      expect(elapsedText()).toBe('0:05')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('steps next and prev with elapsed reset', async () => {
+    vi.useFakeTimers()
+    try {
+      await mount()
+      click(q('.controls button:last-child'))
+      expect(q('.now h1')?.textContent).toBe('Paper Planes')
+      click(qa('.row, .row-on')[2])
+      expect(q('.now h1')?.textContent).toBe('Solar Drift')
+      click(q('.controls button:first-child'))
+      expect(q('.now h1')?.textContent).toBe('Paper Planes')
+      expect(elapsedText()).toBe('0:00')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
 describe('09-kanban behaves', () => {
   async function mount() {
     buildFile('examples/09-kanban/pages/index.tardis', 'KanbanHome.mjs')

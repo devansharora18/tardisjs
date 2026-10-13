@@ -1,0 +1,209 @@
+blueprint Home {
+	state {
+		tracks: array = []
+		current: number = 0
+		playing: boolean = false
+		elapsed: number = 0
+	}
+	computed {
+		ready: state.tracks.length > 0
+		nowTitle: state.tracks.length === 0 ? "" : state.tracks[state.current].title
+		nowArtist: state.tracks.length === 0 ? "" : state.tracks[state.current].artist
+		trackLen: state.tracks.length === 0 ? 0 : state.tracks[state.current].secs
+		pct: state.tracks.length === 0 ? 0 : (state.elapsed / state.tracks[state.current].secs) * 100
+	}
+	methods {
+		tick: () => $update(state.elapsed, !state.playing || state.tracks.length === 0 ? state.elapsed : Math.min(state.elapsed + 1, state.tracks[state.current].secs))
+		toggle: () => $toggle(state.playing)
+		next: () => $batch(() => ($update(state.current, (state.current + 1) % state.tracks.length), $update(state.elapsed, 0)))
+		prev: () => $batch(() => ($update(state.current, (state.current + state.tracks.length - 1) % state.tracks.length), $update(state.elapsed, 0)))
+		playTitle: (t) => $batch(() => ($update(state.current, state.tracks.map((x) => x.title).indexOf(t)), $update(state.elapsed, 0), $update(state.playing, true)))
+	}
+	events {
+		onMount: () => $batch(() => ($update(state.tracks, [{ title: "Midnight Run", artist: "Neon Coast", secs: 184 }, { title: "Paper Planes", artist: "Glasswing", secs: 207 }, { title: "Solar Drift", artist: "Aurora Fields", secs: 195 }]), $update(state.timer, setInterval(methods.tick, 1000))))
+		onDestroy: () => clearInterval(state.timer)
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			display: flex;
+			justify-content: center;
+			padding: 48px 24px;
+		}
+		.shell {
+			width: 100%;
+			max-width: 520px;
+		}
+		.now {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 14px;
+			padding: 28px;
+			margin-bottom: 14px;
+			text-align: center;
+		}
+		.disc {
+			width: 120px;
+			height: 120px;
+			border-radius: 50%;
+			margin: 0 auto 18px;
+			background: radial-gradient(circle at 50% 50%, #3291ff 0%, #0e2338 55%, #0a0a0a 72%);
+			border: 1px solid #404040;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.hole {
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+			background: #0a0a0a;
+			border: 1px solid #404040;
+		}
+		.now h1 {
+			font-size: 24px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		.now-artist {
+			font-size: 14px;
+			color: #888888;
+			margin: 4px 0 18px;
+		}
+		.times {
+			display: flex;
+			justify-content: space-between;
+			font-family: 'JetBrains Mono', monospace;
+			font-size: 12px;
+			color: #888888;
+			margin-bottom: 6px;
+		}
+		.progress {
+			height: 6px;
+			background: #262626;
+			border-radius: 3px;
+			overflow: hidden;
+			margin-bottom: 20px;
+		}
+		.fill {
+			height: 100%;
+			background: #ededed;
+			border-radius: 3px;
+			transition: width 1s linear;
+		}
+		.controls {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 14px;
+		}
+		.controls button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #ededed;
+			border-radius: 50%;
+			width: 46px;
+			height: 46px;
+			font-size: 16px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.controls button.play {
+			width: 60px;
+			height: 60px;
+			font-size: 20px;
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+		}
+		.list {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 14px;
+			padding: 12px;
+		}
+		.row {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			width: 100%;
+			background: transparent;
+			border: none;
+			border-radius: 9px;
+			padding: 12px;
+			cursor: pointer;
+			text-align: left;
+			font-family: inherit;
+			color: #ededed;
+		}
+		.row:hover {
+			background: #1c1c1c;
+		}
+		.row-on {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			width: 100%;
+			background: #0e2338;
+			border: 1px solid #1f4b7a;
+			border-radius: 9px;
+			padding: 12px;
+			cursor: pointer;
+			text-align: left;
+			font-family: inherit;
+			color: #ededed;
+		}
+		.row-num {
+			font-family: 'JetBrains Mono', monospace;
+			font-size: 12px;
+			color: #666666;
+			width: 18px;
+		}
+		.row-main {
+			flex: 1;
+		}
+		.row-title {
+			font-size: 14px;
+			font-weight: 600;
+		}
+		.row-artist {
+			font-size: 12.5px;
+			color: #888888;
+		}
+		.row-len {
+			font-family: 'JetBrains Mono', monospace;
+			font-size: 12px;
+			color: #888888;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="shell">
+				<div class="now">
+					<div class="disc"><div class="hole"></div></div>
+					<h1>{computed.nowTitle}</h1>
+					<p class="now-artist">{computed.nowArtist}</p>
+					<div class="times"><span>{Math.floor(state.elapsed / 60)}:{String(state.elapsed % 60).padStart(2, "0")}</span><span>{Math.floor(computed.trackLen / 60)}:{String(computed.trackLen % 60).padStart(2, "0")}</span></div>
+					<div class="progress"><div class="fill" style={"width: " + computed.pct + "%"}></div></div>
+					<div class="controls">
+						<button @click={methods.prev}>|◀</button>
+						<button class="play" @click={methods.toggle}>{state.playing ? "❚❚" : "▶"}</button>
+						<button @click={methods.next}>▶|</button>
+					</div>
+				</div>
+				<div class="list">
+					$each(state.tracks, (t) => {
+						<button class={t.title === computed.nowTitle ? "row-on" : "row"} @click={() => methods.playTitle(t.title)}>
+							<span class="row-num">♪</span>
+							<span class="row-main"><span class="row-title">{t.title}</span><br /><span class="row-artist">{t.artist}</span></span>
+							<span class="row-len">{Math.floor(t.secs / 60)}:{String(t.secs % 60).padStart(2, "0")}</span>
+						</button>
+					})
+				</div>
+			</div>
+		</div>
+	}
+}
