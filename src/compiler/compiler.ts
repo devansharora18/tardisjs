@@ -288,9 +288,12 @@ function compileScript(ast: BlueprintNode): string {
 function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
+	// Children arrive with leading whitespace preserved; the matchers below
+	// anchor at the start, so trim here (callers handle spacing themselves).
+	const src = raw.trim();
 
 	// $if
-	const ifMatch = raw.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/);
+	const ifMatch = src.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (ifMatch) {
 		const condition = rewriteRefs(ifMatch[1].trim());
 		const inner = compileUINode(ifMatch[2].trim(), depth + 1, preserveWs, hasStyles);
@@ -301,7 +304,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	}
 
 	// $each
-	const eachMatch = raw.match(
+	const eachMatch = src.match(
 		/^\$each\((.+?),\s*\((\w+)\)\s*=>\s*\{([\s\S]*)\}\s*\)/,
 	);
 	if (eachMatch) {
@@ -315,7 +318,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	}
 
 	// $show
-	const showMatch = raw.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/);
+	const showMatch = src.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (showMatch) {
 		const condition = rewriteRefs(showMatch[1].trim());
 		const inner = compileUINode(showMatch[2].trim(), depth + 1, preserveWs, hasStyles);
@@ -326,7 +329,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	}
 
 	// {} chain syntax
-	const chainMatch = raw.match(/^\{([\s\S]+?)\}((?:\s*\.\w+\([^)]*\))+)/);
+	const chainMatch = src.match(/^\{([\s\S]+?)\}((?:\s*\.\w+\([^)]*\))+)/);
 	if (chainMatch) {
 		const innerEl = chainMatch[1].trim();
 		const chainStr = chainMatch[2].trim();
@@ -344,7 +347,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 		return lines.join("\n");
 	}
 
-	return compileElement(raw, depth, preserveWs, hasStyles)
+	return compileElement(src, depth, preserveWs, hasStyles)
 }
 
 function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean): string {
@@ -803,12 +806,22 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 				next.startsWith("$") ||
 				next.startsWith("{")
 			) {
-				const isEl = current.trimStart().startsWith('<') ||
-					current.trimStart().startsWith('$') ||
-					current.trimStart().startsWith('{<');
-				const n = ws(current, isEl);
-				if (n.trim()) parts.push(n);
-				current = "";
+				// A control-flow head ($if/$each/$show ...) is always followed
+				// by its brace block. Splitting between the head and the block
+				// would degrade the head into literal text and the block into
+				// a bogus expression — so keep accumulating and let `{` open it.
+				const head = current.trim();
+				const opensBlock = next.startsWith("{") && (
+					/^\$(if|each|show)\([\s\S]*\)$/.test(head) || /=>$/.test(head)
+				);
+				if (!opensBlock) {
+					const isEl = current.trimStart().startsWith('<') ||
+						current.trimStart().startsWith('$') ||
+						current.trimStart().startsWith('{<');
+					const n = ws(current, isEl);
+					if (n.trim()) parts.push(n);
+					current = "";
+				}
 			}
 		}
 	}

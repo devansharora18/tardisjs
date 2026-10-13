@@ -827,6 +827,62 @@ describe('ui compiler', () => {
     })
   })
 
+  describe('nested control flow', () => {
+    it('compiles $show nested inside an element', () => {
+      const out = compileSource(`
+        blueprint Faq {
+          state { open: number = -1 }
+          ui {
+            <div>
+              <button>Q</button>
+              $show(state.open === 0) {
+                <p>answer</p>
+              }
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.show(')
+      expect(out).not.toContain('$runtime.text("$show')
+    })
+
+    it('compiles $if nested inside an element', () => {
+      const out = compileSource(`
+        blueprint Modal {
+          state { open: boolean = false }
+          ui {
+            <div>
+              <h1>title</h1>
+              $if(state.open) {
+                <p>body</p>
+              }
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.if(')
+      expect(out).not.toContain('$runtime.text("$if')
+    })
+
+    it('compiles $each nested inside an element', () => {
+      const out = compileSource(`
+        blueprint List {
+          state { items: array = [] }
+          ui {
+            <div>
+              <h1>title</h1>
+              $each(state.items, (item) => {
+                <p>{item}</p>
+              })
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.each(')
+      expect(out).not.toContain('$runtime.text("$each')
+    })
+  })
+
   describe('component usage', () => {
     it('compiles PascalCase tag as component', () => {
       const out = compileSource(`
