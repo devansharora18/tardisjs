@@ -1,0 +1,553 @@
+blueprint Home {
+	state {
+		yearly: boolean = false
+		faqOpen: number = -1
+		name: string = ""
+		email: string = ""
+		message: string = ""
+		formError: string = ""
+		sent: boolean = false
+	}
+	computed {
+		starter: state.yearly ? "$190/yr" : "$19/mo"
+		studio: state.yearly ? "$490/yr" : "$49/mo"
+		scale: state.yearly ? "$990/yr" : "$99/mo"
+		billNote: state.yearly ? "Billed yearly · 2 months free" : "Billed monthly · cancel anytime"
+	}
+	methods {
+		toggleYearly: () => $toggle(state.yearly)
+		toggleFaq: (i) => $update(state.faqOpen, state.faqOpen === i ? -1 : i)
+		setName: (e) => $update(state.name, e.target.value)
+		setEmail: (e) => $update(state.email, e.target.value)
+		setMessage: (e) => $update(state.message, e.target.value)
+		send: () => ($update(state.formError, state.name === "" ? "Please enter your name." : (!state.email.includes("@") ? "Please enter a valid email." : (state.message === "" ? "Please describe your project." : ""))), $update(state.sent, state.name !== "" && state.email.includes("@") && state.message !== ""))
+		sendAnother: () => ($update(state.sent, false), $update(state.name, ""), $update(state.email, ""), $update(state.message, ""), $update(state.formError, ""))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+		}
+		.nav {
+			position: sticky;
+			top: 0;
+			z-index: 50;
+			background: rgba(10, 10, 10, 0.92);
+			border-bottom: 1px solid #262626;
+		}
+		.nav-inner {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+			height: 56px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.brand {
+			font-weight: 800;
+			font-size: 16px;
+			color: #ededed;
+			letter-spacing: -0.02em;
+		}
+		.links {
+			display: flex;
+			gap: 24px;
+			align-items: center;
+		}
+		.links a {
+			font-size: 14px;
+			color: #a1a1a1;
+		}
+		.links a:hover {
+			color: #ededed;
+			text-decoration: none;
+		}
+		.nav-cta {
+			font-size: 13px;
+			font-weight: 600;
+			color: #0a0a0a;
+			background: #ededed;
+			padding: 8px 16px;
+			border-radius: 6px;
+		}
+		.nav-cta:hover {
+			color: #0a0a0a;
+			text-decoration: none;
+			opacity: 0.88;
+		}
+		.hero {
+			text-align: center;
+			padding: 96px 0 64px;
+		}
+		.hero-badge {
+			display: inline-block;
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: #3291ff;
+			background: #0e2338;
+			padding: 4px 12px;
+			border-radius: 4px;
+			margin-bottom: 20px;
+		}
+		.hero h1 {
+			font-size: 52px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			line-height: 1.08;
+			margin-bottom: 18px;
+		}
+		.hero h1 span {
+			color: #3291ff;
+		}
+		.hero-sub {
+			font-size: 18px;
+			color: #a1a1a1;
+			max-width: 600px;
+			margin: 0 auto 32px;
+			line-height: 1.6;
+		}
+		.hero-actions {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+		}
+		.btn-primary {
+			display: inline-block;
+			background: #ededed;
+			color: #0a0a0a;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 12px 24px;
+			border-radius: 8px;
+		}
+		.btn-primary:hover {
+			text-decoration: none;
+			color: #0a0a0a;
+			opacity: 0.88;
+		}
+		.btn-ghost {
+			display: inline-block;
+			color: #ededed;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 12px 24px;
+			border-radius: 8px;
+			border: 1px solid #404040;
+		}
+		.btn-ghost:hover {
+			text-decoration: none;
+			border-color: #888888;
+		}
+		.logos {
+			display: flex;
+			justify-content: center;
+			gap: 36px;
+			padding: 8px 0 72px;
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			color: #666666;
+		}
+		.section {
+			padding: 64px 0;
+		}
+		.section-alt {
+			background: #111111;
+			border-top: 1px solid #262626;
+			border-bottom: 1px solid #262626;
+		}
+		.feat-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 16px;
+		}
+		.feat {
+			background: #0a0a0a;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 24px;
+		}
+		.section-alt .feat {
+			background: #111111;
+		}
+		.feat h3 {
+			font-size: 16px;
+			font-weight: 700;
+			margin-bottom: 8px;
+		}
+		.feat p {
+			font-size: 14px;
+			color: #a1a1a1;
+			line-height: 1.6;
+		}
+		.quotes {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 16px;
+		}
+		.quote {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 24px;
+		}
+		.quote p {
+			font-size: 15px;
+			line-height: 1.65;
+			color: #ededed;
+			margin-bottom: 16px;
+		}
+		.quote-who {
+			font-size: 13px;
+			color: #888888;
+		}
+		.quote-who strong {
+			display: block;
+			color: #a1a1a1;
+			font-size: 14px;
+		}
+		.billing {
+			display: flex;
+			justify-content: center;
+			gap: 8px;
+			margin-bottom: 12px;
+		}
+		.bill-btn {
+			font-size: 13px;
+			font-weight: 600;
+			color: #a1a1a1;
+			background: transparent;
+			border: 1px solid #404040;
+			padding: 8px 18px;
+			border-radius: 6px;
+			cursor: pointer;
+		}
+		.bill-btn-on {
+			font-size: 13px;
+			font-weight: 600;
+			color: #0a0a0a;
+			background: #ededed;
+			border: 1px solid #ededed;
+			padding: 8px 18px;
+			border-radius: 6px;
+			cursor: pointer;
+		}
+		.bill-note {
+			text-align: center;
+			font-size: 13px;
+			color: #888888;
+			margin-bottom: 32px;
+		}
+		.plans {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 16px;
+		}
+		.plan {
+			background: #0a0a0a;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 28px;
+		}
+		.plan-hot {
+			border-color: #3291ff;
+		}
+		.plan h3 {
+			font-size: 15px;
+			font-weight: 700;
+		}
+		.price {
+			font-size: 34px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			margin: 12px 0 16px;
+		}
+		.plan ul {
+			list-style: none;
+			padding: 0;
+			margin: 0 0 24px;
+		}
+		.plan li {
+			font-size: 14px;
+			color: #a1a1a1;
+			padding: 6px 0;
+			border-top: 1px solid #262626;
+		}
+		.faq {
+			max-width: 680px;
+			margin: 0 auto;
+		}
+		.faq-item {
+			border: 1px solid #262626;
+			border-radius: 10px;
+			margin-bottom: 10px;
+			background: #111111;
+			overflow: hidden;
+		}
+		.faq-q {
+			width: 100%;
+			text-align: left;
+			background: transparent;
+			border: none;
+			color: #ededed;
+			font-size: 15px;
+			font-weight: 600;
+			padding: 18px 20px;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+		.faq-a {
+			padding: 0 20px 18px;
+			font-size: 14px;
+			color: #a1a1a1;
+			line-height: 1.65;
+		}
+		.faq-mark {
+			color: #3291ff;
+			font-weight: 700;
+		}
+		.contact {
+			max-width: 560px;
+			margin: 0 auto;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 32px;
+		}
+		.field {
+			margin-bottom: 16px;
+		}
+		.field label {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			color: #a1a1a1;
+			margin-bottom: 6px;
+		}
+		.field input,
+		.field textarea {
+			width: 100%;
+			background: #0a0a0a;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 10px 12px;
+			font-family: inherit;
+		}
+		.field textarea {
+			min-height: 110px;
+			resize: vertical;
+		}
+		.form-error {
+			font-size: 13px;
+			color: #ff7b72;
+			margin-bottom: 12px;
+		}
+		.form-ok {
+			text-align: center;
+			padding: 24px 0;
+		}
+		.form-ok h3 {
+			font-size: 20px;
+			margin-bottom: 8px;
+		}
+		.form-ok p {
+			font-size: 14px;
+			color: #a1a1a1;
+			margin-bottom: 20px;
+		}
+		.footer {
+			border-top: 1px solid #262626;
+			padding: 32px 0;
+			text-align: center;
+			font-size: 13px;
+			color: #666666;
+		}
+		@media (max-width: 860px) {
+			.feat-grid { grid-template-columns: 1fr; }
+			.quotes { grid-template-columns: 1fr; }
+			.plans { grid-template-columns: 1fr; }
+			.hero h1 { font-size: 36px; }
+			.links { display: none; }
+		}
+	}
+	ui {
+		<div class="page">
+			<nav class="nav">
+				<div class="nav-inner">
+					<span class="brand">Northwind Studio</span>
+					<div class="links">
+						<a href="#work">Work</a>
+						<a href="#pricing">Pricing</a>
+						<a href="#faq">FAQ</a>
+						<a href="#contact">Contact</a>
+						<a class="nav-cta" href="#contact">Start a project</a>
+					</div>
+				</div>
+			</nav>
+
+			<div class="wrap">
+				<header class="hero">
+					<div class="hero-badge">Design &amp; engineering studio</div>
+					<h1>We build websites <span>that ship.</span></h1>
+					<p class="hero-sub">Northwind is a compact team of designers and engineers. Strategy, brand, and code — from first sketch to production deploy.</p>
+					<div class="hero-actions">
+						<a class="btn-primary" href="#contact">Start a project</a>
+						<a class="btn-ghost" href="#work">See our work</a>
+					</div>
+				</header>
+				<div class="logos">
+					<span>ACME</span><span>HELIOS</span><span>VERTEX</span><span>LUMEN</span><span>ORBITAL</span>
+				</div>
+			</div>
+
+			<div class="section-alt" id="work">
+				<div class="wrap">
+					<div class="section">
+						<SectionHead eyebrow="What we do" title="Full-stack creative services" sub="One team across brand, web, and product — no handoffs, no telephone game." />
+						<div class="feat-grid">
+							<div class="feat"><h3>Brand identity</h3><p>Logos, type systems, and guidelines that survive contact with real products.</p></div>
+							<div class="feat"><h3>Web design</h3><p>Marketing sites and landing pages designed to convert, not just to impress.</p></div>
+							<div class="feat"><h3>Engineering</h3><p>Production frontends with clean builds, fast loads, and boring reliability.</p></div>
+							<div class="feat"><h3>Design systems</h3><p>Token-driven component libraries your team can actually maintain.</p></div>
+							<div class="feat"><h3>E-commerce</h3><p>Storefronts with checkout flows tuned for completion rate.</p></div>
+							<div class="feat"><h3>Care plans</h3><p>Monitoring, updates, and iteration after launch — we stay on call.</p></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="wrap">
+				<div class="section">
+					<SectionHead eyebrow="Clients" title="Teams that trusted us" sub="A few words from founders and operators we shipped with." />
+					<div class="quotes">
+						<div class="quote">
+							<p>"Northwind rebuilt our marketing site in three weeks. Conversion is up 40% and the codebase is the cleanest we have ever inherited."</p>
+							<div class="quote-who"><strong>Maya Chen</strong>CEO, Helios</div>
+						</div>
+						<div class="quote">
+							<p>"They think like owners. Every design choice came with a reason, every delay with a plan. Rare and worth every cent."</p>
+							<div class="quote-who"><strong>Jonas Weber</strong>Founder, Vertex</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="section" id="pricing">
+					<SectionHead eyebrow="Pricing" title="Simple retainers" sub="Pick a pace. Pause or cancel anytime with two weeks notice." />
+					<div class="billing">
+						<button class={state.yearly ? "bill-btn" : "bill-btn-on"} @click={methods.toggleYearly}>Monthly</button>
+						<button class={state.yearly ? "bill-btn-on" : "bill-btn"} @click={methods.toggleYearly}>Yearly</button>
+					</div>
+					<p class="bill-note">{computed.billNote}</p>
+					<div class="plans">
+						<div class="plan">
+							<h3>Starter</h3>
+							<div class="price">{computed.starter}</div>
+							<ul>
+								<li>Landing page design + build</li>
+								<li>2 revision rounds</li>
+								<li>Basic analytics setup</li>
+								<li>Email support</li>
+							</ul>
+							<a class="btn-ghost" href="#contact">Choose Starter</a>
+						</div>
+						<div class="plan plan-hot">
+							<h3>Studio</h3>
+							<div class="price">{computed.studio}</div>
+							<ul>
+								<li>Up to 10 pages + CMS</li>
+								<li>Brand refresh included</li>
+								<li>Unlimited revisions</li>
+								<li>Priority Slack support</li>
+							</ul>
+							<a class="btn-primary" href="#contact">Choose Studio</a>
+						</div>
+						<div class="plan">
+							<h3>Scale</h3>
+							<div class="price">{computed.scale}</div>
+							<ul>
+								<li>Dedicated product team</li>
+								<li>Design system + docs</li>
+								<li>SLA + on-call</li>
+								<li>Quarterly strategy</li>
+							</ul>
+							<a class="btn-ghost" href="#contact">Talk to us</a>
+						</div>
+					</div>
+				</div>
+
+				<div class="section" id="faq">
+					<SectionHead eyebrow="FAQ" title="Questions, answered" sub="Everything founders usually ask on the first call." />
+					<div class="faq">
+						<div class="faq-item">
+							<button class="faq-q" @click={() => methods.toggleFaq(0)}>How fast can we start? <span class="faq-mark">{state.faqOpen === 0 ? "−" : "+"}</span></button>
+							$show(state.faqOpen === 0) {
+								<p class="faq-a">Kickoff within one week of signing. Starter projects ship in 2–3 weeks; larger engagements are scoped in milestones.</p>
+							}
+						</div>
+						<div class="faq-item">
+							<button class="faq-q" @click={() => methods.toggleFaq(1)}>Who owns the code? <span class="faq-mark">{state.faqOpen === 1 ? "−" : "+"}</span></button>
+							$show(state.faqOpen === 1) {
+								<p class="faq-a">You do — 100%, from day one. Repos live in your organization and every deploy is traceable to a commit you can review.</p>
+							}
+						</div>
+						<div class="faq-item">
+							<button class="faq-q" @click={() => methods.toggleFaq(2)}>Can we pause the retainer? <span class="faq-mark">{state.faqOpen === 2 ? "−" : "+"}</span></button>
+							$show(state.faqOpen === 2) {
+								<p class="faq-a">Yes. Pause with two weeks notice and resume when you are ready. Unused time rolls over for 60 days.</p>
+							}
+						</div>
+					</div>
+				</div>
+
+				<div class="section" id="contact">
+					<SectionHead eyebrow="Contact" title="Tell us about your project" sub="We reply within one business day. No newsletters, no spam." />
+					<div class="contact">
+						$show(!state.sent) {
+							<div>
+								<div class="field">
+									<label>Name</label>
+									<input value={state.name} @input={(e) => $update(state.name, e.target.value)} placeholder="Ada Lovelace" />
+								</div>
+								<div class="field">
+									<label>Email</label>
+									<input value={state.email} @input={(e) => $update(state.email, e.target.value)} placeholder="ada@company.com" />
+								</div>
+								<div class="field">
+									<label>Project details</label>
+									<textarea value={state.message} @input={(e) => $update(state.message, e.target.value)} placeholder="What are you building, and when do you need it?"></textarea>
+								</div>
+								$show(state.formError !== "") {
+									<p class="form-error">{state.formError}</p>
+								}
+								<a class="btn-primary" @click={methods.send}>Send inquiry</a>
+							</div>
+						}
+						$show(state.sent) {
+							<div class="form-ok">
+								<h3>Thanks, {state.name}!</h3>
+								<p>Your inquiry is in. We will reply to {state.email} within one business day.</p>
+								<a class="btn-ghost" @click={methods.sendAnother}>Send another</a>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+
+			<footer class="footer">© 2026 Northwind Studio · Built with TardisJS blueprints · No stylesheets used</footer>
+		</div>
+	}
+}

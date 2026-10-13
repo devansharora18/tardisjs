@@ -1,0 +1,41 @@
+blueprint SectionHead {
+	props {
+		eyebrow: string = ""
+		title: string = ""
+		sub: string = ""
+	}
+	style {
+		.shead {
+			text-align: center;
+			max-width: 640px;
+			margin: 0 auto 48px;
+		}
+		.shead-eyebrow {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+			color: #3291ff;
+			margin-bottom: 12px;
+		}
+		.shead h2 {
+			font-size: 34px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+			color: #ededed;
+			margin-bottom: 12px;
+		}
+		.shead p {
+			font-size: 16px;
+			color: #a1a1a1;
+			line-height: 1.6;
+		}
+	}
+	ui {
+		<div class="shead">
+			<div class="shead-eyebrow">{props.eyebrow}</div>
+			<h2>{props.title}</h2>
+			<p>{props.sub}</p>
+		</div>
+	}
+}
