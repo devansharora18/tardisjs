@@ -1,0 +1,136 @@
+blueprint Home {
+	state {
+		email: string = ""
+		subscribed: boolean = false
+	}
+	methods {
+		subscribe: () => ($update(state.subscribed, state.email.includes("@")), $update(state.email, state.email.includes("@") ? "" : state.email))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 760px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.masthead {
+			text-align: center;
+			padding: 72px 0 16px;
+		}
+		.masthead-name {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: #3291ff;
+			margin-bottom: 14px;
+		}
+		.masthead h1 {
+			font-size: 46px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 14px;
+		}
+		.masthead p {
+			font-size: 17px;
+			color: #a1a1a1;
+		}
+		.list {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			margin-top: 40px;
+		}
+		.news {
+			margin-top: 56px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 32px;
+			text-align: center;
+		}
+		.news h2 {
+			font-size: 22px;
+			font-weight: 800;
+			margin-bottom: 8px;
+		}
+		.news p {
+			font-size: 14px;
+			color: #a1a1a1;
+			margin-bottom: 18px;
+		}
+		.row {
+			display: flex;
+			gap: 8px;
+			max-width: 420px;
+			margin: 0 auto;
+		}
+		.row input {
+			flex: 1;
+			background: #0a0a0a;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 10px 12px;
+			font-family: inherit;
+		}
+		.row button {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 10px 18px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.ok {
+			font-size: 14px;
+			color: #7ee787;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 64px;
+			font-size: 13px;
+			color: #666666;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<header class="masthead">
+					<div class="masthead-name">Inkwell</div>
+					<h1>Notes on deterministic UI</h1>
+					<p>Essays on compilers, reactivity, and shipping small frontends.</p>
+				</header>
+				<div class="list">
+					<PostCard slug="hello-world" title="Hello, deterministic world" date="Oct 1, 2026" tag="Intro" excerpt="Why we started over with a compiler-first frontend — and what determinism actually buys you." />
+					<PostCard slug="compiler-anatomy" title="Anatomy of a .tardis compiler" date="Oct 4, 2026" tag="Compiler" excerpt="From characters to DOM calls: a walk through lex, parse, and compile with real output." />
+					<PostCard slug="proxy-reactivity" title="Proxies all the way down" date="Oct 7, 2026" tag="Reactivity" excerpt="How field-level subscriptions replace schedulers, and where the model breaks down." />
+					<PostCard slug="no-vdom" title="Life without a virtual DOM" date="Oct 10, 2026" tag="Architecture" excerpt="Direct DOM writes sound scary until you see the generated code. Then they sound boring — in a good way." />
+				</div>
+				<div class="news">
+					<h2>Get new posts by email</h2>
+					<p>One email per essay. No spam, unsubscribe anytime.</p>
+					$show(!state.subscribed) {
+						<div class="row">
+							<input value={state.email} @input={(e) => $update(state.email, e.target.value)} placeholder="you@example.com" />
+							<button @click={methods.subscribe}>Subscribe</button>
+						</div>
+					}
+					$show(state.subscribed) {
+						<p class="ok">You're in! First essay lands Friday.</p>
+					}
+				</div>
+				<p class="foot">© 2026 Inkwell · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}

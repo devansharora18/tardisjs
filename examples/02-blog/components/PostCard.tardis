@@ -1,0 +1,74 @@
+blueprint PostCard {
+	props {
+		slug: string = ""
+		title: string = ""
+		date: string = ""
+		tag: string = ""
+		excerpt: string = ""
+	}
+	style {
+		.card {
+			display: block;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 26px;
+			transition: border-color 0.15s;
+		}
+		.card:hover {
+			border-color: #3291ff;
+			text-decoration: none;
+		}
+		.meta {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			font-size: 12px;
+			margin-bottom: 10px;
+		}
+		.tag {
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			font-size: 11px;
+			color: #3291ff;
+			background: #0e2338;
+			padding: 2px 8px;
+			border-radius: 4px;
+		}
+		.date {
+			color: #666666;
+		}
+		.card h2 {
+			font-size: 22px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			color: #ededed;
+			margin-bottom: 8px;
+			line-height: 1.3;
+		}
+		.card p {
+			font-size: 14.5px;
+			color: #a1a1a1;
+			line-height: 1.6;
+		}
+		.read {
+			display: inline-block;
+			margin-top: 12px;
+			font-size: 13px;
+			font-weight: 600;
+			color: #ededed;
+		}
+	}
+	ui {
+		<a class="card" href={"/blog/" + props.slug}>
+			<div class="meta">
+				<span class="tag">{props.tag}</span>
+				<span class="date">{props.date}</span>
+			</div>
+			<h2>{props.title}</h2>
+			<p>{props.excerpt}</p>
+			<span class="read">Read article →</span>
+		</a>
+	}
+}
