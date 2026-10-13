@@ -206,6 +206,85 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('07-auth behaves', () => {
+  async function mount() {
+    buildFile('examples/07-auth/pages/index.tardis', 'AuthHome.mjs')
+    const home = await import('./gen/AuthHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+  }
+
+  // $show keeps nodes mounted but hidden — only interact with visible ones
+  function visFields(): HTMLElement[] {
+    return qa('.field').filter((f) => (f as HTMLElement).style.display !== 'none')
+  }
+
+  function visInputs(): HTMLInputElement[] {
+    return visFields()
+      .map((f) => f.querySelector('input') as HTMLInputElement)
+      .filter(Boolean)
+  }
+
+  function submitBtn(): HTMLElement | null {
+    return qa('.submit')[0] || null
+  }
+
+  it('switches tabs and shows the name field only on signup', async () => {
+    await mount()
+    expect(visFields().length).toBe(2)
+    click(qa('.tabs button')[1])
+    expect(visFields().length).toBe(3)
+    expect(submitBtn()?.textContent).toBe('Create account')
+    click(qa('.tabs button')[0])
+    expect(visFields().length).toBe(2)
+  })
+
+  it('validates login input step by step', async () => {
+    await mount()
+    click(submitBtn())
+    expect(q('.form-error')?.textContent).toContain('email')
+    type(visInputs()[0], 'bad')
+    click(submitBtn())
+    expect(q('.form-error')?.textContent).toContain('valid email')
+    type(visInputs()[0], 'me@example.com')
+    click(submitBtn())
+    expect(q('.form-error')?.textContent).toContain('password')
+    type(visInputs()[1], 'short')
+    click(submitBtn())
+    expect(q('.form-error')?.textContent).toContain('8 characters')
+  })
+
+  it('toggles password visibility', async () => {
+    await mount()
+    const pw = () => visInputs()[1]
+    expect(pw().getAttribute('type')).toBe('password')
+    click(q('.pwwrap button'))
+    expect(pw().getAttribute('type')).toBe('text')
+  })
+
+  it('logs in, welcomes, and signs out', async () => {
+    await mount()
+    type(visInputs()[0], 'me@example.com')
+    type(visInputs()[1], 'correct horse')
+    click(submitBtn())
+    expect(q('.done h2')?.textContent).toBe('Welcome back')
+    expect(q('.done p')?.textContent).toContain('me@example.com')
+    click(q('.out'))
+    expect(visFields().length).toBe(2)
+  })
+
+  it('requires a name on signup', async () => {
+    await mount()
+    click(qa('.tabs button')[1])
+    type(visInputs()[1], 'me@example.com')
+    type(visInputs()[2], 'correct horse')
+    click(submitBtn())
+    expect(q('.form-error')?.textContent).toContain('name')
+    type(visInputs()[0], 'Ada')
+    click(submitBtn())
+    expect(q('.done h2')?.textContent).toBe('Account created')
+  })
+})
+
 describe('06-portfolio behaves', () => {
   async function mount() {
     buildFile('examples/06-portfolio/components/ProjectCard.tardis', 'FolioCard.mjs')

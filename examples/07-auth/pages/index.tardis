@@ -1,0 +1,217 @@
+blueprint Home {
+	state {
+		mode: string = "login"
+		name: string = ""
+		email: string = ""
+		password: string = ""
+		showPw: boolean = false
+		error: string = ""
+		authed: boolean = false
+	}
+	methods {
+		switchMode: (m) => $batch(() => ($update(state.mode, m), $update(state.error, ""), $update(state.authed, false)))
+		togglePw: () => $toggle(state.showPw)
+		submit: () => ($update(state.error, state.mode === "signup" && state.name === "" ? "Please enter your name." : (!state.email.includes("@") ? "Please enter a valid email." : (state.password === "" ? "Please enter a password." : (state.password.length < 8 ? "Password must be at least 8 characters." : "")))), $update(state.authed, (state.mode === "login" || state.name !== "") && state.email.includes("@") && state.password.length >= 8))
+		signOut: () => $batch(() => ($update(state.authed, false), $update(state.password, ""), $update(state.error, "")))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 40px 24px;
+		}
+		.card {
+			width: 100%;
+			max-width: 400px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 14px;
+			padding: 36px 32px;
+		}
+		.brand {
+			text-align: center;
+			font-weight: 800;
+			font-size: 15px;
+			letter-spacing: -0.01em;
+			margin-bottom: 6px;
+		}
+		.tagline {
+			text-align: center;
+			font-size: 13px;
+			color: #888888;
+			margin-bottom: 24px;
+		}
+		.tabs {
+			display: flex;
+			background: #0a0a0a;
+			border: 1px solid #262626;
+			border-radius: 9px;
+			padding: 4px;
+			margin-bottom: 24px;
+		}
+		.tabs button {
+			flex: 1;
+			background: transparent;
+			border: none;
+			color: #a1a1a1;
+			font-size: 13.5px;
+			font-weight: 600;
+			padding: 9px;
+			border-radius: 6px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.tabs button.on {
+			background: #262626;
+			color: #ededed;
+		}
+		.field {
+			margin-bottom: 14px;
+		}
+		.field label {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			color: #a1a1a1;
+			margin-bottom: 6px;
+		}
+		.field input {
+			width: 100%;
+			background: #0a0a0a;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 11px 12px;
+			font-family: inherit;
+			box-sizing: border-box;
+		}
+		.pwwrap {
+			position: relative;
+		}
+		.pwwrap button {
+			position: absolute;
+			right: 8px;
+			top: 8px;
+			background: none;
+			border: none;
+			color: #888888;
+			font-size: 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.form-error {
+			font-size: 13px;
+			color: #ff7b72;
+			margin-bottom: 12px;
+		}
+		.submit {
+			width: 100%;
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 12px;
+			cursor: pointer;
+			font-family: inherit;
+			margin-top: 6px;
+		}
+		.fine {
+			text-align: center;
+			font-size: 12px;
+			color: #666666;
+			margin-top: 18px;
+			line-height: 1.6;
+		}
+		.done {
+			text-align: center;
+			padding: 12px 0;
+		}
+		.avatar {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			background: #0e2338;
+			color: #3291ff;
+			font-size: 22px;
+			font-weight: 800;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto 16px;
+		}
+		.done h2 {
+			font-size: 21px;
+			font-weight: 800;
+			margin-bottom: 6px;
+		}
+		.done p {
+			font-size: 14px;
+			color: #a1a1a1;
+			margin-bottom: 22px;
+		}
+		.out {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #ededed;
+			border-radius: 8px;
+			font-size: 14px;
+			padding: 10px 20px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="card">
+				<div class="brand">◈ Gatehouse</div>
+				<p class="tagline">One account for every demo on this page.</p>
+				$show(!state.authed) {
+					<div>
+						<div class="tabs">
+							<button class={state.mode === "login" ? "on" : ""} @click={() => methods.switchMode("login")}>Log in</button>
+							<button class={state.mode === "signup" ? "on" : ""} @click={() => methods.switchMode("signup")}>Sign up</button>
+						</div>
+						$show(state.mode === "signup") {
+							<div class="field">
+								<label>Full name</label>
+								<input value={state.name} @input={(e) => $update(state.name, e.target.value)} placeholder="Ada Lovelace" />
+							</div>
+						}
+						<div class="field">
+							<label>Email</label>
+							<input value={state.email} @input={(e) => $update(state.email, e.target.value)} placeholder="ada@company.com" />
+						</div>
+						<div class="field">
+							<label>Password</label>
+							<div class="pwwrap">
+								<input type={state.showPw ? "text" : "password"} value={state.password} @input={(e) => $update(state.password, e.target.value)} placeholder="8+ characters" />
+								<button @click={methods.togglePw}>{state.showPw ? "Hide" : "Show"}</button>
+							</div>
+						</div>
+						$show(state.error !== "") {
+							<p class="form-error">{state.error}</p>
+						}
+						<button class="submit" @click={methods.submit}>{state.mode === "signup" ? "Create account" : "Log in"}</button>
+						<p class="fine">Protected by nothing — this is a frontend demo. Passwords never leave your browser.</p>
+					</div>
+				}
+				$show(state.authed) {
+					<div class="done">
+						<div class="avatar">A</div>
+						<h2>{state.mode === "signup" ? "Account created" : "Welcome back"}</h2>
+						<p>Signed in as {state.email}</p>
+						<button class="out" @click={methods.signOut}>Sign out</button>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}
