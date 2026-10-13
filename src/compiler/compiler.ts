@@ -115,15 +115,21 @@ function compilePropsDefaults(props: PropNode[]): string {
 	const defaults = props
 		.filter((p) => p.default !== null)
 		.map((p) => `    ${p.name}: ${formatDefault(p.default, p.type)}`);
-	if (defaults.length === 0) {
-		return `  const _props = { ...props }`;
-	}
-	return [
-		`  const _props = {`,
-		defaults.join(",\n"),
-		`    ...props`,
-		`  }`,
-	].join("\n");
+	// Parent components pass braced values (including callbacks) wrapped in
+	// `() =>`. Function-typed props are handlers, so unwrap them once here —
+	// otherwise a click would invoke the wrapper and discard the handler.
+	const unwraps = props
+		.filter((p) => p.type === "function")
+		.map((p) => `  if (typeof _props.${p.name} === "function") _props.${p.name} = _props.${p.name}();`);
+	const head = defaults.length === 0
+		? [`  const _props = { ...props }`]
+		: [
+			`  const _props = {`,
+			defaults.join(",\n"),
+			`    ...props`,
+			`  }`,
+		];
+	return [...head, ...unwraps].join("\n");
 }
 
 function formatDefault(

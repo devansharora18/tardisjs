@@ -916,6 +916,18 @@ describe('ui compiler', () => {
   })
 
   describe('component usage', () => {
+    it('unwraps function props passed as thunks', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props {
+            label: string = "Action"
+            onClick: function
+          }
+          ui { <button @click={props.onClick}>{props.label}</button> }
+        }
+      `)
+      expect(out).toContain('if (typeof _props.onClick === "function") _props.onClick = _props.onClick();')
+    })
     it('compiles PascalCase tag as component', () => {
       const out = compileSource(`
         blueprint Home {
