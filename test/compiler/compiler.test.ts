@@ -762,6 +762,26 @@ describe('ui compiler', () => {
       expect(out).toContain('_state.isDisabled')
     })
 
+    it('binds value and checked as DOM properties', () => {
+      const out = compileSource(`
+        blueprint Form {
+          state {
+            name: string = ""
+            agree: boolean = false
+          }
+          ui {
+            <div>
+              <input value={state.name} />
+              <input type="checkbox" checked={state.agree} />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("$runtime.bind(_el_3, 'value',")
+      expect(out).toContain("$runtime.bind(_el_3, 'checked',")
+      expect(out).not.toContain("bindAttr(_el_3, 'value'")
+    })
+
     it('rewrites state refs in reactive bindings', () => {
       const out = compileSource(`
         blueprint Counter {

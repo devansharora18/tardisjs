@@ -545,6 +545,13 @@ function compileAttr(
 				`${indent}_el_${depth}.className = ${JSON.stringify(attr.value)}`,
 			);
 		}
+	} else if ((attr.name === "value" || attr.name === "checked") && isReactive(attr.value)) {
+		// Form control state lives on the DOM property, not the attribute:
+		// writing the attribute would not update (or clear) a dirty control.
+		const expr = rewriteRefs(stripBraces(attr.value));
+		lines.push(
+			`${indent}$runtime.bind(_el_${depth}, '${attr.name}', () => ${expr})`,
+		);
 	} else if (isReactive(attr.value)) {
 		const expr = rewriteRefs(stripBraces(attr.value));
 		lines.push(
