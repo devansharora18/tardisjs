@@ -1,0 +1,274 @@
+blueprint Home {
+	state {
+		range: string = "30d"
+		sortKey: string = "mrr"
+		sortDir: string = "desc"
+	}
+	computed {
+		mrr: state.range === "7d" ? "$48.2k" : (state.range === "30d" ? "$191.4k" : "$574.2k")
+		users: state.range === "7d" ? "12,481" : (state.range === "30d" ? "48,902" : "141,220")
+		churn: state.range === "7d" ? "2.4%" : (state.range === "30d" ? "2.1%" : "1.8%")
+		nps: state.range === "7d" ? "62" : (state.range === "30d" ? "64" : "67")
+		sorted: [["Acme Corp", "Scale", 4900, 1.2], ["Beta LLC", "Studio", 1900, 2.4], ["Gamma Inc", "Starter", 490, 4.1], ["Delta Co", "Scale", 8200, 0.8], ["Epsilon Ltd", "Studio", 2400, 3.3], ["Zeta GmbH", "Starter", 290, 5.0]].sort((a, b) => (state.sortKey === "name" ? a[0].localeCompare(b[0]) : (state.sortKey === "mrr" ? a[2] - b[2] : a[3] - b[3])) * (state.sortDir === "asc" ? 1 : -1))
+	}
+	methods {
+		setRange: (r) => $update(state.range, r)
+		setSort: (key) => $batch(() => ($update(state.sortDir, state.sortKey === key ? (state.sortDir === "asc" ? "desc" : "asc") : "asc"), $update(state.sortKey, key)))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.topbar {
+			position: sticky;
+			top: 0;
+			z-index: 50;
+			background: rgba(10, 10, 10, 0.92);
+			border-bottom: 1px solid #262626;
+		}
+		.topbar-inner {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+			height: 56px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.brand {
+			font-weight: 800;
+			font-size: 16px;
+			letter-spacing: -0.02em;
+		}
+		.range {
+			display: flex;
+			gap: 6px;
+		}
+		.range button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 7px 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.range-on {
+			background: #ededed;
+			border: 1px solid #ededed;
+			color: #0a0a0a;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 7px 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.head {
+			padding: 48px 0 28px;
+		}
+		.head h1 {
+			font-size: 34px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+		}
+		.head p {
+			font-size: 15px;
+			color: #888888;
+			margin-top: 6px;
+		}
+		.kpis {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 12px;
+			margin-bottom: 16px;
+		}
+		.kpi {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 20px;
+		}
+		.kpi-label {
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.07em;
+			text-transform: uppercase;
+			color: #888888;
+			margin-bottom: 8px;
+		}
+		.kpi-value {
+			font-size: 29px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		.kpi-delta {
+			font-size: 12.5px;
+			font-weight: 600;
+			color: #7ee787;
+			margin-top: 4px;
+		}
+		.card {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 24px;
+			margin-bottom: 16px;
+		}
+		.card h2 {
+			font-size: 17px;
+			font-weight: 800;
+			margin-bottom: 4px;
+		}
+		.card-sub {
+			font-size: 13px;
+			color: #888888;
+			margin-bottom: 20px;
+		}
+		.bars {
+			display: flex;
+			align-items: flex-end;
+			gap: 8px;
+			height: 180px;
+		}
+		.bar {
+			flex: 1;
+			background: #3291ff;
+			border-radius: 4px 4px 0 0;
+			min-height: 6px;
+		}
+		.bar-cap {
+			display: flex;
+			justify-content: space-between;
+			font-size: 12px;
+			color: #666666;
+			margin-top: 10px;
+			font-family: 'JetBrains Mono', monospace;
+		}
+		.tbl {
+			display: grid;
+			grid-template-columns: 2fr 1fr 1fr 1fr;
+			font-size: 14px;
+		}
+		.tbl-head {
+			display: contents;
+		}
+		.tbl-head span {
+			border-bottom: 1px solid #404040;
+		}
+		.tbl-head button {
+			background: none;
+			border: none;
+			color: #888888;
+			font-size: 12px;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			text-align: left;
+			padding: 10px 12px 10px 0;
+			border-bottom: 1px solid #404040;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.tbl-head button:hover {
+			color: #ededed;
+		}
+		.tbl > div[data-each] {
+			display: contents;
+		}
+		.tbl-row {
+			display: contents;
+		}
+		.tbl-row span {
+			padding: 12px 12px 12px 0;
+			border-bottom: 1px solid #262626;
+			color: #c9c9c9;
+		}
+		.feed {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+		.feed li {
+			font-size: 14px;
+			color: #c9c9c9;
+			padding: 10px 0;
+			border-top: 1px solid #262626;
+		}
+		.feed time {
+			font-family: 'JetBrains Mono', monospace;
+			font-size: 12px;
+			color: #666666;
+			margin-right: 12px;
+		}
+		@media (max-width: 860px) {
+			.kpis { grid-template-columns: 1fr 1fr; }
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="topbar">
+				<div class="topbar-inner">
+					<span class="brand">Pulseboard</span>
+					<div class="range">
+						<button class={state.range === "7d" ? "range-on" : "range"} @click={() => methods.setRange("7d")}>7D</button>
+						<button class={state.range === "30d" ? "range-on" : "range"} @click={() => methods.setRange("30d")}>30D</button>
+						<button class={state.range === "90d" ? "range-on" : "range"} @click={() => methods.setRange("90d")}>90D</button>
+					</div>
+				</div>
+			</div>
+			<div class="wrap">
+				<div class="head">
+					<h1>Good morning, Ada</h1>
+					<p>Here is what happened while you were away. Range: {state.range}</p>
+				</div>
+				<div class="kpis">
+					<div class="kpi"><div class="kpi-label">MRR</div><div class="kpi-value">{computed.mrr}</div><div class="kpi-delta">+12.4% vs prior</div></div>
+					<div class="kpi"><div class="kpi-label">Active users</div><div class="kpi-value">{computed.users}</div><div class="kpi-delta">+8.1% vs prior</div></div>
+					<div class="kpi"><div class="kpi-label">Churn</div><div class="kpi-value">{computed.churn}</div><div class="kpi-delta">−0.3 pts vs prior</div></div>
+					<div class="kpi"><div class="kpi-label">NPS</div><div class="kpi-value">{computed.nps}</div><div class="kpi-delta">+2 vs prior</div></div>
+				</div>
+				<div class="card">
+					<h2>Revenue</h2>
+					<p class="card-sub">Trailing 12 months, in thousands.</p>
+					<div class="bars">
+						$each([38, 52, 47, 61, 58, 72, 69, 81, 78, 88, 92, 100], (h) => {
+							<div class="bar" style={"height: " + h + "%"}></div>
+						})
+					</div>
+					<div class="bar-cap"><span>Jan</span><span>Dec</span></div>
+				</div>
+				<div class="card">
+					<h2>Customers</h2>
+					<p class="card-sub">Click a header to sort. Sorting recomputes from state.</p>
+					<div class="tbl">
+						<div class="tbl-head"><button @click={() => methods.setSort("name")}>Customer {state.sortKey === "name" ? (state.sortDir === "asc" ? "↑" : "↓") : ""}</button><span></span><button @click={() => methods.setSort("mrr")}>MRR {state.sortKey === "mrr" ? (state.sortDir === "asc" ? "↑" : "↓") : ""}</button><button @click={() => methods.setSort("churn")}>Churn {state.sortKey === "churn" ? (state.sortDir === "asc" ? "↑" : "↓") : ""}</button></div>
+						$each(computed.sorted, (row) => {
+							<div class="tbl-row"><span>{row[0]}</span><span>{row[1]}</span><span>${row[2]}</span><span>{row[3]}%</span></div>
+						})
+					</div>
+				</div>
+				<div class="card">
+					<h2>Activity</h2>
+					<p class="card-sub">Latest events across your workspace.</p>
+					<ul class="feed">
+						<li><time>09:41</time>Acme Corp upgraded to Scale</li>
+						<li><time>09:12</time>Deploy preview-482 passed checks</li>
+						<li><time>08:57</time>New signup from beta waitlist</li>
+						<li><time>08:30</time>Churn alert cleared for Beta LLC</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	}
+}

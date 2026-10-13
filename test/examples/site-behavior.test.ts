@@ -171,6 +171,41 @@ describe('03-docs behaves', () => {
   })
 })
 
+describe('05-dashboard behaves', () => {
+  async function mount() {
+    buildFile('examples/05-dashboard/pages/index.tardis', 'DashHome.mjs')
+    const home = await import('./gen/DashHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+  }
+
+  it('switches KPI values by range', async () => {
+    await mount()
+    const mrr = () => qa('.kpi-value')[0].textContent
+    expect(mrr()).toContain('191.4k')
+    click(qa('.range button')[0])
+    expect(mrr()).toContain('48.2k')
+    expect(q('.head p')?.textContent).toContain('7d')
+  })
+
+  it('sorts the customer table', async () => {
+    await mount()
+    const firstCell = () => qa('.tbl-row span')[0].textContent
+    expect(firstCell()).toBe('Delta Co')
+    click(qa('.tbl-head button')[0])
+    expect(firstCell()).toBe('Acme Corp')
+    expect(qa('.tbl-head button')[0].textContent).toContain('↑')
+    click(qa('.tbl-head button')[0])
+    expect(firstCell()).toBe('Zeta GmbH')
+    expect(qa('.tbl-row span').length).toBe(24)
+  })
+
+  it('renders twelve chart bars', async () => {
+    await mount()
+    expect(qa('.bar').length).toBe(12)
+    expect(qa('.bar')[11].getAttribute('style')).toContain('100%')
+  })
+})
+
 describe('04-store behaves', () => {
   async function mount() {
     buildFile('examples/04-store/components/ProductCard.tardis', 'StoreCard.mjs')
