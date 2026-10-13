@@ -1,0 +1,248 @@
+blueprint Home {
+	state {
+		filter: string = "all"
+		selected: string = ""
+		street: array = []
+		nature: array = []
+		studio: array = []
+	}
+	computed {
+		selSeed: state.selected === "" ? "placeholder" : (state.street.find((p) => p.id === state.selected) === undefined ? (state.nature.find((p) => p.id === state.selected) === undefined ? state.studio.find((p) => p.id === state.selected).seed : state.nature.find((p) => p.id === state.selected).seed) : state.street.find((p) => p.id === state.selected).seed)
+		selTitle: state.selected === "" ? "Untitled" : (state.street.find((p) => p.id === state.selected) === undefined ? (state.nature.find((p) => p.id === state.selected) === undefined ? state.studio.find((p) => p.id === state.selected).title : state.nature.find((p) => p.id === state.selected).title) : state.street.find((p) => p.id === state.selected).title)
+		streetCount: state.street.length
+		natureCount: state.nature.length
+		studioCount: state.studio.length
+	}
+	methods {
+		setFilter: (f) => $update(state.filter, f)
+		open: (id) => $update(state.selected, id)
+		close: () => $update(state.selected, "")
+	}
+	events {
+		onMount: () => $batch(() => ($update(state.street, [{ id: "s1", title: "Crosswalk Rush", seed: "aperture-street-1" }, { id: "s2", title: "Neon Alley", seed: "aperture-street-2" }, { id: "s3", title: "Morning Commute", seed: "aperture-street-3" }]), $update(state.nature, [{ id: "n1", title: "Fog Line", seed: "aperture-nature-1" }, { id: "n2", title: "Still Lake", seed: "aperture-nature-2" }, { id: "n3", title: "Pine Silence", seed: "aperture-nature-3" }]), $update(state.studio, [{ id: "t1", title: "Glass Study", seed: "aperture-studio-1" }, { id: "t2", title: "Chrome Bloom", seed: "aperture-studio-2" }, { id: "t3", title: "Paper Storm", seed: "aperture-studio-3" }])))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.hero {
+			padding: 64px 0 12px;
+			text-align: center;
+		}
+		.hero-name {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: #3291ff;
+			margin-bottom: 12px;
+		}
+		.hero h1 {
+			font-size: 42px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 10px;
+		}
+		.hero p {
+			font-size: 16px;
+			color: #a1a1a1;
+		}
+		.filters {
+			display: flex;
+			gap: 8px;
+			justify-content: center;
+			margin: 32px 0 8px;
+			flex-wrap: wrap;
+		}
+		.filters button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 999px;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 8px 18px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.filters button.on {
+			background: #ededed;
+			border-color: #ededed;
+			color: #0a0a0a;
+		}
+		.catname {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: #888888;
+			margin: 36px 0 14px;
+		}
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 14px;
+		}
+		.shot {
+			background: none;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			overflow: hidden;
+			padding: 0;
+			cursor: pointer;
+			font-family: inherit;
+			text-align: left;
+		}
+		.shot:hover {
+			border-color: #888888;
+		}
+		.shot img {
+			display: block;
+			width: 100%;
+			height: 190px;
+			object-fit: cover;
+		}
+		.cap {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			color: #ededed;
+			padding: 12px 14px;
+			background: #111111;
+		}
+		.viewer {
+			position: fixed;
+			inset: 0;
+			z-index: 100;
+			background: rgba(0, 0, 0, 0.88);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 24px;
+		}
+		.frame {
+			max-width: 860px;
+			width: 100%;
+			background: #111111;
+			border: 1px solid #404040;
+			border-radius: 14px;
+			overflow: hidden;
+		}
+		.frame img {
+			display: block;
+			width: 100%;
+			max-height: 64vh;
+			object-fit: cover;
+		}
+		.frame-bar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 16px 20px;
+		}
+		.frame-bar h2 {
+			font-size: 18px;
+			font-weight: 800;
+		}
+		.frame-bar button {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 9px 18px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 64px;
+			font-size: 13px;
+			color: #666666;
+		}
+		@media (max-width: 860px) {
+			.grid { grid-template-columns: 1fr 1fr; }
+			.hero h1 { font-size: 32px; }
+		}
+		@media (max-width: 600px) {
+			.grid { grid-template-columns: 1fr; }
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<header class="hero">
+					<div class="hero-name">Aperture</div>
+					<h1>Field photographs, three ways.</h1>
+					<p>Street, nature, studio — {computed.streetCount} · {computed.natureCount} · {computed.studioCount} frames.</p>
+				</header>
+				<div class="filters">
+					<button class={state.filter === "all" ? "on" : ""} @click={() => methods.setFilter("all")}>All</button>
+					<button class={state.filter === "street" ? "on" : ""} @click={() => methods.setFilter("street")}>Street</button>
+					<button class={state.filter === "nature" ? "on" : ""} @click={() => methods.setFilter("nature")}>Nature</button>
+					<button class={state.filter === "studio" ? "on" : ""} @click={() => methods.setFilter("studio")}>Studio</button>
+				</div>
+				$show(state.filter === "all" || state.filter === "street") {
+					<div>
+						<div class="catname">Street — {computed.streetCount}</div>
+						<div class="grid">
+							$each(state.street, (p) => {
+								<button class="shot" @click={() => methods.open(p.id)}>
+									<img src={"https://picsum.photos/seed/" + p.seed + "/600/400"} alt={p.title} />
+									<span class="cap">{p.title}</span>
+								</button>
+							})
+						</div>
+					</div>
+				}
+				$show(state.filter === "all" || state.filter === "nature") {
+					<div>
+						<div class="catname">Nature — {computed.natureCount}</div>
+						<div class="grid">
+							$each(state.nature, (p) => {
+								<button class="shot" @click={() => methods.open(p.id)}>
+									<img src={"https://picsum.photos/seed/" + p.seed + "/600/400"} alt={p.title} />
+									<span class="cap">{p.title}</span>
+								</button>
+							})
+						</div>
+					</div>
+				}
+				$show(state.filter === "all" || state.filter === "studio") {
+					<div>
+						<div class="catname">Studio — {computed.studioCount}</div>
+						<div class="grid">
+							$each(state.studio, (p) => {
+								<button class="shot" @click={() => methods.open(p.id)}>
+									<img src={"https://picsum.photos/seed/" + p.seed + "/600/400"} alt={p.title} />
+									<span class="cap">{p.title}</span>
+								</button>
+							})
+						</div>
+					</div>
+				}
+				$show(state.selected !== "") {
+					<div class="viewer">
+						<div class="frame">
+							<img src={"https://picsum.photos/seed/" + computed.selSeed + "/1200/800"} alt={computed.selTitle} />
+							<div class="frame-bar">
+								<h2>{computed.selTitle}</h2>
+								<button @click={methods.close}>Close</button>
+							</div>
+						</div>
+					</div>
+				}
+				<p class="foot">© 2026 Aperture · Images via picsum.photos · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}

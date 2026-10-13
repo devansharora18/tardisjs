@@ -206,6 +206,53 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('11-gallery behaves', () => {
+  async function mount() {
+    buildFile('examples/11-gallery/pages/index.tardis', 'GalleryHome.mjs')
+    const home = await import('./gen/GalleryHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+    const { flushMountCallbacks } = await import('../../src/runtime/events')
+    flushMountCallbacks()
+  }
+
+  function visibleShots(): number {
+    return qa('.shot').filter((s) => {
+      let el: HTMLElement | null = s as HTMLElement
+      while (el) {
+        if (el.style && el.style.display === 'none') return false
+        el = el.parentElement
+      }
+      return true
+    }).length
+  }
+
+  it('seeds nine photos on mount', async () => {
+    await mount()
+    expect(qa('.shot').length).toBe(9)
+    expect(visibleShots()).toBe(9)
+    expect(q('.hero p')?.textContent).toContain('3 · 3 · 3')
+  })
+
+  it('filters by category', async () => {
+    await mount()
+    click(qa('.filters button')[1])
+    expect(visibleShots()).toBe(3)
+    click(qa('.filters button')[0])
+    expect(visibleShots()).toBe(9)
+  })
+
+  it('opens the viewer with the right photo and closes', async () => {
+    await mount()
+    expect(q('.viewer')?.style.display).toBe('none')
+    click(qa('.shot')[4])
+    expect(q('.viewer')?.style.display).toBe('')
+    expect(q('.frame h2')?.textContent).toBe('Still Lake')
+    expect(q('.frame img')?.getAttribute('src')).toContain('aperture-nature-2')
+    click(q('.frame-bar button'))
+    expect(q('.viewer')?.style.display).toBe('none')
+  })
+})
+
 describe('10-player behaves', () => {
   async function mount() {
     buildFile('examples/10-player/pages/index.tardis', 'PlayerHome.mjs')
