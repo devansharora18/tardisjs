@@ -1,0 +1,50 @@
+blueprint SiteNav {
+	props {
+		title: string = ""
+	}
+	style {
+		.sitenav {
+			position: sticky;
+			top: 0;
+			z-index: 50;
+			background: rgba(10, 10, 10, 0.92);
+			backdrop-filter: blur(8px);
+			border-bottom: 1px solid #262626;
+		}
+		.sitenav-inner {
+			max-width: 1080px;
+			margin: 0 auto;
+			padding: 0 24px;
+			height: 52px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.sitenav-brand {
+			font-weight: 700;
+			font-size: 15px;
+			color: #ededed;
+			letter-spacing: -0.02em;
+		}
+		.sitenav-title {
+			font-size: 13px;
+			color: #888888;
+		}
+		.sitenav-link {
+			font-size: 13px;
+			color: #a1a1a1;
+		}
+		.sitenav-link:hover {
+			color: #ededed;
+		}
+	}
+	ui {
+		<nav class="sitenav">
+			<div class="sitenav-inner">
+				<a class="sitenav-brand" href="/">◈ Showcase</a>
+				<span class="sitenav-title">{props.title}</span>
+				<a class="sitenav-link" href="/">All demos</a>
+			</div>
+		</nav>
+	}
+}
