@@ -723,10 +723,14 @@ function compileComponent(
 		parts.push(`children: ${compileSlotsObject(inner, depth, indent, hasStyles, imported)}`);
 	}
 	const all = parts.join(", ");
-	if (imported?.has(tag)) {
-		return [`${indent}return ${tag}({ ${all} })`];
+	const cls = compileComponentClass(attrsRaw);
+	const call = imported?.has(tag)
+		? `${tag}({ ${all} })`
+		: `$runtime.component('${tag}', { ${all} })`;
+	if (cls === null) {
+		return [`${indent}return ${call}`];
 	}
-	return [`${indent}return $runtime.component('${tag}', { ${all} })`];
+	return [`${indent}return $runtime.applyClass(${call}, ${cls})`];
 }
 
 function compileSlotsObject(
@@ -807,6 +811,7 @@ function compileSlotOutlet(
 
 function compileComponentProps(raw: string): string {
 	return parseAttributes(raw)
+		.filter((a) => a.name !== "class")
 		.map((a) => {
 			if (a.name === "...") return `...${rewriteRefs(a.value)}`;
 			if (isReactive(a.value))
@@ -814,6 +819,17 @@ function compileComponentProps(raw: string): string {
 			return `${a.name}: ${JSON.stringify(a.value)}`;
 		})
 		.join(", ");
+}
+
+// A `class` attribute on a component tag does not become a prop — it merges
+// onto the component's root element at the usage site, so importers can
+// adjust default styling. Returns emitted code for the value, or null.
+function compileComponentClass(raw: string): string | null {
+	const classes = parseAttributes(raw).filter((a) => a.name === "class");
+	if (classes.length === 0) return null;
+	const last = classes[classes.length - 1];
+	if (isReactive(last.value)) return `() => ${rewriteRefs(stripBraces(last.value))}`;
+	return JSON.stringify(last.value);
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────

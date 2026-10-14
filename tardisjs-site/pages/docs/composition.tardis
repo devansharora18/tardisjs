@@ -72,6 +72,7 @@ blueprint DocsComposition {
 								<tr><td>count equals braced expression</td><td>Reactive reader function re-evaluated on change.</td></tr>
 								<tr><td>onAdd equals braced handler</td><td>Handler unwrapped once so clicks invoke it directly.</td></tr>
 								<tr><td>triple-dot spread expression</td><td>Spread entry merged into the props object.</td></tr>
+								<tr><td>class attribute, static or braced</td><td>Not a prop — merged onto the root element, live when braced.</td></tr>
 							</tbody>
 						</table>
 					</div>

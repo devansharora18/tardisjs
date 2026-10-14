@@ -49,6 +49,7 @@ Rules:
 - Children: `<Card title="x"><p>body</p><span slot="footer">f</span></Card>` passes `children: { default: () => ..., footer: () => ... }`. Only static `slot="name"` attributes route; anything else lands in `default`.
 - Outlet: `<slot />` renders `children.default`; `<slot name="footer"><p>fallback</p></slot>` renders the named builder, the fallback, or a comment anchor.
 - Spread: `<Card title="x" {...state.extra} />` merges into props. Spread on plain DOM elements is ignored — components only.
+- Usage-site `class` on a component merges onto its root (static once, live when braced) instead of becoming a prop.
 - In setup-style code (`defineComponent`), slot builders also arrive via `props.children`.
 
 ## Runtime

@@ -1201,6 +1201,65 @@ describe('ui compiler', () => {
       expect(out).toContain('hi')
     })
   })
+
+  describe('component class merging', () => {
+    it('merges static class onto registry component roots', () => {
+      const out = compileSource(`
+        blueprint Page {
+          ui {
+            <div>
+              <Card title="hi" class="extra" />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain(`$runtime.applyClass($runtime.component('Card', { title: "hi" }), "extra")`)
+      expect(out).not.toContain('class:')
+    })
+
+    it('merges static class onto direct imported calls', () => {
+      const out = compileFileSource(`
+        import Card from "./Card.tardis"
+        blueprint Page {
+          ui {
+            <div>
+              <Card title="hi" class="extra" />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain(`$runtime.applyClass(Card({ title: "hi" }), "extra")`)
+    })
+
+    it('merges reactive class as a live function', () => {
+      const out = compileSource(`
+        blueprint Page {
+          state { active: boolean = false }
+          ui {
+            <div>
+              <Card class={state.active ? "on" : "off"} />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('$runtime.applyClass($runtime.component(')
+      expect(out).toContain('() => _state.active')
+    })
+
+    it('emits no wrapper without class', () => {
+      const out = compileSource(`
+        blueprint Page {
+          ui {
+            <div>
+              <Card title="hi" />
+            </div>
+          }
+        }
+      `)
+      expect(out).not.toContain('applyClass')
+      expect(out).toContain(`$runtime.component('Card', { title: "hi" })`)
+    })
+  })
     it('compiles PascalCase tag as component', () => {
       const out = compileSource(`
         blueprint Home {

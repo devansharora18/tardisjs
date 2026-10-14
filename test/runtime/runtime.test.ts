@@ -5,7 +5,7 @@ import { createState, $update, $toggle, $reset, $batch, registerDep } from '../.
 import { $fetch } from '../../src/runtime/fetch'
 import {
   $if, $each, $show, $portal,
-  bind, bindClass, bindAttr,
+  bind, bindClass, bindAttr, applyClass,
   resolveStyles, text,
 } from '../../src/runtime/render'
 import { createStyles } from '../../src/runtime/styles'
@@ -324,6 +324,44 @@ describe('render', () => {
       $update(s, 'active', true)
       ;(el as unknown as { __updateClass(): void }).__updateClass()
       expect(el.className).toBe('active')
+    })
+  })
+
+  describe('applyClass', () => {
+    it('appends a static class to the root', () => {
+      const el = document.createElement('div')
+      el.className = 'card'
+      expect(applyClass(el, 'extra')).toBe(el)
+      expect(el.className).toBe('card extra')
+    })
+
+    it('sets the class when the root has none', () => {
+      const el = document.createElement('div')
+      applyClass(el, 'extra')
+      expect(el.className).toBe('extra')
+    })
+
+    it('ignores empty strings', () => {
+      const el = document.createElement('div')
+      el.className = 'card'
+      applyClass(el, '')
+      expect(el.className).toBe('card')
+    })
+
+    it('leaves non-elements untouched', () => {
+      const comment = document.createComment('x')
+      expect(applyClass(comment as unknown as HTMLElement, 'extra')).toBe(comment as unknown as HTMLElement)
+      expect((comment as unknown as { className?: unknown }).className).toBeUndefined()
+    })
+
+    it('re-evaluates function classes live without dropping the base', () => {
+      const el = document.createElement('div')
+      el.className = 'card'
+      const s = createState({ active: false })
+      applyClass(el, () => (s.active ? 'on' : 'off'))
+      expect(el.className).toBe('card off')
+      $update(s, 'active', true)
+      expect(el.className).toBe('card on')
     })
   })
 

@@ -132,6 +132,31 @@ export function bindClass(
   ;(el as unknown as { __updateClass?: () => void }).__updateClass = update
 }
 
+// ── applyClass ─────────────────────────────────────────────────────────────
+// merges a usage-site class onto a component's root element (the compiler
+// strips `class` from component props and wraps the instantiation with this).
+// A string appends once; a function re-evaluates live against the base.
+
+export function applyClass(
+  el: HTMLElement,
+  cls: string | (() => string)
+): HTMLElement {
+  const target = el as unknown as { className?: unknown }
+  if (!el || typeof target.className !== 'string') return el
+  if (typeof cls === 'function') {
+    const base = target.className
+    bindClass(el, () => {
+      const extra = String(cls() ?? '')
+      return base ? (extra ? `${base} ${extra}` : base) : extra
+    })
+    return el
+  }
+  if (cls) {
+    target.className = target.className ? `${target.className} ${cls}` : cls
+  }
+  return el
+}
+
 // ── bindAttr ───────────────────────────────────────────────────────────────
 
 export function bindAttr(

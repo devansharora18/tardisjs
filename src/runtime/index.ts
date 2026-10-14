@@ -6,7 +6,7 @@ export type { ReactiveState, StateValue } from './state'
 
 export { $fetch } from './fetch'
 
-export { $if, $each, $show, $portal, bind, bindClass, bindAttr, resolveStyles, text } from './render'
+export { $if, $each, $show, $portal, bind, bindClass, bindAttr, applyClass, resolveStyles, text } from './render'
 
 export { createStyles } from './styles'
 export type { StylesObject, StyleMode } from './styles'
@@ -84,7 +84,7 @@ export type { A11yEl } from './a11y'
 
 import { createState, $update, $toggle, $reset, $batch, registerDep } from './state'
 import { $fetch } from './fetch'
-import { $if, $each, $show, $portal, bind, bindClass, bindAttr, resolveStyles, text } from './render'
+import { $if, $each, $show, $portal, bind, bindClass, bindAttr, applyClass, resolveStyles, text } from './render'
 import { createStyles } from './styles'
 import { register, unregister, getAll, getById } from './registry'
 import { registerEvents, flushMountCallbacks } from './events'
@@ -118,6 +118,7 @@ export const $runtime = {
   bind,
   bindClass,
   bindAttr,
+  applyClass,
   resolveStyles,
   text,
 
