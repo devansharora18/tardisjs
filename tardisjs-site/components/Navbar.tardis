@@ -6,11 +6,17 @@ blueprint Navbar {
 	methods {
 		toggleMenu: () => $toggle(state.menuOpen)
 		closeMenu: () => $update(state.menuOpen, false)
-		toggleTheme: () => state.themeDark ? (document.documentElement.setAttribute('data-theme', 'light'), localStorage.setItem('tardis-theme', 'light'), $update(state.themeDark, false)) : (document.documentElement.setAttribute('data-theme', 'dark'), localStorage.setItem('tardis-theme', 'dark'), $update(state.themeDark, true))
+		toggleTheme: () => {
+			const next = !state.themeDark
+			document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light')
+			try { localStorage.setItem('tardis-theme', next ? 'dark' : 'light') } catch {}
+			$update(state.themeDark, next)
+		}
 	}
 	events {
 		onMount: () => {
-			const stored = localStorage.getItem('tardis-theme')
+			let stored = null
+			try { stored = localStorage.getItem('tardis-theme') } catch {}
 			const shouldDark = stored ? stored === 'dark' : true
 			if (shouldDark) {
 				document.documentElement.setAttribute('data-theme', 'dark')

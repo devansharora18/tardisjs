@@ -158,6 +158,7 @@ export function buildClientIndexHtml(routes: RouteModule[], devMode: boolean, co
 	</head>
 	<body>
 		<div id="app"></div>
+		<noscript><p style="font-family:sans-serif;text-align:center;padding:48px 24px;">This site needs JavaScript to render — every page is compiled to plain JavaScript modules. Please enable JavaScript and reload.</p></noscript>
 		<script type="module">
 ${imports.map((line) => `      ${line}`).join('\n')}
 ${componentRegBlock}
