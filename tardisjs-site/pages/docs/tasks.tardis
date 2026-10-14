@@ -1,0 +1,200 @@
+blueprint DocsTasks {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Async tasks" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p><code>useTask</code> wraps an async function in a reactive state machine. The task tracks its own <code>status</code>, <code>data</code>, and <code>error</code>, so <code>ui</code> blocks can render loading, success, and failure states without manual bookkeeping. Because the fields live in a reactive backing store, ordinary reads participate in dependency tracking like any other state: a <code>$if</code> on <code>task.status</code> re-renders when the task settles.</p>
+					<p>Everything here is exported from the runtime barrel: the <code>useTask</code> factory plus the <code>TaskStatus</code>, <code>TaskOptions</code>, and <code>Task</code> types. A task is created once in <code>script</code> and reused across renders. The single instance owns one generation counter, which is what makes overlapping runs safe.</p>
+					<p>The rest of this page walks the statuses, the run lifecycle, the full API, typing, stale resolution, cancellation, rendering patterns, multi-task coordination, testing, and the common mistakes, in that order.</p>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+
+					<h2 id="when">When to use a task</h2>
+					<p>Reach for <code>useTask</code> whenever an operation has more than one observable phase. A bare promise gives you pending versus settled; a task gives you idle, pending, done, and error plus the payload of whichever terminal state won. That maps directly onto the branches real interfaces render.</p>
+					<ul>
+						<li>Data loading with a spinner, an empty state, and an error state.</li>
+						<li>Form submissions where the button disables while the request is in flight.</li>
+						<li>Search-as-you-type, where stale responses must never overwrite fresh ones.</li>
+						<li>Polling or retry loops that restart the same worker with new arguments.</li>
+						<li>Any fire-and-forget effect whose failure still deserves a visible error.</li>
+						<li>Optimistic flows where the pending branch previews the expected outcome.</li>
+					</ul>
+					<p>Do not use a task for synchronous derivations. If the value can be computed from state without awaiting anything, a getter or a plain function keeps the dependency graph honest and avoids a permanently pending task.</p>
+					<p>Tasks and stores compose rather than compete. Keep the transient async state (pending flags, last error, fresh payload) in the task, and commit the durable outcome into a store via <code>onDone</code> when other pages need it. The task then stays local to the view that triggered the work while the result enjoys the store lifetime.</p>
+
+					<h2 id="statuses">Statuses</h2>
+					<p>A task is always in exactly one of four statuses:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+							<tbody>
+								<tr><td>idle</td><td>Never run, cancelled while pending, or reset.</td></tr>
+								<tr><td>pending</td><td>A run is in flight.</td></tr>
+								<tr><td>done</td><td>The latest run resolved; <code>data</code> holds the result.</td></tr>
+								<tr><td>error</td><td>The latest run rejected; <code>error</code> holds the rejection.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Calling <code>run</code> sets <code>status</code> to <code>pending</code> and clears <code>error</code> to <code>null</code>. On success it writes <code>data</code> and flips to <code>done</code>; on failure it writes <code>error</code> and flips to <code>error</code>. Note that a fresh <code>run</code> does not clear a previous <code>data</code> value, so the UI can keep showing the last good result while a reload is pending.</p>
+
+					<h2 id="lifecycle">Lifecycle of a run</h2>
+					<p>Each <code>run</code> call walks the same path from the caller perspective. Understanding the order explains what the UI shows at every instant and why stale results can never leak through.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Claim the generation</h3>
+							<p>The internal counter increments, making this the newest run. Any earlier run still in flight is stale from this moment on.</p>
+						</div>
+						<div class="step-row">
+							<h3>Enter pending</h3>
+							<p><code>status</code> becomes <code>pending</code> and <code>error</code> becomes <code>null</code>, synchronously, before the worker starts. The loading branch renders immediately.</p>
+						</div>
+						<div class="step-row">
+							<h3>Await the worker</h3>
+							<p>The worker promise is awaited. Meanwhile the UI renders its loading branch, typically over the previous <code>data</code>.</p>
+						</div>
+						<div class="step-row">
+							<h3>Commit or discard</h3>
+							<p>On resolve, the generation is checked. A stale run returns <code>null</code> and touches nothing. The surviving run writes <code>data</code>, sets <code>done</code>, fires <code>onDone</code>, and returns the result.</p>
+						</div>
+						<div class="step-row">
+							<h3>Fail closed</h3>
+							<p>On reject, the same generation check applies. The surviving failure writes <code>error</code>, sets <code>error</code> status, fires <code>onError</code>, and returns <code>null</code>. Read failures from <code>task.error</code>, never from the return.</p>
+						</div>
+					</div>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>useTask</td><td>useTask({`{`} run, onDone?, onError? {`}`})</td><td>Create a task. <code>run</code> is the async worker; the callbacks are optional.</td></tr>
+								<tr><td>task.run</td><td>run(...args: A): Promise&lt;T | null&gt;</td><td>Invoke the worker; resolves to the result, or <code>null</code> when stale or failed.</td></tr>
+								<tr><td>task.cancel</td><td>cancel(): void</td><td>Invalidate the in-flight run; pending returns to <code>idle</code>.</td></tr>
+								<tr><td>task.reset</td><td>reset(): void</td><td>Invalidate any run and restore idle / null / null.</td></tr>
+								<tr><td>task.status</td><td>status: TaskStatus</td><td>Reactive getter and setter for the current status.</td></tr>
+								<tr><td>task.data</td><td>data: T | null</td><td>Reactive getter and setter for the last result.</td></tr>
+								<tr><td>task.error</td><td>error: unknown</td><td>Reactive getter and setter for the last rejection.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="options">Options and callbacks</h2>
+					<p><code>onDone</code> fires with the result after a successful run commits; <code>onError</code> fires with the rejection after a failed run commits. Neither callback fires for stale runs whose results were discarded. A throwing callback is caught and reported via <code>console.error</code>, so user code in a callback can never corrupt task state.</p>
+					<p>Use the callbacks for side effects (writing into other state, announcing to assistive tech, logging) and use the returned promise or the reactive fields for control flow. The two channels carry the same outcome, so pick whichever reads better at the call site.</p>
+					<div class="codeblock" data-code="options" data-lang="tardis"></div>
+
+					<h2 id="arguments">Passing arguments</h2>
+					<p>Arguments given to <code>task.run(...args)</code> are forwarded verbatim to the worker, so one task definition serves every parameterized call. The argument tuple type <code>A</code> is shared between the worker signature and <code>run</code>, which means arity and parameter types are checked once at the <code>useTask</code> call. The typed example below shows the shape: a worker taking <code>id</code> pairs with <code>profile.run(id)</code>, and any other call shape is rejected.</p>
+					<p>Workers should be pure functions of their arguments plus explicitly closed-over state. Closing over mutable locals that change between runs is the usual suspect when a task intermittently uses a stale parameter; passing the value as an argument removes the question.</p>
+					<div class="codeblock" data-code="typed" data-lang="tardis"></div>
+
+					<h2 id="typing">Types</h2>
+					<p>Use these annotations for tasks shared across modules.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>TaskStatus</td><td>idle | pending | done | error</td><td>The four states a task can be in.</td></tr>
+								<tr><td>TaskOptions&lt;T, A&gt;</td><td>{`{`} run, onDone?, onError? {`}`}</td><td>The <code>useTask</code> argument: worker plus optional callbacks.</td></tr>
+								<tr><td>Task&lt;T, A&gt;</td><td>{`{`} status, data, error, run, cancel, reset {`}`}</td><td>The object <code>useTask</code> returns.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Typing the <code>useTask</code> call pins the argument types of <code>run</code> and the payload type of <code>data</code> together, so a mismatch is a compile error rather than a runtime surprise. <code>error</code> stays <code>unknown</code> by design: narrow it at the boundary where the failure is rendered or reported.</p>
+
+					<h2 id="stale">Stale resolution</h2>
+					<p>Every <code>run</code> call bumps an internal generation counter. Only the latest generation may write <code>data</code>, <code>error</code>, or <code>status</code>; an earlier run that settles late resolves to <code>null</code> and changes nothing. This makes rapid re-runs (search-as-you-type, pagination, polling restarts) safe by default: the UI can only ever show the newest request outcome.</p>
+					<p>The practical rule is to null-check the awaited result whenever overlapping runs are possible. A <code>null</code> means a newer run took over, and there is nothing to render.</p>
+					<div class="codeblock" data-code="stale" data-lang="tardis"></div>
+
+					<h2 id="reactive">Reactive bindings</h2>
+					<p>Under the hood the three fields are getters and setters over a state object created with <code>createState</code>, with every write going through <code>$update</code>. That means three things for authors: reads inside reactive contexts subscribe to changes, writes trigger the same dependent effects as direct state writes, and the fields can be passed anywhere a reactive value is expected. Derived helpers such as a function returning <code>task.status === "pending"</code> stay current for exactly this reason.</p>
+					<p>Prefer the task methods over manual field writes. Setting <code>task.status</code> directly bypasses the generation guard, so a stale run settling afterward can still overwrite it. <code>run</code>, <code>cancel</code>, and <code>reset</code> keep the counter and the fields consistent.</p>
+					<p>Reads outside a reactive context are plain one-shot observations: they return the current value and subscribe to nothing. That makes status checks in event handlers cheap and side-effect free, while the same property read inside a tracked binding stays live.</p>
+
+					<h2 id="cancel">Cancel and reset</h2>
+					<p><code>cancel</code> invalidates the current generation. If the task is <code>pending</code>, status returns to <code>idle</code>; the underlying promise still settles, but its result is discarded and the awaiting <code>run</code> resolves to <code>null</code>. <code>reset</code> goes further: it invalidates the generation and clears <code>data</code> and <code>error</code> back to <code>null</code> alongside the status.</p>
+					<p>Reach for <code>cancel</code> when abandoning work (leaving a view, superseding a request) and for <code>reset</code> when the whole operation should read as never-attempted, such as clearing a form and its submission state together.</p>
+					<div class="codeblock" data-code="cancel" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Cancel does not abort</div>
+							<p>There is no AbortController wiring: <code>cancel</code> only ignores the late result. If the worker does fetch work, pass your own abort signal into the <code>run</code> function and abort it alongside <code>task.cancel()</code>.</p>
+						</div>
+					</div>
+
+					<h2 id="rendering">Rendering states</h2>
+					<p>Because <code>status</code>, <code>data</code>, and <code>error</code> are reactive, <code>$if</code> and <code>$show</code> blocks update automatically when the task settles. Branch on <code>status</code> for the three mutually exclusive phases, and read <code>data</code> or <code>error</code> inside the matching branch. Keep the previous <code>data</code> visible behind the pending branch when a reload should not blank the screen.</p>
+					<div class="codeblock" data-code="render" data-lang="tardis"></div>
+
+					<h2 id="multiple">Multiple tasks</h2>
+					<p>Each <code>useTask</code> call owns an independent generation counter and an independent state triple, so sibling tasks never interfere. A page that loads a user and that user posts uses two tasks: each has its own pending flag, its own data, and its own error. The cost is one small state object per task, which makes splitting coarse tasks into focused ones the default recommendation.</p>
+					<p>What sibling tasks do share is nothing. Cancelling one leaves the other running, resetting one leaves the other data intact, and a stale run in one cannot null out the other result. Coordinate them in <code>methods</code> when ordering matters, for example awaiting the user task before running the posts task.</p>
+
+					<h2 id="handlers">Calling from handlers</h2>
+					<p>The two natural call sites are event handlers and mount callbacks. From a click handler, call <code>run</code> without awaiting when the reactive fields drive the UI, and await it when subsequent lines need the value. From a mount callback, a bare <code>task.run()</code> starts loading as soon as the component appears; the pending branch covers the gap.</p>
+					<p>Guard re-entry when the trigger can fire twice. A double-clicked submit button starts two runs, and the first result is discarded as stale. Disabling the button while <code>task.status === "pending"</code> removes the duplicate work instead of merely hiding its result.</p>
+					<p>When the handler itself is async, decide what the await means. Awaiting <code>run</code> pauses the handler until this generation settles or is superseded, which is ideal for sequential flows like validate-then-submit. Not awaiting lets the handler finish immediately while the reactive fields carry the outcome to the UI, which suits fire-and-notify actions. Mixing the two styles in one handler (awaiting one task, ignoring another) is fine as long as each choice is deliberate.</p>
+
+					<h2 id="testing-tasks">Testing tasks</h2>
+					<p>Tasks are plain objects, so unit tests need no renderer. Await <code>task.run()</code> with a stubbed worker, then assert on <code>status</code>, <code>data</code>, and <code>error</code> directly.</p>
+					<ul>
+						<li>Assert success resolves the value, writes <code>data</code>, and sets <code>done</code>.</li>
+						<li>Assert failure resolves <code>null</code>, writes <code>error</code>, and sets <code>error</code> status.</li>
+						<li>Assert a superseded run resolves <code>null</code> without writing, using deferred promises for deterministic ordering.</li>
+						<li>Assert <code>cancel</code> returns a pending task to <code>idle</code> and the late result is discarded.</li>
+						<li>Assert <code>reset</code> restores idle, null, and null together.</li>
+					</ul>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A search page combines every feature on this page: a parameterized worker keyed by query string, a null-guarded submit handler implementing stale resolution, a pending branch that keeps previous results visible, and a disable-while-pending guard against double submission. The task owns the async state; the markup owns the branches; the handler owns the ordering.</p>
+					<p>When the page grows a second concern, such as saving a result, add a second task rather than overloading the first. Independent counters and independent triples keep the search state and the save state from ever entangling, and each task tests in isolation with the three-clause contract from the testing section.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Null means three things</div>
+							<p><code>run</code> resolves to <code>null</code> on failure, on stale supersession, and on cancel. Disambiguate with <code>task.status</code> and <code>task.error</code> after the await instead of treating every null as a failure.</p>
+						</div>
+					</div>
+					<ul>
+						<li>A stale run resolves to <code>null</code>, not to its value. Always null-check the result of <code>run</code> when overlapping runs are possible.</li>
+						<li><code>reset</code> clears <code>data</code>. If the UI should keep showing the last good value while reloading, call <code>run</code> again instead of <code>reset</code> first.</li>
+						<li><code>task.status</code>, <code>task.data</code>, and <code>task.error</code> are settable. Writing them directly bypasses the generation guard, so prefer <code>run</code> / <code>cancel</code> / <code>reset</code>.</li>
+						<li>Creating the task inside <code>script</code> once and reusing it across renders keeps one generation counter; recreating it per render loses in-flight tracking.</li>
+						<li><code>cancel</code> on a non-pending task still bumps the generation, invalidating a run that somehow settles late. That is harmless but worth knowing when reading traces.</li>
+						<li>Callback exceptions are swallowed after a <code>console.error</code>. If an <code>onDone</code> side effect silently did nothing, check the console before blaming the task.</li>
+						<li>A new <code>run</code> clears <code>error</code> but keeps <code>data</code>. Design the pending branch for both cases: first load with no data, and reload with previous data.</li>
+						<li>Hovering or polling loops that call <code>run</code> on an interval create overlapping runs by design. That is exactly what the generation guard is for, but each tick still pays for a request; debounce before reaching for concurrency.</li>
+						<li>A worker that never settles leaves the task <code>pending</code> forever. Timeouts and abort handling belong in the worker, not in the task wrapper.</li>
+						<li>Two tasks awaiting each other deadlock like any two promises. Keep task dependencies acyclic: tasks may read each other settled state, but never await each other in a cycle.</li>
+						<li>Logic that must run for every settlement attempt, stale or not, belongs in the worker try / finally. The callbacks fire only for the surviving generation.</li>
+					</ul>
+
+					<DocsPager prev="/docs/store" prevLabel="Store" next="/docs/devtools" nextLabel="Devtools" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: 'script {\n  const users = useTask({\n    run: async () => {\n      const res = await fetch("/api/users")\n      return res.json()\n    }\n  })\n  users.run()\n}\nui {\n  $if(users.status === "pending") {\n    <p>Loading...</p>\n  }\n  $if(users.status === "done") {\n    <p>Loaded.</p>\n  }\n}',
+			options: 'script {\n  const save = useTask({\n    run: async (draft) => {\n      const res = await fetch("/api/drafts", { method: "POST", body: JSON.stringify(draft) })\n      return res.json()\n    },\n    onDone: (data) => $update(state, "savedId", data.id),\n    onError: (err) => console.error(err)\n  })\n}',
+			typed: 'script {\n  const profile = useTask({\n    run: async (id) => {\n      const res = await fetch("/api/users/" + id)\n      return res.json()\n    }\n  })\n  const open = (id) => profile.run(id)\n}',
+			stale: 'script {\n  const search = useTask({\n    run: async (q) => {\n      const res = await fetch("/api/search?q=" + q)\n      return res.json()\n    }\n  })\n  const onType = async (q) => {\n    const result = await search.run(q)\n    if (result === null) return\n    $update(state, "rows", result)\n  }\n}',
+			cancel: 'script {\n  const load = useTask({\n    run: async () => {\n      const res = await fetch("/api/report")\n      return res.json()\n    }\n  })\n  load.run()\n  load.cancel()\n  load.reset()\n}',
+			render: 'ui {\n  $if(load.status === "pending") {\n    <p>Loading report...</p>\n  }\n  $if(load.status === "error") {\n    <p>Something went wrong.</p>\n  }\n  $if(load.status === "done") {\n    <p>Report ready.</p>\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

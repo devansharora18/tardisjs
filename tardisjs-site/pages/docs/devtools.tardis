@@ -1,0 +1,200 @@
+blueprint DocsDevtools {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Devtools" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>The devtools hook is a minimal event log plus a flat component tree. It has no DOM and no timers, and it reads the component registry without mutating it. Recording is gated on a connection flag, so <code>recordEvent</code> calls in framework code cost almost nothing when no devtools session is active.</p>
+					<p>Everything here is exported from the runtime barrel: <code>connectDevtools</code>, <code>recordEvent</code>, and <code>getHook</code>, plus the <code>DevEvent</code>, <code>DevEventKind</code>, <code>TreeNode</code>, and <code>DevtoolsHandle</code> types. A session has three parts: connect to open it, record and read events while it is open, and disconnect to close it.</p>
+					<p>Scope note: this is an observation hook, not a debugger. There are no breakpoints, no time-travel, and no state editing, only the append-only log and the flat tree. That narrowness is what keeps the hook dependency-free and safe to leave instrumented in shipped code.</p>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+
+					<h2 id="when">When to connect</h2>
+					<p>Connect a session whenever you need to observe framework internals rather than DOM output: tracing a reactive update storm, confirming a component mounted and unmounted symmetrically, logging route transitions during navigation work, or capturing a reproduction trace to attach to a bug report. Production bundles should leave the hook disconnected so recording stays a no-op.</p>
+					<p>The same hook serves authors and tooling builders. Authors connect ad hoc while debugging; tooling connects programmatically to power panels, traces, and assertions. Both use the identical handle, so techniques transfer directly.</p>
+					<ul>
+						<li>Debugging update loops and unexpected re-renders.</li>
+						<li>Auditing mount / destroy symmetry for leaks.</li>
+						<li>Recording route and state transitions during manual testing.</li>
+						<li>Driving a custom inspector panel via subscriptions.</li>
+						<li>Asserting framework behavior in integration tests.</li>
+					</ul>
+
+					<h2 id="lifecycle">Session lifecycle</h2>
+					<p>One connection owns one buffer and one subscriber set. The lifecycle below is the whole session contract; every section after this one details a single phase.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Connect</h3>
+							<p><code>connectDevtools</code> flips the gate on, empties the buffer, drops all subscribers, and returns the session handle. Any previous session state is gone.</p>
+						</div>
+						<div class="step-row">
+							<h3>Record</h3>
+							<p><code>recordEvent</code> appends while connected and no-ops while disconnected. The buffer keeps only the newest <code>maxEvents</code> entries.</p>
+						</div>
+						<div class="step-row">
+							<h3>Observe</h3>
+							<p>Read snapshots with <code>events()</code> and <code>tree()</code>, or stream with <code>subscribe</code>. Snapshots are copies; a throwing stream listener cannot break its siblings.</p>
+						</div>
+						<div class="step-row">
+							<h3>Disconnect</h3>
+							<p><code>disconnect</code> flips the gate off and clears the buffer and the subscriber set. The <code>seq</code> counter keeps going for the page lifetime.</p>
+						</div>
+					</div>
+
+					<h2 id="connect">Connect and disconnect</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>connectDevtools</td><td>connectDevtools({`{`} maxEvents? {`}`})</td><td>Start a session and return a handle. Resets the buffer and subscribers.</td></tr>
+								<tr><td>disconnect</td><td>handle.disconnect(): void</td><td>End the session; clears the buffer and all subscribers.</td></tr>
+								<tr><td>getHook</td><td>getHook(): {`{`} connected: boolean {`}`}</td><td>Cheap session-state check without holding a handle.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p><code>maxEvents</code> caps the ring buffer and defaults to 500. When the buffer overflows, the oldest entries are dropped first. Connecting twice resets the buffer and drops existing subscribers, so treat a second <code>connectDevtools</code> call as a fresh session rather than a reconfiguration of the old one.</p>
+					<div class="codeblock" data-code="connect" data-lang="tardis"></div>
+
+					<h2 id="events">Recording events</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>recordEvent</td><td>recordEvent(kind, label, detail?): void</td><td>Append an event. No-op unless connected.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>The <code>detail</code> payload is optional and stored by reference; omit it for simple markers and pass a small object when the consumer needs context. Because recording is a no-op while disconnected, call sites never need their own guard, and leaving instrumentation in shipped code costs one flag check per call.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Kind</th><th>Recorded for</th></tr></thead>
+							<tbody>
+								<tr><td>mount</td><td>Component instances being mounted.</td></tr>
+								<tr><td>destroy</td><td>Component instances being torn down.</td></tr>
+								<tr><td>update</td><td>Reactive updates.</td></tr>
+								<tr><td>route</td><td>Route changes.</td></tr>
+								<tr><td>state</td><td>State writes.</td></tr>
+								<tr><td>error</td><td>Errors.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Only <code>mount</code> has a side effect beyond the log: its label is remembered as a known blueprint name for the tree reader. Every other kind is a pure log entry.</p>
+					<div class="codeblock" data-code="record" data-lang="tardis"></div>
+
+					<h2 id="shape">Event shape</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>seq</td><td>number</td><td>Monotonic counter, unique for the page lifetime.</td></tr>
+								<tr><td>at</td><td>number</td><td><code>Date.now()</code> timestamp of recording.</td></tr>
+								<tr><td>kind</td><td>DevEventKind</td><td>One of the six kinds above.</td></tr>
+								<tr><td>label</td><td>string</td><td>Human-readable subject of the event.</td></tr>
+								<tr><td>detail</td><td>unknown?</td><td>Optional payload, present only when passed.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Use <code>seq</code> for ordering and cursors, and <code>at</code> for wall-clock correlation with external logs. Labels are display strings, not stable identifiers: filter panels by <code>kind</code> first and match labels loosely.</p>
+
+					<h2 id="reading">Reading the log</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>events</td><td>handle.events(): DevEvent[]</td><td>Copy of the buffer, oldest first.</td></tr>
+								<tr><td>clear</td><td>handle.clear(): void</td><td>Empty the buffer without disconnecting.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>The <code>seq</code> counter keeps increasing across disconnects and reconnects; only the buffer is cleared, so sequence numbers stay unique for the lifetime of the page. That makes <code>seq</code> a reliable cursor for incremental consumers that poll <code>events()</code> and remember the last seen value.</p>
+					<p><code>events()</code> returns a copy, so holding the array never pins the live buffer and mutating it never corrupts the session. <code>clear()</code> empties the buffer but leaves subscribers and the connection intact, which is useful between test cases that share one session.</p>
+					<div class="codeblock" data-code="reading" data-lang="tardis"></div>
+
+					<h2 id="buffer">Buffer semantics</h2>
+					<p>The buffer is a capped array with oldest-first eviction: when a push would exceed <code>cap</code>, the surplus oldest entries are removed in one splice. There is no paging, no persistence, and no overflow signal, so consumers that cannot afford gaps should either raise <code>maxEvents</code> or drain via subscription instead of polling.</p>
+					<p><code>clear</code> and <code>disconnect</code> both empty the buffer, but only <code>disconnect</code> also drops subscribers and flips the recording gate. Reconnecting after a disconnect therefore starts fully clean, while <code>clear</code> mid-session preserves the observation setup.</p>
+					<p>Size the cap to the investigation. A leak hunt spanning minutes of interaction wants thousands of entries; a focused mount assertion wants a cap of ten and fails loudly if anything unexpected records.</p>
+
+					<h2 id="tree">Component tree</h2>
+					<p><code>handle.tree()</code> returns a flat list of <code>{`{`} name, id, children {`}`}</code> nodes. The registry stores no parent links, so every instance is reported as a root and <code>children</code> is always empty. Only blueprint names seen in a <code>mount</code> event are enumerated: the hook remembers mount labels because the registry itself exposes no name listing. Instances registered under a name that was never recorded as mounted do not appear.</p>
+					<p>The tree is a snapshot built from live registry reads at call time, so it reflects mounts and unregisters that happened since the last call. Re-call it after the action under observation rather than caching it. Reads never mutate the registry; the integration is strictly read-only through <code>getAll</code>.</p>
+					<p>Names in the tree are mount labels, so identical blueprints mounted twice appear as siblings with distinct ids. That makes the tree a natural leak detector: repeated navigation that grows the list without bound is retaining instances.</p>
+					<div class="codeblock" data-code="tree" data-lang="tardis"></div>
+
+					<h2 id="subscribe">Subscriptions</h2>
+					<p><code>handle.subscribe(fn)</code> registers a listener called with each new event and returns an unsubscribe function. One throwing subscriber never breaks the others: each listener is invoked in isolation and exceptions are swallowed. Unsubscribing is just calling the returned function; there is no separate remove API.</p>
+					<p>A common shape is one subscriber that filters by kind and appends to a panel, plus <code>disconnect</code> (or the unsubscribe function) tearing it down when the panel unmounts. Since <code>connectDevtools</code> clears the subscriber set, a reconnect also drops forgotten listeners.</p>
+					<div class="codeblock" data-code="subscribe" data-lang="tardis"></div>
+
+					<h2 id="panel">Building a panel</h2>
+					<p>A minimal inspector needs three pieces: a session opened on panel mount, a subscriber appending to panel-local state, and teardown on panel unmount. Filter inside the subscriber so the panel state stays small; the buffer already holds the full history for drill-down. Pair the live feed with periodic <code>tree()</code> snapshots when the panel shows component structure alongside the event stream.</p>
+					<p>Keep subscriber work synchronous and cheap. The notification loop runs inline with recording, so a slow subscriber delays the very code being observed. Format and truncate at render time, not at record time.</p>
+					<p>Panels that survive navigation need a reconnect strategy. Because <code>connectDevtools</code> resets the buffer and drops subscribers, re-running the panel setup (connect, subscribe, snapshot) after each route change keeps the feed continuous. Alternatively keep one long-lived session for the whole visit and let the buffer cap bound memory; the <code>seq</code> continuity then spans navigations, which simplifies cross-page traces.</p>
+
+					<h2 id="types">Types</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>DevEventKind</td><td>mount | destroy | update | route | state | error</td><td>The six recordable event kinds.</td></tr>
+								<tr><td>DevEvent</td><td>{`{`} seq, at, kind, label, detail? {`}`}</td><td>One log entry.</td></tr>
+								<tr><td>TreeNode</td><td>{`{`} name, id, children {`}`}</td><td>One flat tree entry; children is always empty.</td></tr>
+								<tr><td>DevtoolsHandle</td><td>{`{`} events, clear, tree, subscribe, disconnect {`}`}</td><td>The session object <code>connectDevtools</code> returns.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="testing-devtools">Testing with devtools</h2>
+					<p>The hook works well as an observation channel in integration tests: connect with a small cap, drive the framework, assert on the recorded kinds and labels, then disconnect. Because <code>disconnect</code> clears everything, sequential tests each start clean even when sharing no fixtures.</p>
+					<ul>
+						<li>Assert a mount test records a <code>mount</code> with the blueprint name as label.</li>
+						<li>Assert teardown records the matching <code>destroy</code>.</li>
+						<li>Assert subscriber exceptions do not break sibling subscribers by registering a throwing listener alongside a recording one.</li>
+						<li>Assert overflow behavior by connecting with a tiny <code>maxEvents</code> and recording past it.</li>
+						<li>Assert <code>events()</code> copies by mutating the returned array and re-reading the buffer.</li>
+					</ul>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Connect before the action</div>
+							<p>Mounts recorded before the session opened are invisible to both the log and the tree. Open the session first, then mount, then assert.</p>
+						</div>
+					</div>
+					<ul>
+						<li><code>recordEvent</code> silently drops events when disconnected. If the log is empty, check <code>getHook().connected</code> first.</li>
+						<li><code>events()</code> returns a copy. Mutating the returned array does not affect the buffer; use <code>clear()</code> to empty it.</li>
+						<li><code>disconnect</code> clears subscribers and buffered events but not the <code>seq</code> counter, so sequence numbers stay unique across sessions.</li>
+						<li><code>tree()</code> is flat by design. Do not walk <code>children</code> expecting a hierarchy; correlate mounts and destroys from the event log instead.</li>
+						<li>The tree only lists names seen in <code>mount</code> events. If an instance is missing, the mount was likely recorded before the session connected.</li>
+						<li>The buffer keeps only the newest <code>maxEvents</code> entries. Long sessions with the default cap of 500 will lose early history.</li>
+						<li><code>detail</code> is stored by reference. Mutating the object after recording rewrites history; pass a snapshot when the payload may change.</li>
+						<li>Reconnecting mid-debugging wipes the trace you were reading. Snapshot <code>events()</code> into a local before reconnecting when the old history matters.</li>
+					</ul>
+
+					<DocsPager prev="/docs/tasks" prevLabel="Async tasks" next="/docs/a11y" nextLabel="Accessibility" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: 'script {\n  const tools = connectDevtools()\n  recordEvent("state", "counter", { value: 1 })\n  console.log(tools.events())\n  tools.disconnect()\n}',
+			connect: 'script {\n  const tools = connectDevtools({ maxEvents: 100 })\n  const hook = getHook()\n  console.log(hook.connected)\n  tools.clear()\n  tools.disconnect()\n}',
+			record: 'script {\n  const tools = connectDevtools()\n  recordEvent("route", "/docs/devtools")\n  recordEvent("error", "load-failed", { status: 500 })\n  const log = tools.events()\n  console.log(log[0].seq, log[0].at, log[0].kind)\n}',
+			reading: 'script {\n  const tools = connectDevtools()\n  recordEvent("update", "counter")\n  const seen = tools.events().length\n  tools.clear()\n  console.log(seen, tools.events().length)\n}',
+			tree: 'script {\n  const tools = connectDevtools()\n  recordEvent("mount", "DocsDevtools")\n  const roots = tools.tree()\n  console.log(roots.map(n => n.name + "#" + n.id))\n}',
+			subscribe: 'script {\n  const tools = connectDevtools()\n  const off = tools.subscribe((e) => {\n    console.log(e.kind, e.label)\n  })\n  recordEvent("update", "counter")\n  off()\n  tools.disconnect()\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

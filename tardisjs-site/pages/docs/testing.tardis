@@ -1,0 +1,200 @@
+blueprint DocsTesting {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Testing" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>The testing package renders real <code>.tardis</code> source through the real lex, parse, and compile pipeline, then evaluates the emitted component against the real runtime inside a DOM. What the test sees is what the browser runs: no reimplemented semantics, no type-stripping shortcuts. (Types are stripped with the TypeScript compiler, which is a production dependency.)</p>
+					<p>Tests require a DOM. Add <code>// @vitest-environment jsdom</code> to the test file, otherwise <code>renderBlueprint</code> throws an error telling you exactly that. Import the helpers from the testing entrypoint alongside the usual vitest imports.</p>
+					<p>The package pairs naturally with the framework own test layout: unit tests for tasks, stores, and helpers need no DOM at all, while blueprint tests render through this package. That split keeps the fast logic tests fast and reserves the jsdom environment for tests that truly touch markup.</p>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+
+					<h2 id="pipeline">What runs in a test</h2>
+					<p>One <code>renderBlueprint</code> call walks the full production path. Knowing the stages tells you where a failure originated when a test breaks.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Lex and parse</h3>
+							<p>The source string is lexed and parsed exactly as the CLI parses files. Syntax errors throw here, with the blueprint filename reported as <code>test.tardis</code>.</p>
+						</div>
+						<div class="step-row">
+							<h3>Compile</h3>
+							<p>The AST is compiled to a JS module string by the real compiler. The <code>tardisjs/runtime</code> import is dropped because the real <code>$runtime</code> object is injected as a function parameter instead.</p>
+						</div>
+						<div class="step-row">
+							<h3>Transpile and evaluate</h3>
+							<p>Types are stripped with the TypeScript compiler, exports are rewritten, and the component is returned from a generated factory evaluated against the live runtime.</p>
+						</div>
+						<div class="step-row">
+							<h3>Mount and flush</h3>
+							<p>The component mounts into an attached container marked with <code>data-test-blueprint</code>, and mount callbacks flush so <code>onMount</code> work has run before the first assertion.</p>
+						</div>
+					</div>
+
+					<h2 id="render">Rendering blueprints</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>renderBlueprint</td><td>renderBlueprint(source: string, opts?: RenderOptions)</td><td>Compile, mount, and flush; returns <code>{`{`} root, document, window, cleanup {`}`}</code>.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Props pass through the second argument and default to an empty object. The blueprint name is validated against the identifier pattern and an invalid name throws before anything mounts.</p>
+					<p>Script blocks normally run inside <code>requestAnimationFrame</code>; when the environment provides no rAF, the renderer installs a synchronous shim for the duration of the test and restores the previous state in <code>cleanup</code>.</p>
+					<p>The returned <code>document</code> and <code>window</code> are the ambient globals the render used. Prefer them over freshly imported globals when constructing assertions that depend on the active document, such as comparing node ownership.</p>
+					<div class="codeblock" data-code="render" data-lang="tardis"></div>
+
+					<h2 id="types">Render types</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>RenderOptions</td><td>{`{`} props?: Record&lt;string, unknown&gt; {`}`}</td><td>The optional second argument to <code>renderBlueprint</code>.</td></tr>
+								<tr><td>RenderResult</td><td>{`{`} root, document, window, cleanup {`}`}</td><td>Everything a test needs: the mounted root plus teardown.</td></tr>
+								<tr><td>BlueprintComponent</td><td>(props?) =&gt; HTMLElement</td><td>The evaluated component shape, useful for typing stubs.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p><code>root</code> is the mounted component element itself, already attached under the marked container. <code>cleanup</code> is idempotent: calling it twice is safe.</p>
+					<p>It removes the container, clears the event queues, clears the component registry, and restores the rAF shim.</p>
+
+					<h2 id="props">Props</h2>
+					<p>Pass initial props through <code>{`{`} props {`}`}</code> to exercise the component conditional branches, default handling, and validation from the first render. The object is handed to the component as-is, so the same reference semantics as production apply: mutate it after render only if the component contract allows it.</p>
+					<p>Cover both the populated and the empty case. A component that renders correctly with full props but throws on the default empty object has a latent crash on every route that forgets an attribute. The empty-props render is the cheapest regression test in the file.</p>
+					<p>Type the props object at the test boundary when the component contract matters. A sloppy <code>as unknown as</code> cast in the test hides exactly the shape mismatch the test should catch; write the props literal to match the documented contract and let the compiler flag drift.</p>
+
+					<h2 id="html">Static HTML mounts</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>mountHtml</td><td>mountHtml(html: string)</td><td>Parse static HTML into an attached container; returns <code>{`{`} container, cleanup {`}`}</code>.</td></tr>
+								<tr><td>flushAll</td><td>flushAll(): void</td><td>Drain the mount, update, and destroy callback queues.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p><code>mountHtml</code> is for selector and event tests that need no blueprint compilation: it sets <code>innerHTML</code> on an attached <code>div</code> and hands back the container. Query from the returned container, not from the global document, to avoid matching other tests fixtures. <code>flushAll</code> drains all three callback queues (mount, update, destroy) when a test triggers work outside the renderer, such as a manually invoked update.</p>
+					<p>Reach for static mounts when the unit under test is a selector chain, an event delegation helper, or a visibility predicate rather than a component. Compiling a blueprint to test a one-line DOM helper pays the full pipeline cost for no additional signal; static markup isolates the helper under test.</p>
+					<p>The extended render example below shows both helpers alongside a blueprint render: static markup for the selector assertions, then <code>flushAll</code> before asserting so every queued callback has run.</p>
+
+					<h2 id="cross">Cross-blueprint components</h2>
+					<p>When the blueprint under test references another component, that component resolves via <code>window.__tardis_Name</code>. Assign the stub or the real compiled component on the window before rendering. This keeps unit tests hermetic: the test decides exactly which collaborators exist, and a missing collaborator fails loudly at render time instead of silently rendering nothing.</p>
+					<p>Delete the assignment after the test (or overwrite it in the next one) so stubs never leak across files sharing a worker. The example below uses a plain element factory as the stub, typed as a <code>BlueprintComponent</code>.</p>
+					<p>Prefer stubs for collaborators with their own async behavior, and prefer real compiled components for pure presentational children. A stubbed child pins the parent contract (which props flow down, which events flow up); a real child additionally covers the composed markup. Mixing both across tests covers the seam from both sides.</p>
+					<div class="codeblock" data-code="cross" data-lang="tardis"></div>
+
+					<h2 id="events">Firing events</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>fireClick</td><td>fireClick(el: Element): void</td><td>Dispatch a bubbling, cancelable <code>click</code> MouseEvent.</td></tr>
+								<tr><td>fireInput</td><td>fireInput(el: Element, value: string): void</td><td>Set the element value, then dispatch a bubbling <code>input</code> event.</td></tr>
+								<tr><td>fireKey</td><td>fireKey(el: Element, key: string): void</td><td>Dispatch a bubbling <code>keydown</code> with the given key.</td></tr>
+								<tr><td>tick</td><td>tick(ms?: number): Promise&lt;void&gt;</td><td>Wait out real timers and microtasks; defaults to 0ms.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Events are constructed from the element own window (<code>ownerDocument.defaultView</code>), so the helpers work under jsdom, a real browser, or per-test JSDOM instances instead of a stale cached window. With fake timers, advance time with <code>vi.advanceTimersByTime</code> directly instead of <code>tick</code>, which uses real timers and would never resolve on its own.</p>
+					<p>Await <code>tick</code> after firing to let reactive effects and microtasks settle before asserting. The interaction example below follows the canonical shape: render, fire, tick, assert, clean up.</p>
+					<p>Pass realistic key names to <code>fireKey</code>: Enter, Escape, Tab, and the printable character the handler switches on. Handlers compare the <code>key</code> property verbatim, so a plausible-but-wrong string (return instead of Enter) tests nothing and passes vacuously.</p>
+					<div class="codeblock" data-code="events" data-lang="tardis"></div>
+
+					<h2 id="timers">Timers</h2>
+					<p>Two timer regimes need two approaches. Under real timers, <code>await tick(ms)</code> waits out the delay plus pending microtasks, which covers debounced handlers and short timeouts. Under <code>vi.useFakeTimers</code>, the same await hangs forever because the fake clock never advances on its own; advance it explicitly and flush microtasks between advances.</p>
+					<p>Keep timer-dependent tests in separate files from fake-timer tests where possible. A leaked <code>useFakeTimers</code> call changes what <code>tick</code> means for every later test in the file, and the resulting hangs report far from their cause.</p>
+					<p>Restore real timers in <code>afterEach</code> whenever a test enables fake ones, even when the framework claims automatic restoration. Explicit restoration turns a cross-test contamination mystery into a non-event, and it documents the timer regime for the next reader.</p>
+
+					<h2 id="forms">Testing forms</h2>
+					<p>Form tests follow a fixed rhythm: render, fill each field with <code>fireInput</code>, submit with <code>fireClick</code> or <code>fireKey</code>, tick, then assert the outcome. Because <code>fireInput</code> fires <code>input</code> rather than <code>change</code>, components must bind to <code>input</code> for the test path to match the typing path; a component listening only for <code>change</code> will ignore both the test and real keystrokes the same way.</p>
+					<p>Assert submitted values at the boundary the user observes: the rendered confirmation, the task payload, or the store state. Asserting intermediate field values is useful when debugging a failure but brittle as a contract, since every label rewrite then breaks the test.</p>
+					<p>Cover the invalid path with the same rhythm. Fill bad values, submit, and assert the error branch renders while no submission escapes. Validation that is only tested with valid input is decoration.</p>
+
+					<h2 id="assertions">Assertions</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>isVisible</td><td>isVisible(el: HTMLElement): boolean</td><td>False when the element or any ancestor has inline <code>display:none</code>.</td></tr>
+								<tr><td>textOf</td><td>textOf(el?): string</td><td>Trimmed <code>textContent</code>, or empty string for nullish input.</td></tr>
+								<tr><td>queryAll</td><td>queryAll(root: ParentNode, sel: string)</td><td>All matches as a plain array of <code>HTMLElement</code>.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>These are plain helpers, not vitest matchers; combine them with <code>expect</code>. <code>isVisible</code> mirrors the <code>$show</code> mechanism (inline display toggling) and does not account for stylesheet-based hiding, so pair it with <code>$show</code>-driven markup rather than class-driven visibility.</p>
+					<p><code>textOf</code> tolerates null and undefined, which keeps optional-element assertions to one line.</p>
+					<div class="codeblock" data-code="assert" data-lang="tardis"></div>
+
+					<h2 id="conditionals">Testing conditionals</h2>
+					<p>Conditional rendering has two mechanisms with two test strategies. <code>$if</code> mounts or removes nodes, so assert presence with <code>querySelector</code> returning null or an element. <code>$show</code> toggles inline display without unmounting, so assert visibility with <code>isVisible</code> while the node stays in the document.</p>
+					<p>Drive the condition the way production does: through the same event or state change the UI exposes, then flush and assert. Reaching into internals to flip the branch proves less than clicking the button that flips it, because the test then covers the wiring as well as the branch.</p>
+					<p>Cover both directions of every toggle. A panel that opens but never closes (or renders empty but never populates) passes a one-direction test while broken for users. The second assertion costs one more fire-and-flush cycle.</p>
+
+					<h2 id="isolation">Registry isolation</h2>					<p>Every render registers component instances in the shared registry and queues lifecycle callbacks in the shared event queues. <code>cleanup</code> clears both, which is what keeps tests independent. A test that renders without cleaning up donates its instances to the next test file section, where they surface as phantom matches in <code>queryAll</code> or unexpected subscriber calls.</p>
+					<p>The rAF shim participates in the same discipline: installed only when the environment lacks rAF, restored to the previous value (or deleted) on cleanup. Tests that provide their own rAF never see interference either way.</p>
+
+					<h2 id="cleanup">Cleanup discipline</h2>
+					<p>Every render or mount should be cleaned up so later tests start from empty event queues and an empty registry. The idiomatic shape is a framework hook that cleans the current view after each test, registered before the first assertion runs. Assign the result to a file-scoped binding in each test and let <code>afterEach</code> do the rest.</p>
+					<p>Reset the file-scoped binding to undefined inside the hook after cleaning, so a double-run of the hook (retry plugins, watch-mode reruns) cannot clean an already-removed container twice. The <code>cleanup</code> functions are idempotent, but the binding reset keeps the bookkeeping honest.</p>
+					<div class="codeblock" data-code="cleanup" data-lang="tardis"></div>
+
+					<h2 id="organizing">Organizing test files</h2>
+					<p>One blueprint under test per file keeps the jsdom pragma, the imports, and the cleanup hook uniform. Files stay short enough to read in one pass, and a failure names the component without further triage. Shared helpers (custom matchers, stub factories, deferred promises) live in a sibling module imported by path, never duplicated per file.</p>
+					<p>Name tests after user-observable behavior rather than implementation steps: renders the empty state, submits the form, survives a failed save. Behavior names survive refactors that rename methods and rearrange markup; step names break on both.</p>
+					<p>Keep the arrange-act-assert order visible. Renders and stubs at the top, exactly one interaction trigger in the middle, assertions at the end, cleanup in the hook. Tests that interleave firing and asserting in a loop are debugging sessions, not specifications; split them.</p>
+
+					<h2 id="debugging">Debugging failures</h2>
+					<p>Failure messages point at the failing stage when read carefully. A throw demanding the jsdom pragma means the environment line is missing. An invalid-blueprint-name error means the <code>blueprint</code> declaration in the source string is malformed. An empty container after render usually means the component threw during evaluation; look above the assertion failure for the original error.</p>
+					<p>Bisect render versus assertion failures by logging <code>view.root.outerHTML</code> before asserting. If the markup is right, the test logic is wrong; if the markup is wrong, the blueprint or the props are wrong. Never adjust the blueprint to satisfy a mistaken assertion.</p>
+					<p>Suspect shared state when a test passes alone but fails in the suite. The usual carriers are an un-cleaned render, a leaked <code>window.__tardis_</code> stub, a fake-timer regime left on, or module-level mutable fixtures. Run the file with a single test filter to confirm the isolation hypothesis, then fix the cleanup rather than the test order.</p>
+					<p>Suspect async settling when assertions on post-interaction markup flake. A missing <code>await tick()</code> between firing and asserting races the effect queue; the fix is the await, not a longer timeout or a retry loop.</p>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A form test exercises nearly every helper on this page: <code>renderBlueprint</code> with props for the initial values, <code>fireInput</code> per field, <code>fireClick</code> on submit, <code>tick</code> for settling, <code>textOf</code> and <code>queryAll</code> for the outcome, and the <code>afterEach</code> hook for teardown. When that rhythm is green, the component contract (props in, markup out, events handled) is pinned end to end.</p>
+					<p>Grow the file by behavior, not by helper. Each new test reuses the same half-dozen calls in a new arrangement; the day a test needs a helper no other test uses, that is a signal to re-read the component contract rather than to improvise new harness machinery.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Cleanup is not optional</div>
+							<p>An unmounted container keeps its registry entries and queued callbacks alive for every later test in the worker. Register <code>cleanup</code> in <code>afterEach</code> before writing the first assertion.</p>
+						</div>
+					</div>
+					<ul>
+						<li>Without a DOM environment the failure is a thrown error telling you to add the jsdom pragma, not a cryptic null crash. Read the message and add it.</li>
+						<li>Forgetting <code>cleanup</code> leaks registry entries and pending callbacks into the next test. Register cleanup before asserting.</li>
+						<li><code>fireInput</code> sets <code>.value</code> and fires <code>input</code>, not <code>change</code>. Handlers listening only for <code>change</code> will not run.</li>
+						<li><code>tick</code> uses real timers. Under <code>vi.useFakeTimers</code> it never resolves on its own; advance the clock explicitly.</li>
+						<li><code>isVisible</code> only sees inline <code>display:none</code>. Elements hidden by classes or stylesheets still report visible.</li>
+						<li><code>mountHtml</code> containers are attached to the document. Query from the returned container, not from the global document, to avoid matching other tests fixtures.</li>
+						<li>Cross-blueprint stubs assigned on <code>window</code> persist past the test. Delete them in cleanup or the next file section inherits the stub.</li>
+						<li><code>textOf</code> trims, so assertions on whitespace-sensitive markup (pre blocks, inline spacing) need raw <code>textContent</code> instead.</li>
+						<li><code>queryAll</code> returns a plain array snapshot. Re-query after interactions; a held array never updates when the DOM changes.</li>
+					</ul>
+
+					<DocsPager prev="/docs/a11y" prevLabel="Accessibility" next="/docs/cli-advanced" nextLabel="CLI advanced" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: '// @vitest-environment jsdom\nimport { expect, test } from "vitest"\nimport { renderBlueprint, textOf } from "tardisjs/testing"\ntest("renders", () => {\n  const view = renderBlueprint(`blueprint Hello { ui { <p>hi</p> } }`)\n  expect(textOf(view.root)).toBe("hi")\n  view.cleanup()\n})',
+			render: '// @vitest-environment jsdom\nimport { expect, test } from "vitest"\nimport { renderBlueprint, mountHtml, flushAll } from "tardisjs/testing"\ntest("props and static html", () => {\n  const view = renderBlueprint(`blueprint Hi { ui { <p>hi</p> } }`, { props: {} })\n  expect(view.root.parentElement.getAttribute("data-test-blueprint")).toBe("Hi")\n  const holder = mountHtml(`<ul><li>a</li></ul>`)\n  flushAll()\n  expect(holder.container.querySelector("li")).toBeTruthy()\n  holder.cleanup()\n  view.cleanup()\n})',
+			cross: '// @vitest-environment jsdom\nimport { expect, test } from "vitest"\nimport { renderBlueprint } from "tardisjs/testing"\ntest("stubbed child", () => {\n  const stub = () => document.createElement("section")\n  window.__tardis_Child = stub\n  const view = renderBlueprint(`blueprint Parent { ui { <p>parent</p> } }`)\n  expect(view.root).toBeTruthy()\n  view.cleanup()\n  delete window.__tardis_Child\n})',
+			events: '// @vitest-environment jsdom\nimport { expect, test } from "vitest"\nimport { renderBlueprint, fireClick, fireInput, fireKey, tick } from "tardisjs/testing"\ntest("interactions", async () => {\n  const view = renderBlueprint(`blueprint Form { ui { <button>go</button> } }`)\n  fireClick(view.root.querySelector("button"))\n  const input = view.root.querySelector("input")\n  if (input) fireInput(input, "hello")\n  if (input) fireKey(input, "Enter")\n  await tick()\n  expect(view.root).toBeTruthy()\n  view.cleanup()\n})',
+			assert: '// @vitest-environment jsdom\nimport { expect, test } from "vitest"\nimport { renderBlueprint, isVisible, textOf, queryAll } from "tardisjs/testing"\ntest("assertions", () => {\n  const view = renderBlueprint(`blueprint List { ui { <ul><li>a</li><li>b</li></ul> } }`)\n  expect(queryAll(view.root, "li")).toHaveLength(2)\n  expect(textOf(view.root.querySelector("li"))).toBe("a")\n  expect(isVisible(view.root)).toBe(true)\n  view.cleanup()\n})',
+			cleanup: '// @vitest-environment jsdom\nimport { afterEach, test } from "vitest"\nimport { renderBlueprint } from "tardisjs/testing"\nlet view\ntest("one", () => {\n  view = renderBlueprint(`blueprint A { ui { <p>a</p> } }`)\n})\nafterEach(() => {\n  if (view) view.cleanup()\n})'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

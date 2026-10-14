@@ -1,0 +1,220 @@
+blueprint DocsCliAdvanced {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="CLI advanced" crumb="Tooling" />
+
+					<h2 id="overview">Overview</h2>
+					<p>Beyond the everyday <code>init</code>, <code>dev</code>, <code>build</code>, and <code>preview</code> commands, the CLI ships three diagnostic tools: <code>compile</code> for inspecting the output of a single blueprint, <code>check</code> for statically validating every blueprint, and <code>doctor</code> for checking project and toolchain health. See <a href="/docs/cli">CLI</a> for the everyday commands.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Command</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>tardis compile</td><td>Compile one blueprint file to JS; print or write with --out.</td></tr>
+								<tr><td>tardis check</td><td>Statically validate all page and component blueprints.</td></tr>
+								<tr><td>tardis doctor</td><td>Check node, config, directories, and toolchain health.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Which diagnostic when</div>
+							<p>Run <code>doctor</code> when the toolchain itself misbehaves, <code>check</code> when the blueprints may be wrong, and <code>compile</code> when one file output needs reading. The putting-it-together section chains them into a single workflow.</p>
+						</div>
+					</div>
+
+					<h2 id="when">When to reach for these</h2>
+					<p>The everyday commands move a project forward; these three explain what is happening. Run <code>compile</code> when the generated output surprises you (missing markup, a handler that never fires, an import that resolves oddly) and you want to see exactly what the compiler emitted for one file.</p>
+					<p>Run <code>check</code> when the blueprints themselves may be wrong: unknown helpers, dangling references, dead methods, or slot misuse across the whole project. Run <code>doctor</code> when anything in the toolchain misbehaves (build fails on a fresh clone, the dev server cannot start, output lands in the wrong place) and you want the environment-part versus project-part answer in seconds.</p>
+					<ul>
+						<li>Inspecting compiler output for a single blueprint without building the project.</li>
+						<li>Diffing compiled output across revisions to review a compiler upgrade.</li>
+						<li>Validating every blueprint for bad references and dead code before a build.</li>
+						<li>Diagnosing a fresh-clone build failure before touching project files.</li>
+						<li>Gating CI setup steps on environment health.</li>
+						<li>Scripting one-off code generation from a blueprint file.</li>
+					</ul>
+
+					<h2 id="compile">tardis compile</h2>
+					<p>Compiles one <code>.tardis</code> blueprint file to JS. With no options the output is printed to stdout; with <code>--out</code> it is written to a file, creating parent directories as needed.</p>
+					<p>A missing input file is a hard error, and parser errors propagate as <code>TardisError</code>.</p>
+					<p>This is the fastest way to answer what did the compiler make of this file. Pipe stdout into a pager or a diff when comparing revisions, and reach for <code>--out</code> when feeding the output to another tool.</p>
+					<div class="codeblock" data-code="compile" data-lang="bash"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Argument / Option</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>&lt;file&gt;</td><td>Blueprint file to compile (required).</td></tr>
+								<tr><td>--out &lt;file&gt;</td><td>Write compiled JS to a file instead of stdout.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="out" data-lang="bash"></div>
+
+					<h2 id="compile-errors">Compile errors</h2>
+					<p>Failures come in two verified shapes, and the shape tells you where to look. Tell them apart before editing anything.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Error</th><th>Meaning</th><th>Fix</th></tr></thead>
+							<tbody>
+								<tr><td>file not found</td><td>The resolved input path does not exist.</td><td>Check the working directory and the spelling; the error names the resolved path.</td></tr>
+								<tr><td>TardisError</td><td>The parser rejected the blueprint source.</td><td>Read the reported location, fix the markup, and re-run; <code>build</code> would fail identically.</td></tr>
+								<tr><td>write failure</td><td>The <code>--out</code> target could not be created or written.</td><td>Check parent permissions and disk space; retry with a known-writable path.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Input and parse failures happen before any writing, so a failed compile never touches an existing output file. Retrying is always safe, and a stale artifact from an earlier success stays untouched until a later run genuinely succeeds.</p>
+
+					<h2 id="paths">Paths and working directory</h2>
+					<p>Both the input and the <code>--out</code> target resolve against the current working directory, so relative paths behave the way shell users expect. Run the command from the project root and the same relative paths work in scripts, editors, and CI. Parent directories of the output are created automatically; the input, by contrast, must already exist, and a missing input fails before any compilation is attempted.</p>
+					<p>Because resolution is cwd-relative, the same command run from a subdirectory addresses different files. Prefer project-root invocation in shared scripts, or pass absolute paths when the working directory cannot be guaranteed.</p>
+					<p>The programmatic functions take <code>cwd</code> explicitly for exactly this reason. Tests and scripts that pass a fixture directory get deterministic resolution regardless of where the runner was invoked, which removes an entire class of works-on-my-machine path bugs.</p>
+
+					<h2 id="compile-api">Using compile programmatically</h2>					<p>The command is a thin wrapper over <code>compileSingleFile(input, out?, cwd?)</code>, which resolves both paths against the working directory and returns the compiled code string.</p>
+					<p>When <code>out</code> is given the file is written, otherwise the code is printed and still returned. Call it directly when scripting builds or writing tooling tests.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Parameter</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>input</td><td>Blueprint file path; must exist, resolved against <code>cwd</code>.</td></tr>
+								<tr><td>out?</td><td>Optional output file path; parent directories are created.</td></tr>
+								<tr><td>cwd?</td><td>Base directory for resolution; defaults to <code>process.cwd()</code>.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="api" data-lang="js"></div>
+
+					<h2 id="compile-vs-build">Compile versus build</h2>
+					<p><code>compile</code> handles exactly one file and stops at compilation. <code>tardis build</code> compiles every page and component, transpiles the output, rewrites runtime imports, writes the runtime bundle, copies static assets, and generates <code>index.html</code>. Use <code>compile</code> to inspect and <code>build</code> to ship.</p>
+					<p>The inspect pattern covers the two signature uses: streaming one file through a pager for reading (<code>npx tardis compile components/Button.tardis | head -40</code>), and freezing compiled output to disk for diffing across revisions (<code>--out /tmp/after.js</code>, then <code>diff /tmp/before.js /tmp/after.js</code>). The diff workflow is the practical way to review what a compiler upgrade changed about your project output.</p>
+
+					<h2 id="check">tardis check</h2>
+					<p>Lexes and parses every page and component blueprint, runs the template checker over each, and prints one <code>file:line:col code message</code> line per diagnostic. Parse failures become diagnostics instead of aborts, so one broken file never hides the rest. A clean project prints a single summary line with the file count. The command exits with code 1 when any diagnostic was reported.</p>
+					<p>Without a loadable config the checker falls back to the conventional <code>./pages</code> and <code>./components</code> directories, so it still runs usefully in temp dirs and fresh scaffolds. Diagnostics sort by file, then line, then column, which keeps repeated runs diffable.</p>
+					<div class="codeblock" data-code="check" data-lang="bash"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+							<tbody>
+								<tr><td>unknown-helper</td><td>A helper name the template does not recognize.</td></tr>
+								<tr><td>unknown-ref</td><td>A dangling reference, or a parse error reported as a diagnostic.</td></tr>
+								<tr><td>dynamic-slot</td><td>Slot usage the checker flags on the <code>ui</code> block.</td></tr>
+								<tr><td>unused-state</td><td>State declared but never read.</td></tr>
+								<tr><td>unused-prop</td><td>A prop that is never consumed.</td></tr>
+								<tr><td>unused-method</td><td>A method nothing invokes.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Programmatic use goes through <code>checkProject(cwd?)</code>, which prints the same lines and returns <code>{`{`} diagnostics, ok {`}`}</code>, where each diagnostic carries <code>file</code>, <code>line</code>, <code>col</code>, <code>code</code>, <code>message</code>, and an optional <code>hint</code>. Like <code>doctorProject</code>, it never exits the process; the CLI wrapper applies the exit code.</p>
+
+					<h2 id="exit">Exit codes and errors</h2>
+					<p>Both commands follow the same failure contract: success is silent apart from the requested output, and failure throws before producing partial results. A missing input file raises a file-not-found error naming the resolved path. A malformed blueprint raises the parser <code>TardisError</code> with its location, identical to what <code>build</code> would report for the same file.</p>
+					<p><code>doctor</code> additionally exits the process with code 1 when any check fails, and <code>check</code> exits with code 1 when any diagnostic was reported, so <code>npx tardis doctor &amp;&amp; npx tardis check &amp;&amp; npx tardis build</code> short-circuits correctly in shell chains. The programmatic <code>doctorProject</code> and <code>checkProject</code> never exit; they return <code>ok: false</code> and leave process control to the caller.</p>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Stdout is the artifact</div>
+							<p>Without <code>--out</code>, compiled JS goes to stdout, which means shell redirections and pipes capture code, not logs. Keep diagnostics on stderr in wrapper scripts so a <code>compile ... &gt; out.js</code> redirect never mixes commentary into the artifact.</p>
+						</div>
+					</div>
+
+					<h2 id="doctor">tardis doctor</h2>
+					<p>Runs environment and project checks, prints one <code>PASS</code> / <code>FAIL</code> line per check with details indented underneath failures, and exits with code 1 when any check fails.</p>
+					<p>Run it first when a build behaves unexpectedly: it distinguishes a broken environment from a broken project in seconds.</p>
+					<div class="codeblock" data-code="doctor" data-lang="bash"></div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Check</th><th>What it verifies</th></tr></thead>
+							<tbody>
+								<tr><td>node version</td><td>Node 18 or newer is running.</td></tr>
+								<tr><td>tardis.config.js present and valid</td><td>The config loads without errors.</td></tr>
+								<tr><td>pages dir exists</td><td>The configured pages directory is present.</td></tr>
+								<tr><td>components dir exists</td><td>The configured components directory is present.</td></tr>
+								<tr><td>write access to outDir</td><td>The output directory can be created and written to.</td></tr>
+								<tr><td>typescript available</td><td>The TypeScript module resolves.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>When the config is missing or invalid, the pages and components checks are reported as skipped rather than probed against defaults, and the output directory falls back to <code>./dist</code>.</p>
+					<p>Only failing checks carry a <code>detail</code> payload with the underlying error message.</p>
+
+					<h2 id="output">Reading doctor output</h2>
+					<p>Each line starts with <code>PASS</code> or <code>FAIL</code> followed by the check name with its live values interpolated: the running Node version, the configured directories, the effective output directory. Failures add indented detail lines with the underlying error, which is usually actionable as-is (a missing file path, a permission error, a config syntax message).</p>
+					<p>Read top-down. A config failure explains the two skipped directory checks below it; fixing the config re-enables them. A Node version failure explains almost everything else on an old machine; upgrade before chasing project-level symptoms.</p>
+
+					<h2 id="fixing">Fixing doctor failures</h2>
+					<p>Each failing check points at a specific repair. Work through them in output order, re-running <code>doctor</code> after each fix.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Check</th><th>Likely cause</th><th>Fix</th></tr></thead>
+							<tbody>
+								<tr><td>node version</td><td>An old Node on PATH, or an unactivated version manager.</td><td>Activate or install Node 18+, then re-run in the same shell.</td></tr>
+								<tr><td>config invalid</td><td>Missing file, thrown error at load, or bad shape.</td><td>Restore <code>tardis.config.js</code>; the detail lines quote the underlying message.</td></tr>
+								<tr><td>pages / components skipped</td><td>No valid config, so nothing was probed.</td><td>Fix the config first; these re-enable automatically.</td></tr>
+								<tr><td>pages / components missing</td><td>Valid config pointing at absent directories.</td><td>Create the directories or correct the configured paths.</td></tr>
+								<tr><td>outDir not writable</td><td>Permissions or a read-only mount.</td><td>Fix permissions or point <code>outDir</code> at a writable location.</td></tr>
+								<tr><td>typescript missing</td><td>Skipped or pruned install.</td><td>Reinstall dependencies so the TypeScript module resolves.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="doctor-api">Using doctor programmatically</h2>
+					<p>Programmatic use goes through <code>doctorProject(cwd?)</code>, which prints the same lines and returns <code>{`{`} checks, ok {`}`}</code>, where each check is <code>{`{`} name, pass, detail? {`}`}</code>. Unlike the CLI command, the function never exits the process; it reports <code>ok: false</code> and lets the caller decide what to do.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>checks</td><td>One entry per check, in run order, with optional failure detail.</td></tr>
+								<tr><td>ok</td><td>True only when every check passed.</td></tr>
+								<tr><td>cwd?</td><td>Project directory to diagnose; defaults to <code>process.cwd()</code>.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="doctorapi" data-lang="js"></div>
+
+					<h2 id="ci">Scripting and CI</h2>					<p>The two commands compose into a setup gate: <code>doctor</code> verifies the environment, <code>check</code> validates the blueprints, then <code>build</code> runs only on a healthy project. Because both diagnostics exit nonzero on failure, chaining with <code>&amp;&amp;</code> is sufficient; no output parsing is needed for the gate itself.</p>
+					<p>Reserve the programmatic functions for wrappers that need structured results, such as posting per-check status to a dashboard or failing with a custom message.</p>
+					<p>Pin the diagnosis to the project directory explicitly in CI by passing the checkout path as <code>cwd</code> to <code>doctorProject</code>. Runners that execute steps from varying directories otherwise diagnose whatever directory they happen to stand in.</p>
+					<p>Keep the gate output visible but out of the way. Let <code>doctor</code> print its lines to the step log for forensics, and rely on the exit code (or the <code>ok</code> flag) for the pass / fail decision. Parsing the human-readable lines for automation couples the pipeline to display formatting that may evolve.</p>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A broken build gets the same three-step response every time. First <code>tardis doctor</code> separates environment faults from project faults; fix those and re-run until every line passes. Then <code>tardis check</code> lists every blueprint diagnostic at once, parse errors included, without stopping at the first broken file. Finally <code>tardis compile</code> on the suspect file shows exactly what the compiler made of it, and the diff workflow from the inspect section shows what changed since it last worked.</p>
+					<p>That order matters. Inspecting compiler output for a project whose config cannot even load wastes the investigation on a symptom, while doctor-first establishes a healthy baseline in seconds. Make it muscle memory: green doctor, clean check, then compile, then build.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><code>compile</code> handles exactly one file. To build a whole project, use <code>tardis build</code>, which also transpiles, rewrites runtime imports, and emits the HTML shell.</li>
+						<li><code>--out</code> overwrites the target file without prompting. Point it at a generated path, not at source.</li>
+						<li><code>doctor</code> creates the output directory if it is missing, so an absent <code>dist</code> is not itself a failure; only missing write permission fails that check.</li>
+						<li><code>doctor</code> exits the process with code 1 on failure when run as a CLI command. The <code>doctorProject</code> function instead returns <code>ok: false</code> and never exits, which is what scripts should use.</li>
+						<li>Skipped directory checks after a config failure look like failures at a glance. Read the parenthesized reason: skipped means no valid config, not a missing directory.</li>
+						<li><code>check</code> reports parse errors as <code>unknown-ref</code> diagnostics alongside template diagnostics. A file that fails to parse still gets exactly one diagnostic line, and checking continues with the remaining files.</li>
+						<li>Relative paths resolve against the invoking directory. Scripts that <code>cd</code> before running will address different files than the same command run from the project root.</li>
+						<li>Automating against <code>doctor</code> stdout couples scripts to display formatting. Gate on the exit code, or call <code>doctorProject</code> for structured results.</li>
+					</ul>
+
+					<DocsPager prev="/docs/testing" prevLabel="Testing" next="/docs/cli" nextLabel="CLI" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			compile: 'npx tardis compile pages/index.tardis\n\n# prints the compiled JS to stdout',
+			out: 'npx tardis compile pages/index.tardis --out dist/index.js\n\n# writes dist/index.js, creating dist/ when needed',
+			api: 'import { compileSingleFile } from "./src/cli/commands/compile"\nconst code = await compileSingleFile("pages/index.tardis", "dist/index.js")\nconsole.log(`compiled ${code.length} chars`)',
+			check: 'npx tardis check\n\n# check passed — 14 file(s), no issues\n# or, with problems:\n# pages/index.tardis:12:5 unknown-helper unknown helper "BadHelper"',
+			doctor: 'npx tardis doctor\n\n# PASS node version 22.1.0 (>=18 required)\n# PASS tardis.config.js present and valid\n# PASS pages dir exists (pages)\n# PASS components dir exists (components)\n# PASS write access to outDir (dist)\n# PASS typescript available',
+			doctorapi: 'import { doctorProject } from "./src/cli/commands/doctor"\nconst { checks, ok } = await doctorProject(process.cwd())\nfor (const c of checks) console.log(c.pass, c.name)\nif (!ok) process.exit(1)'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

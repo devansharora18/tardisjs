@@ -1,0 +1,200 @@
+blueprint DocsA11y {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Accessibility" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>The a11y helpers are small DOM utilities built over a minimal structural interface, so they import cleanly with no DOM globals. They cover three jobs: keeping keyboard focus inside a dialog, announcing messages to screen readers, and setting ARIA attributes and skip links.</p>
+					<p>Everything here is exported from the runtime barrel: <code>trapFocus</code>, <code>announce</code>, <code>setExpanded</code>, <code>setPressed</code>, <code>setSelected</code>, <code>labelBy</code>, and <code>skipLink</code>, plus the <code>A11yEl</code> type. The rest of this page details each helper, the element contract they share, and the dialog recipe that combines them.</p>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+
+					<h2 id="when">When each helper applies</h2>
+					<p>Different interface moments need different helpers. Match the tool to the moment rather than applying all of them everywhere. The sections below follow the same order as the reference tables: trap, announcements, ARIA setters, skip link.</p>
+					<ul>
+						<li>Opening a modal dialog: trap focus, announce the dialog, and move focus to its first control.</li>
+						<li>Async outcomes (saved, failed, refreshed): announce once into the live region.</li>
+						<li>Disclosure buttons and toggles: keep <code>aria-expanded</code> and <code>aria-pressed</code> in sync with visible state.</li>
+						<li>Listboxes, tabs, and option groups: mark the current item with <code>aria-selected</code>.</li>
+						<li>Controls labelled by visible headings: point <code>aria-labelledby</code> at the heading id.</li>
+						<li>Every page with navigation: render a skip link first so keyboard users bypass it.</li>
+					</ul>
+					<p>When several apply at once, wire them in event order: the handler that changes visible state also updates the ARIA attribute, and the async completion that follows announces the outcome. State, attribute, and announcement then describe the same transition from three angles.</p>
+
+					<h2 id="contract">Element contract</h2>
+					<p>Helpers take an <code>A11yEl</code> instead of a concrete DOM type. The contract is deliberately narrow so plain elements satisfy it directly and test doubles only implement what the helper under test touches.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Required</th><th>Used by</th></tr></thead>
+							<tbody>
+								<tr><td>setAttribute</td><td>Yes</td><td>All ARIA setters and the live region setup.</td></tr>
+								<tr><td>removeAttribute</td><td>Yes</td><td>Part of the element interface contract.</td></tr>
+								<tr><td>getAttribute</td><td>Yes</td><td>Reading back attributes in tests and guards.</td></tr>
+								<tr><td>addEventListener</td><td>Yes</td><td><code>trapFocus</code> attaches the Tab handler.</td></tr>
+								<tr><td>removeEventListener</td><td>No</td><td>Untrap detaches only when present.</td></tr>
+								<tr><td>focus</td><td>No</td><td>Trap advances focus only when present.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>The optional members degrade gracefully: a container without <code>removeEventListener</code> keeps its trap permanently, and focusables without <code>focus</code> are silently skipped during cycling. In real browsers both are always present; the optionality exists for minimal test doubles and non-DOM hosts.</p>
+					<p>Containers need one more member beyond the element contract: <code>querySelectorAll</code> returning an array-like of focusables. The trap converts it with <code>Array.from</code>, so any array-like collection works, including live NodeLists that reflect DOM mutations between key presses.</p>
+
+					<h2 id="focus">Focus trap</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>trapFocus</td><td>trapFocus(container): () =&gt; void</td><td>Trap Tab inside the container; returns an untrap function.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Pass any element-like container that exposes <code>querySelectorAll</code> and <code>addEventListener</code>. On each Tab keydown the helper collects focusable descendants, advances one step (backward with Shift), prevents the default handling, and focuses the next element. Non-Tab keys are ignored entirely.</p>
+					<p>Focusable means matching <code>a[href],button,input,select,textarea,[tabindex]</code>. When a real DOM is present the current position is read from the live <code>activeElement</code>; otherwise the trap cycles from its last focused position. The query runs on every Tab press, so elements added or removed while the dialog is open join or leave the cycle immediately. Call the returned function to remove the keydown listener.</p>
+					<div class="codeblock" data-code="trap" data-lang="tardis"></div>
+
+					<h2 id="keyboard">Keyboard flow</h2>
+					<p>Walk through a three-button dialog to see the arithmetic. With focus on the second button, Tab moves to the third; another Tab wraps to the first. Shift+Tab from the first wraps to the third. The modulo keeps both directions total, so there is no dead end and no escape except the untrap function.</p>
+					<p>Two edge cases matter. With zero focusable descendants, Tab does nothing at all, which reads as a frozen dialog to keyboard users. And with exactly one focusable element, Tab stays on it, which is correct behavior for a single-action confirm but looks broken if the dialog visually contains more controls that happen to be disabled.</p>
+					<p>The trap calls <code>preventDefault</code> on the Tab event whenever it advances, so the browser native focus step never runs and the scripted <code>focus()</code> call is the only movement. When the chosen element lacks a <code>focus</code> method, the press is swallowed but focus stays put; keep every matched element genuinely focusable to avoid dead presses.</p>
+
+					<h2 id="dialog">Dialog recipe</h2>
+					<p>A complete modal dialog combines the trap with an announcement and a labelled region. Announce on open so screen reader users learn the dialog appeared, move focus to the first control, and untrap on close. The pattern below stores the untrap function in state so the close handler can reach it.</p>
+					<p>The markup pairs <code>role="dialog"</code> with <code>aria-labelledby</code> pointing at the visible title, so the announcement and the label reinforce each other: the live region says the dialog opened, and the dialog itself exposes its name.</p>
+					<div class="codeblock" data-code="dialog" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Trap is only the Tab part</div>
+							<p><code>trapFocus</code> handles Tab cycling. Escape-to-close, initial focus placement, focus restoration on close, and hiding background content from assistive tech remain the author job.</p>
+						</div>
+					</div>
+
+					<h2 id="restore">Focus restoration</h2>
+					<p>Closing a dialog should return focus to the element that opened it. Capture <code>document.activeElement</code> before opening (or keep a reference to the trigger), then focus it after untrapping and hiding the dialog. Without restoration, focus falls back to the body and keyboard users lose their place on the page.</p>
+					<p>Order the teardown as untrap, hide, restore. Untrap first so the restoration focus is not intercepted by a still-attached Tab handler; hide second so assistive tech drops the dialog from its tree before focus lands back on the trigger.</p>
+
+					<h2 id="escape">Escape handling</h2>
+					<p>The trap deliberately ignores every key except Tab, so Escape-to-close is a separate small handler on the same container. Close on Escape without modifiers, and let Escape with modifiers pass through for authoring tools and IME workflows that rely on it. Route the Escape path through the identical teardown as the Cancel button: untrap, hide, restore, announce.</p>
+					<p>Confirm the choice per dialog. Alert dialogs that block on required input may legitimately ignore Escape, but then the dialog must expose an explicit dismiss or completion action reachable by keyboard. A modal with no keyboard exit is a trap in the bad sense, regardless of how correct the Tab cycling is.</p>
+
+					<h2 id="announce">Live announcements</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>announce</td><td>announce(message: string, doc?): void</td><td>Write a message into a reused polite live region.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>The first call creates a single <code>div</code> with <code>role="status"</code> and <code>aria-live="polite"</code>, appends it to the document body, and reuses it for every later message. The document defaults to the global <code>document</code>; pass an explicit doc to target a different one, which also swaps the reused region to the new document. With no document available the call is a no-op, so shared code can announce unconditionally.</p>
+					<p>Prefer <code>announce</code> for async outcomes (saved, failed, refreshed) rather than for every keystroke. Polite regions queue behind what the screen reader is already saying, which is right for status but wrong for urgent errors that need an assertive channel.</p>
+					<div class="codeblock" data-code="announce" data-lang="tardis"></div>
+
+					<h2 id="patterns">Announcement patterns</h2>
+					<p>Announce transitions, not states. Saved after a save completes, failed with the recovery action after an error, refreshed with the new count after a reload. Each message pairs the outcome with what the user can do next, which is what makes a bare status string actionable.</p>
+					<p>Debounce chatty sources before announcing. A progress callback firing twenty times a second would overwrite the region twenty times a second; announcing at completion plus at coarse milestones keeps every message readable. The region holds one message at a time, so the last write always wins.</p>
+					<p>Pair announcements with the task states from the async tasks page. The <code>onDone</code> and <code>onError</code> callbacks are the natural announce sites: the outcome is committed, the payload is final, and the message cannot describe a result that stale resolution later discards.</p>
+
+					<h2 id="aria">ARIA setters</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>setExpanded</td><td>setExpanded(el, expanded: boolean): void</td><td>Set <code>aria-expanded</code> to true or false.</td></tr>
+								<tr><td>setPressed</td><td>setPressed(el, pressed: boolean): void</td><td>Set <code>aria-pressed</code> to true or false.</td></tr>
+								<tr><td>setSelected</td><td>setSelected(el, selected: boolean): void</td><td>Set <code>aria-selected</code> to true or false.</td></tr>
+								<tr><td>labelBy</td><td>labelBy(el, id: string): void</td><td>Set <code>aria-labelledby</code> to the given element id.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Booleans are always serialized as the strings <code>true</code> and <code>false</code>, never added or removed, which matches how ARIA expects the collapsed and off states to be exposed. <code>labelBy</code> takes the id of the labelling element, not the element itself, so the label stays live if its text changes.</p>
+					<p>Keep the attribute and the visible state in one function. Toggling a panel open while forgetting <code>setExpanded</code> is the most common source of screen reader confusion, and a single toggle helper makes the two impossible to separate.</p>
+					<div class="codeblock" data-code="aria" data-lang="tardis"></div>
+
+					<h2 id="labelling">Labelling patterns</h2>
+					<p>Choose <code>labelBy</code> when visible text already names the control: point at the heading, the tab label, or the option text. The reference is live, so later text edits propagate without touching the control.</p>
+					<p>Reserve screenshot-style static labels for icon-only buttons, where there is no visible text to reference and the id points at a visually hidden element instead.</p>
+					<p>One control, one label source. An element with both <code>aria-labelledby</code> and a text alternative resolves to the referenced label and ignores the rest, so stacking sources does not concatenate them. Audit dialogs and toolbars for double-labelled controls whenever announcements sound wrong.</p>
+					<p>Keep referenced ids stable across re-renders. The attribute stores an id string, not a reference, so a re-render that regenerates heading ids silently breaks every <code>labelBy</code> pointing at the old ones. Fixed, semantic ids on headings cost nothing and never drift.</p>
+
+					<h2 id="skip">Skip link</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>skipLink</td><td>skipLink(targetId: string, label?): string</td><td>Build a skip-link anchor string for the given target id.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p><code>skipLink</code> is a pure string builder and needs no DOM. It returns an anchor with class <code>skip-link</code> pointing at <code>#targetId</code>; the label defaults to <code>Skip to content</code>. Render the string at the very top of the page so keyboard users land on it first and can jump past navigation straight to the main content.</p>
+					<p>The target id must exist and should be focusable for the jump to land reliably across browsers. A <code>main</code> element with the matching id and a <code>tabindex="-1"</code> is the standard pairing; the negative tabindex keeps it out of the Tab order while allowing programmatic focus.</p>
+					<p>Customize the label per page when one skip target is not enough. A docs page can offer both content and table-of-contents jumps; each is one <code>skipLink</code> call with a distinct target and label, rendered in jump order.</p>
+					<div class="codeblock" data-code="skip" data-lang="tardis"></div>
+
+					<h2 id="types">Types</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>A11yEl</td><td>{`{`} setAttribute, removeAttribute, getAttribute, addEventListener, ... {`}`}</td><td>The minimal element interface every helper accepts.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Annotate helper parameters with <code>A11yEl</code> in shared utilities so callers can pass real elements, test doubles, or cross-frame elements without casts. The type carries the optionality of <code>focus</code> and <code>removeEventListener</code>, so exhaustiveness checks remind authors to handle their absence.</p>
+					<p>The container parameter of <code>trapFocus</code> is intentionally wider than <code>A11yEl</code>: it needs <code>querySelectorAll</code> in addition to the listener methods. Type dialog refs with a small structural interface of those three members rather than forcing them into <code>A11yEl</code>.</p>
+
+					<h2 id="testing-a11y">Testing a11y helpers</h2>
+					<p>The structural interface makes unit tests dependency-free. A focusable double needs <code>focus</code> recording calls; a container double needs <code>querySelectorAll</code> returning the doubles plus listener capture for dispatching synthetic Tab events. Assert the focus order across Tab and Shift+Tab, and assert untrap stops the cycling.</p>
+					<ul>
+						<li>Assert <code>setExpanded</code> writes the string false, not a removed attribute, for the collapsed state.</li>
+						<li>Assert <code>announce</code> creates exactly one region across repeated calls with the same document.</li>
+						<li>Assert <code>announce</code> swaps regions when called with a different document.</li>
+						<li>Assert <code>skipLink</code> output contains the target id, the default label, and the skip-link class.</li>
+						<li>Assert an empty container trap ignores Tab without throwing.</li>
+						<li>Assert Shift+Tab from the first focusable wraps to the last, pinning the cycle in both directions.</li>
+					</ul>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Attributes are strings</div>
+							<p>Every setter writes string attributes. Test assertions must read them with <code>getAttribute</code>; property access and boolean coercion will misread the collapsed and off states.</p>
+						</div>
+					</div>
+					<ul>
+						<li><code>trapFocus</code> with zero focusable descendants does nothing on Tab. Ensure the dialog contains at least one focusable element before trapping.</li>
+						<li>The untrap function only removes the listener when the container exposes <code>removeEventListener</code>. Without it, the trap stays attached.</li>
+						<li><code>announce</code> reuses one region per document. Rapid successive messages overwrite each other; pacing matters for messages that must all be read.</li>
+						<li>The live region is created on first use. If the body is not ready yet, the region is still created but never appended; call <code>announce</code> after mount.</li>
+						<li>ARIA setters write string attributes. Tests asserting property values instead of attributes will miss them; assert with <code>getAttribute</code>.</li>
+						<li><code>labelBy</code> references an id that must exist in the document. A typo produces a valid attribute pointing at nothing, which validators flag but browsers do not.</li>
+						<li>Trapping a non-modal surface (a sidebar, an inline panel) strands keyboard users. Trap only true modals; leave modeless content in the natural Tab order.</li>
+						<li>Moving focus on open is the author job, not the trap. Without an explicit first-focus call, Tab starts from wherever focus happened to be.</li>
+						<li>Synthetic key events without a <code>key</code> property are ignored entirely. Test doubles must set <code>key: "Tab"</code> (and <code>shiftKey</code> where relevant) or the handler returns early.</li>
+					</ul>
+
+					<DocsPager prev="/docs/devtools" prevLabel="Devtools" next="/docs/testing" nextLabel="Testing" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: 'script {\n  const dialog = document.getElementById("dialog")\n  const untrap = trapFocus(dialog)\n  announce("Dialog opened")\n  setExpanded(toggle, true)\n}',
+			trap: 'script {\n  const open = () => {\n    const dialog = document.getElementById("dialog")\n    dialog.style.display = "block"\n    $update(state, "untrap", trapFocus(dialog))\n    const first = dialog.querySelector("button")\n    if (first) first.focus()\n  }\n  const close = () => {\n    if (state.untrap) state.untrap()\n  }\n}',
+			dialog: 'ui {\n  $show(state.open) {\n    <div id="dialog" role="dialog" aria-labelledby="dialog-title">\n      <h2 id="dialog-title">Confirm</h2>\n      <button>Confirm</button>\n      <button>Cancel</button>\n    </div>\n  }\n}',
+			announce: 'script {\n  const save = async (draft) => {\n    await persist(draft)\n    announce("Draft saved")\n  }\n  const fail = () => {\n    announce("Save failed. Try again.")\n  }\n}',
+			aria: 'script {\n  const toggle = (btn, open) => {\n    setExpanded(btn, open)\n    setPressed(btn, open)\n    labelBy(panel, "panel-heading")\n  }\n  const pick = (option, on) => {\n    setSelected(option, on)\n  }\n}',
+			skip: 'ui {\n  <div>{skipLink("main", "Skip to main content")}</div>\n  <main id="main">\n    <p>Page content.</p>\n  </main>\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

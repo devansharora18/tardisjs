@@ -36,8 +36,16 @@ blueprint DocsSidebar {
 				<a href="/docs/http">HTTP client</a>
 			</div>
 			<div class="docs-group">
-				<div class="docs-group-title"><span>Tooling</span><span class="count">4</span></div>
+				<div class="docs-group-title"><span>Advanced</span><span class="count">4</span></div>
+				<a href="/docs/tasks">Async tasks</a>
+				<a href="/docs/devtools">Devtools</a>
+				<a href="/docs/a11y">Accessibility</a>
+				<a href="/docs/testing">Testing</a>
+			</div>
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Tooling</span><span class="count">5</span></div>
 				<a href="/docs/cli">CLI</a>
+				<a href="/docs/cli-advanced">CLI advanced</a>
 				<a href="/docs/config">Configuration</a>
 				<a href="/docs/compiler">Compiler pipeline</a>
 				<a href="/docs/errors">Errors</a>
