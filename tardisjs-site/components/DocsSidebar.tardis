@@ -36,11 +36,12 @@ blueprint DocsSidebar {
 				<a href="/docs/http">HTTP client</a>
 			</div>
 			<div class="docs-group">
-				<div class="docs-group-title"><span>Advanced</span><span class="count">4</span></div>
+				<div class="docs-group-title"><span>Advanced</span><span class="count">5</span></div>
 				<a href="/docs/tasks">Async tasks</a>
 				<a href="/docs/devtools">Devtools</a>
 				<a href="/docs/a11y">Accessibility</a>
 				<a href="/docs/testing">Testing</a>
+				<a href="/docs/ssr">Server rendering</a>
 			</div>
 			<div class="docs-group">
 				<div class="docs-group-title"><span>Tooling</span><span class="count">5</span></div>

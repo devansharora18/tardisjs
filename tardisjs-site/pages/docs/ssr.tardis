@@ -1,0 +1,91 @@
+blueprint DocsSsr {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Server rendering" crumb="Advanced" />
+
+					<p>Server rendering runs a compiled component factory against a minimal DOM shim and serializes the result to HTML. No browser and no jsdom are involved: the shim implements exactly the surface the compiler emits, and nothing else.</p>
+					<p>Rendering is deterministic. The same factory with the same props always yields the same markup, which is what makes the output safe to compare, cache, and re-mount over.</p>
+					<p>Three ideas carry the whole module: a tiny element model, globals swapped for exactly one call, and serializers that match real DOM output byte for byte.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>Pass any compiled factory to renderToString with optional props and nested components. Bindings evaluate, conditionals resolve, and lists render — scripts never run, because script blocks are client enhancements that may touch the network or timers.</p>
+					<p>Missing nested components serialize as placeholders, the same fallback the client renders when a factory is absent. Nothing throws for unknown tags.</p>
+					<div class="codeblock" data-code="basic" data-lang="js"></div>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>renderToString(factory, opts?)</td><td>Run a factory under the shim and return its HTML string.</td></tr>
+								<tr><td>renderDocumentShell(body, opts?)</td><td>Wrap body HTML in a document with title and head extras.</td></tr>
+								<tr><td>hydrate(factory, container, opts?)</td><td>Remount over server markup after verifying it matches.</td></tr>
+								<tr><td>serializeNode(node)</td><td>Serialize one shim node and its subtree.</td></tr>
+								<tr><td>createMiniDocument()</td><td>Build a fresh head/body document for manual trees.</td></tr>
+								<tr><td>createMiniElement(tag, ns?)</td><td>Build a single element outside a document.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="shim">The shim model</h2>
+					<p>Elements carry tag, attributes, className, a style record, and children. Text and comment nodes carry textContent. Assigning element textContent replaces children, mirroring real DOM semantics.</p>
+					<p>Form controls expose value and checked only on input-like tags, exactly where the IDL reflection exists. Listeners, focus, scrolling, and queries are no-ops: SSR output is markup, not behavior.</p>
+					<p>Compiled <code>instanceof Node</code> checks pass because every shim node carries a brand class installed as the global Node during the call.</p>
+					<div class="codeblock" data-code="shim" data-lang="js"></div>
+
+					<h2 id="serialization">Serialization rules</h2>
+					<p>Text escapes ampersands and angle brackets; attributes additionally escape quotes. Void elements render without closers; comments keep their text; fragments concatenate children.</p>
+					<p>Live form values serialize from current state, and defaults stay silent: an empty value emits no attribute, matching real innerHTML exactly.</p>
+					<div class="codeblock" data-code="escape" data-lang="js"></div>
+
+					<h2 id="hydration">Hydration</h2>
+					<p>Hydration is a verified remount, not node adoption. The factory runs into a detached container, its markup is compared byte-for-byte with the server HTML, and only then does it replace the server nodes.</p>
+					<p>A match means no visual flash and no warning. A mismatch still mounts correctly and reports through onMismatch (console warning by default) instead of failing silently.</p>
+					<p>Mount callbacks flush as part of hydration, so lifecycle runs exactly once per takeover. Pass the same props the server used.</p>
+					<div class="codeblock" data-code="hydrate" data-lang="js"></div>
+
+					<h2 id="prerender">Static prerendering</h2>
+					<p><code>tardis prerender</code> runs after build: it imports each compiled page, renders static routes to HTML files, and skips dynamic segments whose params only exist at request time.</p>
+					<p>Each route file keeps the full SPA shell with prerendered markup inside the mount point. The client boots normally over it; identical output means no flash.</p>
+					<div class="codeblock" data-code="prerender" data-lang="bash"></div>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>Scripts never run server-side.</strong> Content populated by script blocks renders empty until the client mounts.</li>
+						<li><strong>Globals are restored.</strong> document, window, requestAnimationFrame, and Node revert after every call, even on throw.</li>
+						<li><strong>$each wraps in a div.</strong> Serialized output carries the same wrapper the client renders.</li>
+						<li><strong>Raw-style head CSS is not collected.</strong> Styles injected into document head stay out of the fragment; include them via shell head extras.</li>
+						<li><strong>Hydration needs a DOM.</strong> hydrate throws without one — it is client-only by design.</li>
+						<li><strong>Dynamic routes skip prerender.</strong> Any segment with a colon param is reported, not rendered.</li>
+						<li><strong>Run a build first.</strong> Prerender imports compiled output; without dist it fails with a direct error.</li>
+						<li><strong>requestAnimationFrame is collected.</strong> The shim accepts the registration and never fires it.</li>
+					</ul>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/testing">Testing</a> page covers jsdom mounting when a real DOM is available.</p>
+					<p>The <a href="/docs/composition">Composition</a> page covers the component model SSR traverses.</p>
+
+					<DocsPager prev="/docs/composition" prevLabel="Composition" next="/docs/registry" nextLabel="Registry" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: 'import { renderToString } from "tardisjs/ssr"\nimport { Home } from "./dist/pages/index.js"\n\nconst html = renderToString(Home, {\n  props: { title: "Hello" },\n  components: { Card }\n})\nconsole.log(html)',
+			shim: 'import { createMiniDocument } from "tardisjs/ssr"\n\nconst doc = createMiniDocument()\nconst el = doc.createElement("p")\nel.textContent = "hi"\ndoc.body.appendChild(el)',
+			escape: 'renderToString(Page) // <p>Ada &amp; &lt;Co&gt;</p>\n// quotes in attrs, bare checked, no closers on void tags',
+			hydrate: 'import { hydrate } from "tardisjs/ssr"\n\nconst root = hydrate(Home, document.getElementById("app"), {\n  props: { title: "Hello" },\n  onMismatch: ({ server, client }) => report({ server, client })\n})',
+			prerender: 'npx tardis build\nnpx tardis prerender\n\n# dist/about/index.html now carries prerendered markup'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

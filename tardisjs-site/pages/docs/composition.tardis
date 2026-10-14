@@ -191,7 +191,7 @@ blueprint DocsComposition {
 						<li><strong>Function props unwrap once.</strong> Double-wrapped handlers invoke the wrapper and discard the real handler.</li>
 					</ul>
 
-					<DocsPager prev="/docs/transition" prevLabel="Transitions" next="/docs/registry" nextLabel="Registry" />
+					<DocsPager prev="/docs/transition" prevLabel="Transitions" next="/docs/ssr" nextLabel="Server rendering" />
 				</main>
 				<DocsToc />
 			</div>

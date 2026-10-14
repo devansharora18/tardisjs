@@ -5,6 +5,7 @@ import { compileSingleFile, registerCompileCommand } from './commands/compile'
 import { devServer } from './commands/dev'
 import { doctorProject, registerDoctorCommand } from './commands/doctor'
 import { createTardisApp, initProject } from './commands/init'
+import { prerenderProject, registerPrerenderCommand } from './commands/prerender'
 import { previewProject } from './commands/preview'
 
 export function createProgram(): Command {
@@ -44,6 +45,7 @@ export function createProgram(): Command {
 	registerCompileCommand(program)
 	registerCheckCommand(program)
 	registerDoctorCommand(program)
+	registerPrerenderCommand(program)
 
 	return program
 }
@@ -66,4 +68,5 @@ export { compileSingleFile } from './commands/compile'
 export { devServer } from './commands/dev'
 export { doctorProject } from './commands/doctor'
 export { createTardisApp, initProject } from './commands/init'
+export { prerenderProject } from './commands/prerender'
 export { previewProject } from './commands/preview'

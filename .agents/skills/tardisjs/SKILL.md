@@ -81,6 +81,7 @@ Rules:
 ## SSR (tardisjs/ssr, Node-only, zero-dep)
 
 - `renderToString(factory, { props?, components? })` — run a compiled factory against the shim, serialize to HTML. Deterministic; scripts never run; missing components serialize as placeholders.
+- `hydrate(factory, container, { props?, onMismatch? })` — verified remount over server markup; warns (or reports) on mismatch, flushes mount callbacks.
 - `renderDocumentShell(bodyHtml, { title?, head? })`, `serializeNode`, `createMiniDocument`.
 
 ## Routing
