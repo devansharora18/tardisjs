@@ -2,7 +2,7 @@
 	"name": "tardisjs-syntax",
 	"displayName": "TardisJS Syntax",
 	"description": "Syntax highlighting support for TardisJS .tardis files.",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "tardisjs",
 	"license": "MIT",
 	"engines": {
@@ -36,6 +36,12 @@
 				"language": "tardis",
 				"scopeName": "source.tardis",
 				"path": "./syntaxes/tardis.tmLanguage.json"
+			}
+		],
+		"snippets": [
+			{
+				"language": "tardis",
+				"path": "./snippets/tardis.code-snippets"
 			}
 		]
 	}

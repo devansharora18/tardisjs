@@ -1,5 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "$comment": "SYNTAX-COVERAGE (source.tardis): blueprint + sections (props/state/computed/methods/events/style/ui/script); file-level import X from \"./y.tardis\" (meta.import with captures for keywords/binding/path); <slot> / <slot name=\"n\"> outlets + static slot=\"name\" routing attribute + name attribute; {...spread} on components (keyword.operator.spread); $helpers ($if/$each/$show/$fetch/$update/$toggle/$reset/$batch/$portal/$navigate/$back/$forward/$params + bare $( selector); runtime module APIs (signals: signal/computed/effect/watch/untrack, keyed/fragment/svg, defineComponent/provide/inject/renderSlot, createStore, useForm/validators, createI18n/plural, fade/slide, createHttpClient/useTask); strings/comments/numbers/booleans; @event attributes; HTML-like tags + {expr} interpolation.",
   "name": "Tardis",
   "scopeName": "source.tardis",
   "patterns": [
@@ -10,6 +11,9 @@
       "include": "#strings"
     },
     {
+      "include": "#imports"
+    },
+    {
       "include": "#numbers"
     },
     {
@@ -17,6 +21,15 @@
     },
     {
       "include": "#runtimeHelpers"
+    },
+    {
+      "include": "#runtimeApis"
+    },
+    {
+      "include": "#slots"
+    },
+    {
+      "include": "#spread"
     },
     {
       "include": "#events"
@@ -68,6 +81,28 @@
         }
       ]
     },
+    "imports": {
+      "patterns": [
+        {
+          "name": "meta.import.tardis",
+          "match": "^\\s*(import)\\s+([A-Z][A-Za-z0-9_]*)\\s+(from)\\s+(\"[^\"]*\"|'[^']*')",
+          "captures": {
+            "1": {
+              "name": "keyword.control.import.tardis"
+            },
+            "2": {
+              "name": "entity.name.type.component.tardis"
+            },
+            "3": {
+              "name": "keyword.control.import.tardis"
+            },
+            "4": {
+              "name": "string.quoted.tardis"
+            }
+          }
+        }
+      ]
+    },
     "numbers": {
       "patterns": [
         {
@@ -91,6 +126,10 @@
           "match": "\\b(?:props|state|computed|methods|events|style|ui|script)\\b"
         },
         {
+          "name": "keyword.control.import.tardis",
+          "match": "\\b(?:import|from)\\b"
+        },
+        {
           "name": "storage.type.tardis",
           "match": "\\b(?:string|number|boolean|array|object|function)\\b"
         }
@@ -101,6 +140,42 @@
         {
           "name": "support.function.tardis",
           "match": "\\$(?:if|each|show|fetch|update|toggle|reset|batch|portal|navigate|back|forward|params)\\b"
+        },
+        {
+          "name": "support.function.selector.tardis",
+          "match": "\\$(?=\\()"
+        }
+      ]
+    },
+    "runtimeApis": {
+      "patterns": [
+        {
+          "name": "support.function.runtime.tardis",
+          "match": "\\b(?:signal|computed|effect|batch|untrack|watch|watchEffect|isSignal|toSignal|keyed|fragment|svg|createRef|setRef|moveChild|defineComponent|normalizeProps|validateProps|renderSlot|provide|inject|lazyComponent|withErrorBoundary|createStore|parseQuery|stringifyQuery|matchPath|resolveRedirect|createGuards|lazyRoute|scrollToId|required|minLength|maxLength|pattern|email|isNumber|min|max|oneOf|custom|validateField|useForm|bindModel|createI18n|plural|fade|slide|cssTransition|prefersReducedMotion|createHttpClient|useTask)\\b"
+        }
+      ]
+    },
+    "slots": {
+      "patterns": [
+        {
+          "name": "entity.name.tag.slot.tardis",
+          "match": "</?slot\\b"
+        },
+        {
+          "name": "entity.other.attribute-name.slot.tardis",
+          "match": "\\b(slot)\\s*(?==)"
+        },
+        {
+          "name": "entity.other.attribute-name.slot-name.tardis",
+          "match": "\\b(name)\\s*(?==)"
+        }
+      ]
+    },
+    "spread": {
+      "patterns": [
+        {
+          "name": "keyword.operator.spread.tardis",
+          "match": "\\{\\s*\\.\\.\\.[^}]+\\}"
         }
       ]
     },
@@ -157,6 +232,9 @@
           "patterns": [
             {
               "include": "#runtimeHelpers"
+            },
+            {
+              "include": "#runtimeApis"
             },
             {
               "include": "#numbers"

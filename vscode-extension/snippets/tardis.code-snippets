@@ -1,0 +1,269 @@
+{
+  "Blueprint skeleton": {
+    "prefix": "tardis-bp",
+    "scope": "tardis",
+    "description": "Full .tardis blueprint skeleton with props/state/computed/methods/events/style/ui sections",
+    "body": [
+      "blueprint ${1:Name} {",
+      "\tprops {",
+      "\t\t${2:label}: string = \"${3:Action}\"",
+      "\t}",
+      "\tstate {",
+      "\t\t${4:count}: number = 0",
+      "\t}",
+      "\tcomputed {",
+      "\t\t${5:doubled}: state.${4:count} * 2",
+      "\t}",
+      "\tmethods {",
+      "\t\t${6:increment}: () => \\$update(state.${4:count}, state.${4:count} + 1)",
+      "\t}",
+      "\tevents {",
+      "\t\tonMount: () => ${7:console.log(\"mounted\")}",
+      "\t}",
+      "\tstyle(tailwind) {",
+      "\t\t${8:btn}: \"${9:rounded-lg bg-cyan-400 px-5 py-2}\"",
+      "\t}",
+      "\tui {",
+      "\t\t<main>",
+      "\t\t\t$0",
+      "\t\t</main>",
+      "\t}",
+      "}"
+    ]
+  },
+  "props section": {
+    "prefix": "tardis-props",
+    "scope": "tardis",
+    "description": "props { } section with a typed prop and default",
+    "body": [
+      "props {",
+      "\t${1:label}: ${2|string,number,boolean,array,object,function|} = ${3:\"Action\"}",
+      "\t$0",
+      "}"
+    ]
+  },
+  "state section": {
+    "prefix": "tardis-state",
+    "scope": "tardis",
+    "description": "state { } section with a typed field and default",
+    "body": [
+      "state {",
+      "\t${1:count}: ${2|number,string,boolean,array,object|} = ${3:0}",
+      "\t$0",
+      "}"
+    ]
+  },
+  "computed section": {
+    "prefix": "tardis-computed",
+    "scope": "tardis",
+    "description": "computed { } section deriving from state",
+    "body": [
+      "computed {",
+      "\t${1:doubled}: state.${2:count} * ${3:2}",
+      "\t$0",
+      "}"
+    ]
+  },
+  "methods section": {
+    "prefix": "tardis-methods",
+    "scope": "tardis",
+    "description": "methods { } section with a $update handler",
+    "body": [
+      "methods {",
+      "\t${1:increment}: () => \\$update(state.${2:count}, state.${2:count} + 1)",
+      "\t$0",
+      "}"
+    ]
+  },
+  "events section": {
+    "prefix": "tardis-events",
+    "scope": "tardis",
+    "description": "events { } section with onMount/onDestroy/onUpdate lifecycle hooks",
+    "body": [
+      "events {",
+      "\tonMount: () => ${1:console.log(\"mounted\")}",
+      "\tonDestroy: () => ${2:cleanup()}",
+      "\tonUpdate: () => ${3:$0}",
+      "}"
+    ]
+  },
+  "style section": {
+    "prefix": "tardis-style",
+    "scope": "tardis",
+    "description": "style(tailwind|css|raw) { } section with a class token",
+    "body": [
+      "style(${1|tailwind,css,raw|}) {",
+      "\t${2:btn}: \"${3:rounded-lg bg-cyan-400 px-5 py-2}\"",
+      "\t$0",
+      "}"
+    ]
+  },
+  "ui section": {
+    "prefix": "tardis-ui",
+    "scope": "tardis",
+    "description": "ui { } section with a root element (mirrored open/close tag)",
+    "body": [
+      "ui {",
+      "\t<${1:main}>",
+      "\t\t$0",
+      "\t</${1:main}>",
+      "}"
+    ]
+  },
+  "script section": {
+    "prefix": "tardis-script",
+    "scope": "tardis",
+    "description": "script { } section for raw DOM access via $el",
+    "body": [
+      "script {",
+      "\tconst ${1:el} = \\$el.querySelector(\"${2:selector}\")",
+      "\t$0",
+      "}"
+    ]
+  },
+  "$if block": {
+    "prefix": "tardis-if",
+    "scope": "tardis",
+    "description": "$if(cond) { ... } conditional render block",
+    "body": [
+      "\\$if(${1:state.count > 0}) {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "$each block": {
+    "prefix": "tardis-each",
+    "scope": "tardis",
+    "description": "$each(list, (item) => { ... }) list render block",
+    "body": [
+      "\\$each(${1:state.items}, (${2:item}) => {",
+      "\t<${3:p}>{${2:item}}$0</${3:p}>",
+      "})"
+    ]
+  },
+  "$show block": {
+    "prefix": "tardis-show",
+    "scope": "tardis",
+    "description": "$show(cond) { ... } visibility-toggle block",
+    "body": [
+      "\\$show(${1:state.visible}) {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Component with slots": {
+    "prefix": "tardis-slots",
+    "scope": "tardis",
+    "description": "Capitalized component tag with default children and a named slot=\"...\" child",
+    "body": [
+      "<${1:Card} ${2:title}=\"${3:x}\">",
+      "\t${4:<p>body</p>}",
+      "\t<${5:span} slot=\"${6:footer}\">${7:footer content}</${5:span}>",
+      "</${1:Card}>$0"
+    ]
+  },
+  "Slot outlet": {
+    "prefix": "tardis-slot",
+    "scope": "tardis",
+    "description": "<slot> / <slot name=\"...\">fallback</slot> outlet (delete attrs for a bare default outlet)",
+    "body": [
+      "<slot${1: name=\"${2:footer}\"}>${3:<p>${4:fallback}</p>}</slot>$0"
+    ]
+  },
+  "Import blueprint": {
+    "prefix": "tardis-import",
+    "scope": "tardis",
+    "description": "File-level import X from \"./y.tardis\" component dependency",
+    "body": [
+      "import ${1:Button} from \"./${2:components/${1:Button}}.tardis\"$0"
+    ]
+  },
+  "defineComponent with setup": {
+    "prefix": "tardis-defineComponent",
+    "scope": "tardis",
+    "description": "defineComponent factory with props, setup(props, ctx) and renderSlot",
+    "body": [
+      "const ${1:Card} = defineComponent({",
+      "\tprops: { ${2:title}: { type: String, default: \"${3:x}\" } },",
+      "\tsetup(props, ctx) {",
+      "\t\t$0",
+      "\t\treturn () => renderSlot(ctx.slots, \"${4:default}\")",
+      "\t}",
+      "})"
+    ]
+  },
+  "provide / inject": {
+    "prefix": "tardis-provide",
+    "scope": "tardis",
+    "description": "provide(key, value) in setup plus inject(key, fallback) in a descendant",
+    "body": [
+      "provide(\"${1:theme}\", ${2:value})",
+      "const ${3:theme} = inject(\"${1:theme}\"${4:, \"${5:default}\"})$0"
+    ]
+  },
+  "createStore": {
+    "prefix": "tardis-store",
+    "scope": "tardis",
+    "description": "createStore with state, getters and actions",
+    "body": [
+      "const ${1:store} = createStore({",
+      "\tstate: {",
+      "\t\t${2:count}: 0",
+      "\t},",
+      "\tgetters: {",
+      "\t\t${3:doubled}: (s) => s.${2:count} * 2,",
+      "\t},",
+      "\tactions: {",
+      "\t\t${4:increment}: (ctx) => ctx.state.${2:count}++,",
+      "\t},$0",
+      "})"
+    ]
+  },
+  "useForm with validators": {
+    "prefix": "tardis-form",
+    "scope": "tardis",
+    "description": "useForm with FieldDef + built-in validators (required/email/minLength)",
+    "body": [
+      "const ${1:form} = useForm({",
+      "\t${2:email}: { initial: \"\", validate: [required(), email()] },",
+      "\t${3:password}: { initial: \"\", validate: [required(), minLength(${4:8})] },$0",
+      "})"
+    ]
+  },
+  "createI18n": {
+    "prefix": "tardis-i18n",
+    "scope": "tardis",
+    "description": "createI18n with locale/messages plus t() and plural() usage",
+    "body": [
+      "const ${1:i18n} = createI18n({",
+      "\tlocale: \"${2:en}\",",
+      "\tfallbackLocale: \"${3:en}\",",
+      "\tmessages: {",
+      "\t\t${2:en}: { ${4:hello}: \"${5:Hello}\" },",
+      "\t},$0",
+      "})",
+      "${1:i18n}.t(\"${4:hello}\")",
+      "plural(${6:count}, { one: \"${7:item}\", other: \"${8:items}\" })"
+    ]
+  },
+  "Transition (fade/slide)": {
+    "prefix": "tardis-transition",
+    "scope": "tardis",
+    "description": "fade / slide transition on an element",
+    "body": [
+      "${1|fade,slide|}(${2:el}, ${3:show}, ${4:200})$0"
+    ]
+  },
+  "HTTP client + useTask": {
+    "prefix": "tardis-task",
+    "scope": "tardis",
+    "description": "createHttpClient and useTask async-task wiring",
+    "body": [
+      "const ${1:http} = createHttpClient({ baseUrl: \"${2:/api}\" })",
+      "const ${3:task} = useTask({",
+      "\trun: (${4:args}) => ${1:http}.get(\"${5:/items}\"),",
+      "\tonDone: (${6:data}) => ${7:console.log(${6:data})},$0",
+      "})"
+    ]
+  }
+}

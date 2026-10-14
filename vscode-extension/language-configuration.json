@@ -71,5 +71,20 @@
       "<",
       ">"
     ]
+  ],
+  "onEnterRules": [
+    {
+      "beforeText": "\\{[^}\"'`]*$",
+      "afterText": "^\\s*\\}",
+      "action": {
+        "indentAction": "IndentOutdent"
+      }
+    },
+    {
+      "beforeText": "\\{[^}\"'`]*$",
+      "action": {
+        "indentAction": "Indent"
+      }
+    }
   ]
 }
