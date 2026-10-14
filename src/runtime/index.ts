@@ -61,6 +61,19 @@ export const $runtime = {
   resolveStyles,
   text,
 
+  // slots — renders a named children builder passed by the parent,
+  // the fallback builder, or a comment anchor when neither exists
+  slot(
+    slots: Record<string, (() => HTMLElement) | undefined>,
+    name: string,
+    fallback?: () => HTMLElement
+  ): HTMLElement | Comment {
+    const fn = slots[name]
+    if (typeof fn === 'function') return fn()
+    if (fallback) return fallback()
+    return document.createComment(`slot:${name}`)
+  },
+
   // styles
   styles: createStyles,
 

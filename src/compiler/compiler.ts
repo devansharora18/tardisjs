@@ -1,5 +1,6 @@
 import {
 	BlueprintNode,
+	FileNode,
 	PropNode,
 	StateNode,
 	ComputedNode,
@@ -8,7 +9,7 @@ import {
 	PropType,
 } from "../parser/types";
 
-export function compile(ast: BlueprintNode): string {
+export function compile(ast: BlueprintNode, imported?: Set<string>): string {
 	const lines: string[] = [];
 
 	lines.push(`// generated from ${ast.name}.tardis — do not edit`);
@@ -64,9 +65,28 @@ export function compile(ast: BlueprintNode): string {
 	}
 	const hasCompiledStyles = !!(ast.style && ast.style.mode !== 'raw');
 	const hasEvents = !!(ast.events.onMount || ast.events.onDestroy || ast.events.onUpdate);
-	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode, hasCompiledStyles, hasEvents));
+	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode, hasCompiledStyles, hasEvents, imported));
 	lines.push(`}`);
 
+	return lines.join("\n");
+}
+
+// ── file compiler ──────────────────────────────────────────────────────────
+// compiles a whole file: explicit blueprint imports become ES imports
+// (./x.tardis → ./x.js, mirroring the CLI's output layout), and imported
+// names resolve to direct calls instead of the global component registry.
+
+export function resolveImportPath(p: string): string {
+	return p.replace(/\.tardis$/, '.js');
+}
+
+export function compileFile(file: FileNode): string {
+	const lines: string[] = [];
+	for (const imp of file.imports) {
+		lines.push(`import ${imp.name} from '${resolveImportPath(imp.path)}'`);
+	}
+	if (file.imports.length > 0) lines.push(``);
+	lines.push(compile(file.blueprint, new Set(file.imports.map((imp) => imp.name))));
 	return lines.join("\n");
 }
 
@@ -243,11 +263,11 @@ function rewriteRefs(expr: string): string {
 
 // ── ui compiler ────────────────────────────────────────────────────────────
 
-export function compileUI(raw: string, componentName: string, scriptCode?: string, hasStyles = false, hasEvents = false): string {
+export function compileUI(raw: string, componentName: string, scriptCode?: string, hasStyles = false, hasEvents = false, imported?: Set<string>): string {
 	const lines: string[] = [];
 	lines.push(`  // ui`);
 	lines.push(`  const _root = (() => {`);
-	lines.push(compileUINode(raw.trim(), 2, false, hasStyles));
+	lines.push(compileUINode(raw.trim(), 2, false, hasStyles, imported));
 	lines.push(`  })()`);
 	if (scriptCode) {
 		lines.push(``);
@@ -295,7 +315,7 @@ function compileScript(ast: BlueprintNode): string {
 	return lines.join('\n');
 }
 
-function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean): string {
+function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean, imported?: Set<string>): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
 	// Children arrive with leading whitespace preserved; the matchers below
@@ -306,7 +326,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	const ifMatch = src.match(/^\$if\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (ifMatch) {
 		const condition = rewriteRefs(ifMatch[1].trim());
-		const inner = compileUINode(ifMatch[2].trim(), depth + 1, preserveWs, hasStyles);
+		const inner = compileUINode(ifMatch[2].trim(), depth + 1, preserveWs, hasStyles, imported);
 		lines.push(`${indent}return $runtime.if(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -320,7 +340,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	if (eachMatch) {
 		const arrayRef = rewriteRefs(eachMatch[1].trim());
 		const itemVar = eachMatch[2];
-		const inner = compileUINode(eachMatch[3].trim(), depth + 1, preserveWs, hasStyles);
+		const inner = compileUINode(eachMatch[3].trim(), depth + 1, preserveWs, hasStyles, imported);
 		lines.push(`${indent}return $runtime.each(() => ${arrayRef}, (${itemVar}) => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -331,7 +351,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	const showMatch = src.match(/^\$show\((.+?)\)\s*\{([\s\S]*)\}/);
 	if (showMatch) {
 		const condition = rewriteRefs(showMatch[1].trim());
-		const inner = compileUINode(showMatch[2].trim(), depth + 1, preserveWs, hasStyles);
+		const inner = compileUINode(showMatch[2].trim(), depth + 1, preserveWs, hasStyles, imported);
 		lines.push(`${indent}return $runtime.show(() => ${condition}, () => {`);
 		lines.push(inner);
 		lines.push(`${indent}})`);
@@ -343,7 +363,7 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 	if (chainMatch) {
 		const innerEl = chainMatch[1].trim();
 		const chainStr = chainMatch[2].trim();
-		const elCode = compileElement(innerEl, depth, preserveWs, hasStyles);
+		const elCode = compileElement(innerEl, depth, preserveWs, hasStyles, imported);
 		const chains = parseChains(chainStr);
 		lines.push(`${indent}const _chained = (() => {`);
 		lines.push(elCode);
@@ -357,10 +377,10 @@ function compileUINode(raw: string, depth: number, preserveWs: boolean, hasStyle
 		return lines.join("\n");
 	}
 
-	return compileElement(src, depth, preserveWs, hasStyles)
+	return compileElement(src, depth, preserveWs, hasStyles, imported)
 }
 
-function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean): string {
+function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyles: boolean, imported?: Set<string>): string {
 	const indent = "  ".repeat(depth);
 	const lines: string[] = [];
 	const trimmed = raw.trim();
@@ -373,11 +393,11 @@ function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyl
 		if (tagNameMatch) {
 			const tag = tagNameMatch[1];
 			const attrsRaw = tagStr.slice(tag.length + 1, -2).trim(); // between name and />
+			if (tag === "slot") {
+				return compileSlotOutlet(attrsRaw, null, depth, indent, hasStyles, imported).join("\n");
+			}
 			if (/^[A-Z]/.test(tag)) {
-				lines.push(
-					`${indent}return $runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
-				);
-				return lines.join("\n");
+				return compileComponent(tag, attrsRaw, null, depth, indent, hasStyles, imported).join("\n");
 			}
 			lines.push(
 				`${indent}const _el_${depth} = document.createElement('${tag}')`,
@@ -415,10 +435,13 @@ function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyl
 	const attrsRaw = openTagStr.slice(tag.length + 1, -1).trim();
 
 	if (/^[A-Z]/.test(tag)) {
-		lines.push(
-			`${indent}return $runtime.component('${tag}', { ${compileComponentProps(attrsRaw)} })`,
-		);
-		return lines.join("\n");
+		const innerContent = findInnerContent(trimmed, tag, openTagEndIdx + 1);
+		return compileComponent(tag, attrsRaw, innerContent, depth, indent, hasStyles, imported).join("\n");
+	}
+
+	if (tag === "slot") {
+		const innerContent = findInnerContent(trimmed, tag, openTagEndIdx + 1);
+		return compileSlotOutlet(attrsRaw, innerContent, depth, indent, hasStyles, imported).join("\n");
 	}
 
 	// preserve whitespace inside <pre> elements
@@ -470,7 +493,7 @@ function compileElement(raw: string, depth: number, preserveWs: boolean, hasStyl
 			}
 			const childVar = `_child_${depth}_${childIndex}`
 			lines.push(`${indent}const ${childVar} = (() => {`)
-			lines.push(compileUINode(ct, depth + 1, childPreserveWs, hasStyles))
+			lines.push(compileUINode(ct, depth + 1, childPreserveWs, hasStyles, imported))
 			lines.push(`${indent}})()`)
 			lines.push(`${indent}if (${childVar} instanceof Node) _el_${depth}.appendChild(${childVar})`)
     } else {
@@ -520,6 +543,10 @@ function compileAttr(
 	hasStyles: boolean,
 ): string[] {
 	const lines: string[] = [];
+	// Spread ({...x}) only applies to components; plain DOM elements have no
+	// props object to merge into, so it is ignored here rather than emitted
+	// as a bogus attribute.
+	if (attr.name === "...") return lines;
 	if (attr.name.startsWith("@")) {
 		const event = attr.name.slice(1);
 		const handler = rewriteRefs(
@@ -574,6 +601,28 @@ function parseAttributes(raw: string): Array<{ name: string; value: string }> {
 	while (i < raw.length) {
 		while (i < raw.length && /\s/.test(raw[i])) i++;
 		if (i >= raw.length) break;
+
+		// spread: {...expr} — only meaningful on components; compileAttr
+		// drops it for plain DOM elements.
+		if (raw[i] === "{" && /^\{\s*\.\.\./.test(raw.slice(i))) {
+			let sdepth = 0;
+			let expr = "";
+			while (i < raw.length) {
+				const ch = raw[i];
+				if (ch === "{") sdepth++;
+				if (ch === "}") {
+					sdepth--;
+					if (sdepth === 0) {
+						i++;
+						break;
+					}
+				}
+				expr += ch;
+				i++;
+			}
+			attrs.push({ name: "...", value: expr.replace(/^\{\s*\.\.\./, "").trim() });
+			continue;
+		}
 
 		let name = "";
 		while (i < raw.length && !/[\s=]/.test(raw[i])) name += raw[i++];
@@ -644,11 +693,117 @@ function parseChains(raw: string): Array<{ event: string; handler: string }> {
 	return chains;
 }
 
+// ── component emission ─────────────────────────────────────────────────────
+// <Card title="x">children</Card> compiles props plus an optional `children`
+// object of slot builders: { default: () => ..., footer: () => ... }.
+// Top-level children carrying a static slot="name" attribute go to that
+// slot (attribute stripped); everything else goes to `default`.
+// Imported names (via `import X from "./x.tardis"`) resolve to direct calls
+// so bundlers can tree-shake them; anything else keeps the global-registry
+// path for backward compatibility.
+
+function compileComponent(
+	tag: string,
+	attrsRaw: string,
+	inner: string | null,
+	depth: number,
+	indent: string,
+	hasStyles: boolean,
+	imported: Set<string> | undefined,
+): string[] {
+	const propsCode = compileComponentProps(attrsRaw);
+	const parts: string[] = [];
+	if (propsCode) parts.push(propsCode);
+	if (inner !== null && inner.trim()) {
+		parts.push(`children: ${compileSlotsObject(inner, depth, indent, hasStyles, imported)}`);
+	}
+	const all = parts.join(", ");
+	if (imported?.has(tag)) {
+		return [`${indent}return ${tag}({ ${all} })`];
+	}
+	return [`${indent}return $runtime.component('${tag}', { ${all} })`];
+}
+
+function compileSlotsObject(
+	inner: string,
+	depth: number,
+	indent: string,
+	hasStyles: boolean,
+	imported: Set<string> | undefined,
+): string {
+	const groups = new Map<string, string[]>();
+	for (const child of splitChildren(inner, false)) {
+		const { name, rest } = splitSlotChild(child);
+		if (!groups.has(name)) groups.set(name, []);
+		groups.get(name)!.push(rest);
+	}
+	const entries: string[] = [];
+	for (const [name, kids] of groups) {
+		const code = compileUINode(kids.join("\n"), depth + 1, false, hasStyles, imported);
+		entries.push(`${indent}  ${JSON.stringify(name)}: () => {\n${code}\n${indent}  }`);
+	}
+	return `{\n${entries.join(",\n")}\n${indent}}`;
+}
+
+// Split a static slot="name" attribute off a top-level child element.
+// Only static names are routable (builders are keyed at compile time);
+// a reactive slot attribute is left in place and the child goes to default.
+function splitSlotChild(child: string): { name: string; rest: string } {
+	const fallback = { name: "default", rest: child };
+	const trimmed = child.trimStart();
+	if (!trimmed.startsWith("<") || trimmed.startsWith("</") || trimmed.startsWith("<!")) {
+		return fallback;
+	}
+	const end = findFirstTagEnd(trimmed);
+	if (end < 0) return fallback;
+	const openTag = trimmed.slice(0, end + 1);
+	const tagMatch = openTag.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
+	if (!tagMatch) return fallback;
+	const selfClose = isSelfClosingTag(trimmed, end);
+	const attrs = parseAttributes(openTag.slice(tagMatch[0].length, selfClose ? -2 : -1));
+	const slotAttr = attrs.find((a) => a.name === "slot" && !isReactive(a.value));
+	if (!slotAttr) return fallback;
+	const rebuiltAttrs = attrs
+		.filter((a) => a !== slotAttr)
+		.map((a) => (isReactive(a.value) ? `${a.name}=${a.value}` : `${a.name}="${a.value}"`))
+		.join(" ");
+	const open = `<${tagMatch[1]}${rebuiltAttrs ? " " + rebuiltAttrs : ""}${selfClose ? " /" : ""}>`;
+	const lead = child.slice(0, child.length - trimmed.length);
+	return { name: slotAttr.value, rest: lead + open + trimmed.slice(end + 1) };
+}
+
+// <slot /> and <slot name="x">fallback</slot> render the matching builder
+// from the `children` prop, the fallback, or a comment anchor.
+function compileSlotOutlet(
+	attrsRaw: string,
+	fallbackInner: string | null,
+	depth: number,
+	indent: string,
+	hasStyles: boolean,
+	imported: Set<string> | undefined,
+): string[] {
+	let name = "default";
+	for (const a of parseAttributes(attrsRaw)) {
+		if (a.name === "name" && !isReactive(a.value)) name = a.value;
+	}
+	const slotsExpr = `(((_props.children ?? {}) as unknown) as Record<string, () => HTMLElement>)`;
+	if (fallbackInner === null || !fallbackInner.trim()) {
+		return [`${indent}return $runtime.slot(${slotsExpr}, ${JSON.stringify(name)})`];
+	}
+	const fb = compileUINode(fallbackInner.trim(), depth + 1, false, hasStyles, imported);
+	return [
+		`${indent}return $runtime.slot(${slotsExpr}, ${JSON.stringify(name)}, () => {`,
+		fb,
+		`${indent}})`,
+	];
+}
+
 // ── component props compiler ───────────────────────────────────────────────
 
 function compileComponentProps(raw: string): string {
 	return parseAttributes(raw)
 		.map((a) => {
+			if (a.name === "...") return `...${rewriteRefs(a.value)}`;
 			if (isReactive(a.value))
 				return `${a.name}: () => ${rewriteRefs(stripBraces(a.value))}`;
 			return `${a.name}: ${JSON.stringify(a.value)}`;

@@ -1,10 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { lex } from '../../src/lexer/lexer'
-import { parse } from '../../src/parser/parser'
-import { compile } from '../../src/compiler/compiler'
+import { parse, parseFile } from '../../src/parser/parser'
+import { compile, compileFile, resolveImportPath } from '../../src/compiler/compiler'
 
 function compileSource(source: string): string {
   return compile(parse(lex(source), 'test.tardis'))
+}
+
+function compileFileSource(source: string): string {
+  return compileFile(parseFile(lex(source), 'test.tardis'))
 }
 
 describe('compiler', () => {
@@ -992,6 +996,171 @@ describe('ui compiler', () => {
       expect(out).toContain("document.createElement('input')")
       expect(out).toContain("addEventListener('input'")
     })
+
+  // ── file imports ────────────────────────────────────────────────────────
+
+  describe('file imports', () => {
+    it('maps .tardis paths to .js', () => {
+      expect(resolveImportPath('./components/Button.tardis')).toBe('./components/Button.js')
+      expect(resolveImportPath('../shared/Card.tardis')).toBe('../shared/Card.js')
+      expect(resolveImportPath('./x.js')).toBe('./x.js')
+    })
+
+    it('emits ES imports for file imports', () => {
+      const out = compileFileSource(`
+        import Button from "./components/Button.tardis"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)
+      expect(out).toContain(`import Button from './components/Button.js'`)
+      expect(out).toContain('export function Page(')
+    })
+
+    it('resolves imported components to direct calls', () => {
+      const out = compileFileSource(`
+        import Button from "./Button.tardis"
+        blueprint Page {
+          ui {
+            <div>
+              <Button label="go" />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('return Button({ label: "go" })')
+      expect(out).not.toContain("$runtime.component('Button'")
+    })
+
+    it('keeps non-imported components on the registry path', () => {
+      const out = compileFileSource(`
+        import Button from "./Button.tardis"
+        blueprint Page {
+          ui {
+            <div>
+              <Card title="hi" />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("$runtime.component('Card'")
+    })
+  })
+
+  // ── slots ───────────────────────────────────────────────────────────────
+
+  describe('slots', () => {
+    it('compiles a default slot outlet', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui {
+            <div>
+              <slot />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain(`$runtime.slot(`)
+      expect(out).toContain(`"default"`)
+    })
+
+    it('compiles a named slot outlet with fallback', () => {
+      const out = compileSource(`
+        blueprint Card {
+          ui {
+            <div>
+              <slot name="footer"><p>fallback</p></slot>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain(`"footer"`)
+      expect(out).toContain('fallback')
+    })
+
+    it('compiles parent children into a children object', () => {
+      const out = compileSource(`
+        blueprint Page {
+          ui {
+            <div>
+              <Card title="hi">
+                <p>body text</p>
+              </Card>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('children: {')
+      expect(out).toContain('"default": () => {')
+      expect(out).toContain('body text')
+    })
+
+    it('routes slot="name" children to named builders and strips the attribute', () => {
+      const out = compileSource(`
+        blueprint Page {
+          ui {
+            <div>
+              <Card>
+                <p>body</p>
+                <span slot="footer">foot</span>
+              </Card>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('"footer": () => {')
+      expect(out).toContain('foot')
+      expect(out).not.toContain('slot="footer"')
+      expect(out).not.toContain("slot='footer'")
+    })
+
+    it('passes children through the registry path too', () => {
+      const out = compileSource(`
+        blueprint Page {
+          ui {
+            <div>
+              <Card><p>hi</p></Card>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("$runtime.component('Card'")
+      expect(out).toContain('children: {')
+    })
+  })
+
+  // ── spread props ────────────────────────────────────────────────────────
+
+  describe('spread props', () => {
+    it('compiles {...props} into a component props spread', () => {
+      const out = compileSource(`
+        blueprint Page {
+          state { extra: object = {} }
+          ui {
+            <div>
+              <Card title="hi" {...state.extra} />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('..._state.extra')
+    })
+
+    it('ignores spread on plain DOM elements', () => {
+      const out = compileSource(`
+        blueprint Page {
+          state { extra: object = {} }
+          ui {
+            <div>
+              <div {...state.extra}>hi</div>
+            </div>
+          }
+        }
+      `)
+      expect(out).not.toContain('..._state.extra')
+      expect(out).toContain('hi')
+    })
+  })
     it('compiles PascalCase tag as component', () => {
       const out = compileSource(`
         blueprint Home {

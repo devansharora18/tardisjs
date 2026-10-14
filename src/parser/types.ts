@@ -85,3 +85,22 @@ export type BlueprintNode = {
   line: number
   col: number
 }
+
+// a single `import Name from "./path.tardis"` declaration at the top of a file
+// imports are explicit blueprint-to-blueprint dependencies; usage-site props
+// (including children) override the imported blueprint's defaults
+
+export type ImportNode = {
+  name: string     // local binding — must be Capitalized like a component tag
+  path: string     // relative path ending in .tardis
+  line: number
+  col: number
+}
+
+// a whole file: leading imports plus one blueprint
+
+export type FileNode = {
+  imports: ImportNode[]
+  blueprint: BlueprintNode
+  file: string
+}

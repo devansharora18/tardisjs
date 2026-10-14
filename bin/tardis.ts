@@ -10,8 +10,8 @@ import { Command } from 'commander'
 import chokidar from 'chokidar'
 import { WebSocketServer } from 'ws'
 import { lex } from '../src/lexer/lexer'
-import { parse } from '../src/parser/parser'
-import { compile } from '../src/compiler/compiler'
+import { parseFile } from '../src/parser/parser'
+import { compileFile as compileTardisFile } from '../src/compiler/compiler'
 
 interface TardisConfig {
 	pages: string
@@ -260,8 +260,8 @@ async function loadConfig(cwd: string): Promise<TardisConfig> {
 }
 
 async function compileFile(source: string, filePath: string): Promise<{ code: string; componentName: string }> {
-	const ast = parse(lex(source), path.basename(filePath))
-	const output = compile(ast)
+	const file = parseFile(lex(source), path.basename(filePath))
+	const output = compileTardisFile(file)
 	const ts = await getTypeScriptModule()
 	const transpiled = ts.transpileModule(output, {
 		compilerOptions: {
@@ -272,7 +272,7 @@ async function compileFile(source: string, filePath: string): Promise<{ code: st
 	}).outputText
 	return {
 		code: replaceRuntimeImport(transpiled),
-		componentName: ast.name,
+		componentName: file.blueprint.name,
 	}
 }
 

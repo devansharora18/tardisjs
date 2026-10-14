@@ -2,6 +2,8 @@ import { Token, TokenType } from '../lexer/tokens'
 import { TardisError } from './errors'
 import {
   BlueprintNode,
+  FileNode,
+  ImportNode,
   PropNode,
   StateNode,
   ComputedNode,
@@ -602,4 +604,51 @@ export function parse(tokens: Token[], file = 'unknown'): BlueprintNode {
     line: blueprintTok.line,
     col: blueprintTok.col,
   }
+}
+
+// ── file parser ─────────────────────────────────────────────────────────
+// parses leading `import Name from "./path.tardis"` declarations followed by
+// exactly one blueprint. `parse` above is intentionally left strict
+// (BLUEPRINT first) so existing callers are unaffected.
+
+export function parseFile(tokens: Token[], file = 'unknown'): FileNode {
+  let i = 0
+  const peekT = (offset = 0): Token =>
+    tokens[i + offset] ?? { type: 'EOF', value: '', line: 0, col: 0 }
+  const skipLines = () => {
+    while (peekT().type === 'NEWLINE') i++
+  }
+  const fail = (message: string, tok: Token): never => {
+    throw new TardisError(message, file, tok.line, tok.col)
+  }
+
+  const imports: ImportNode[] = []
+  skipLines()
+  while (peekT().type === 'IDENT' && peekT().value === 'import') {
+    const kw = tokens[i++]!
+    const nameTok = peekT()
+    if (nameTok.type !== 'IDENT') fail(`Invalid import syntax — expected 'import Name from "..."'`, nameTok)
+    if (!/^[A-Z]/.test(nameTok.value)) {
+      fail(`Import binding "${nameTok.value}" must start with an uppercase letter — imports bind components`, nameTok)
+    }
+    i++
+    const fromTok = peekT()
+    if (fromTok.type !== 'IDENT' || fromTok.value !== 'from') {
+      fail(`Invalid import syntax — expected 'import ${nameTok.value} from "..."'`, fromTok)
+    }
+    i++
+    const pathTok = peekT()
+    if (pathTok.type !== 'STRING') fail(`Invalid import syntax — expected a quoted path`, pathTok)
+    if (!pathTok.value.startsWith('.') || !pathTok.value.endsWith('.tardis')) {
+      fail(`Import path "${pathTok.value}" must be relative and end in .tardis`, pathTok)
+    }
+    i++
+    if (imports.some((imp) => imp.name === nameTok.value)) {
+      fail(`Duplicate import binding "${nameTok.value}"`, nameTok)
+    }
+    imports.push({ name: nameTok.value, path: pathTok.value, line: kw.line, col: kw.col })
+    skipLines()
+  }
+
+  return { imports, blueprint: parse(tokens.slice(i), file), file }
 }

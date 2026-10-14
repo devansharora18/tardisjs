@@ -1,11 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { lex } from '../../src/lexer/lexer'
-import { parse } from '../../src/parser/parser'
+import { parse, parseFile } from '../../src/parser/parser'
 import { TardisError } from '../../src/parser/errors'
 
 // helper — lex and parse in one step
 function parseSource(source: string) {
   return parse(lex(source), 'test.tardis')
+}
+
+function parseFileSource(source: string) {
+  return parseFile(lex(source), 'test.tardis')
 }
 
 describe('parser', () => {
@@ -652,6 +656,81 @@ describe('parser', () => {
       expect(ast.style?.mode).toBe('tailwind')
       expect(ast.style?.rules).toHaveLength(3)
       expect(ast.ui.raw).toContain('{props.label}')
+    })
+  })
+
+  // ── file imports ────────────────────────────────────────────────────────
+
+  describe('file imports', () => {
+    it('parses leading imports plus blueprint', () => {
+      const file = parseFileSource(`
+        import Button from "./components/Button.tardis"
+        import Card from "../shared/Card.tardis"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)
+      expect(file.imports).toHaveLength(2)
+      expect(file.imports[0]).toMatchObject({ name: 'Button', path: './components/Button.tardis' })
+      expect(file.imports[1]).toMatchObject({ name: 'Card', path: '../shared/Card.tardis' })
+      expect(file.blueprint.name).toBe('Page')
+      expect(file.file).toBe('test.tardis')
+    })
+
+    it('parses a file with no imports', () => {
+      const file = parseFileSource(`
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)
+      expect(file.imports).toEqual([])
+      expect(file.blueprint.name).toBe('Page')
+    })
+
+    it('rejects lowercase import bindings', () => {
+      expect(() => parseFileSource(`
+        import button from "./Button.tardis"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)).toThrow(TardisError)
+    })
+
+    it('rejects non-relative import paths', () => {
+      expect(() => parseFileSource(`
+        import Button from "tardisjs/button"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)).toThrow(TardisError)
+    })
+
+    it('rejects non-.tardis import paths', () => {
+      expect(() => parseFileSource(`
+        import Button from "./Button.js"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)).toThrow(TardisError)
+    })
+
+    it('rejects duplicate import bindings', () => {
+      expect(() => parseFileSource(`
+        import Button from "./A.tardis"
+        import Button from "./B.tardis"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)).toThrow(TardisError)
+    })
+
+    it('leaves parse() strict for backward compatibility', () => {
+      expect(() => parseSource(`
+        import Button from "./Button.tardis"
+        blueprint Page {
+          ui { <div /> }
+        }
+      `)).toThrow(TardisError)
     })
   })
 
