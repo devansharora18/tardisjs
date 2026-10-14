@@ -17,7 +17,6 @@ const runtimeModules = [
   'devtools',
   'a11y',
 ]
-
 export default [
   // main package — compiler + CLI utilities
   {
@@ -53,6 +52,15 @@ export default [
     output: [
       { file: 'dist/testing/index.mjs', format: 'esm', sourcemap: true },
       { file: 'dist/testing/index.cjs', format: 'cjs', sourcemap: true },
+    ],
+    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+  },
+  // server-side rendering (zero-dep string renderer, Node-only)
+  {
+    input: 'src/ssr/index.ts',
+    output: [
+      { file: 'dist/ssr/index.mjs', format: 'esm', sourcemap: true },
+      { file: 'dist/ssr/index.cjs', format: 'cjs', sourcemap: true },
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
   },

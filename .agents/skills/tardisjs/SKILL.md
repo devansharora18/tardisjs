@@ -78,6 +78,11 @@ Rules:
 - `mountHtml(html)` / `flushAll()` / `fireClick` / `fireInput` / `fireKey` / `tick`
 - `isVisible` / `textOf` / `queryAll`
 
+## SSR (tardisjs/ssr, Node-only, zero-dep)
+
+- `renderToString(factory, { props?, components? })` — run a compiled factory against the shim, serialize to HTML. Deterministic; scripts never run; missing components serialize as placeholders.
+- `renderDocumentShell(bodyHtml, { title?, head? })`, `serializeNode`, `createMiniDocument`.
+
 ## Routing
 
 `pages/index.tardis` -> `/`, `pages/about.tardis` -> `/about`, `pages/blog/[id].tardis` -> `/blog/:id`. Components live in `components/`.

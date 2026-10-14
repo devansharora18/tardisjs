@@ -84,6 +84,11 @@
       "types": "./dist/testing/src/testing/index.d.ts",
       "import": "./dist/testing/index.mjs",
       "require": "./dist/testing/index.cjs"
+    },
+    "./ssr": {
+      "types": "./dist/ssr/src/ssr/index.d.ts",
+      "import": "./dist/ssr/index.mjs",
+      "require": "./dist/ssr/index.cjs"
     }
   },
   "scripts": {
