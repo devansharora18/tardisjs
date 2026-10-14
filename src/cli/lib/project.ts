@@ -37,7 +37,13 @@ export interface RouteModule {
 }
 
 export function replaceRuntimeImport(code: string): string {
-	return code.replace(/from\s+['"]tardisjs\/runtime['"]/g, "from '/tardis-runtime.js'")
+	// Only rewrite genuine import statements (statement-initial `import … from`).
+	// A bare `from "tardisjs/runtime"` match would also fire inside string
+	// literals — e.g. docs snippets showing import examples — corrupting them.
+	return code.replace(
+		/^([ \t]*import\s[^;]*?\sfrom\s*)['"]tardisjs\/runtime['"]/gm,
+		"$1'/tardis-runtime.js'"
+	)
 }
 
 let typescriptModulePromise: Promise<typeof import('typescript')> | null = null
@@ -73,6 +79,9 @@ export async function loadConfig(cwd: string): Promise<TardisConfig> {
 }
 
 // Lex + parse + compile one .tardis source, transpile to runnable JS.
+// Transpile diagnostics are surfaced as errors: silently emitting
+// best-effort output for syntactically invalid code ships black screens,
+// so a broken file fails the build here instead.
 export async function compileTardisSource(source: string, filePath: string): Promise<{ code: string; componentName: string }> {
 	const file = parseFile(lex(source), path.basename(filePath))
 	const output = compileTardisFile(file)
@@ -83,9 +92,20 @@ export async function compileTardisSource(source: string, filePath: string): Pro
 			module: ts.ModuleKind.ES2020,
 			moduleResolution: ts.ModuleResolutionKind.Bundler,
 		},
-	}).outputText
+		reportDiagnostics: true,
+	})
+	const errors = (transpiled.diagnostics ?? []).filter(
+		(d) => d.category === ts.DiagnosticCategory.Error
+	)
+	if (errors.length > 0) {
+		const first = errors[0]
+		const message = ts.flattenDiagnosticMessageText(first.messageText, ' ')
+		throw new CLIError(
+			`TardisError: ${filePath} failed to transpile — ${message}\n  Fix the syntax error above; no output was written for this file`
+		)
+	}
 	return {
-		code: replaceRuntimeImport(transpiled),
+		code: replaceRuntimeImport(transpiled.outputText),
 		componentName: file.blueprint.name,
 	}
 }

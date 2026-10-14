@@ -49,9 +49,19 @@ function requireDom(): { document: Document; window: Window & typeof globalThis 
 }
 
 function toComponent(compiled: string, name: string): BlueprintComponent {
-  const js = ts.transpileModule(compiled, {
+  const transpiled = ts.transpileModule(compiled, {
     compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext },
-  }).outputText
+    reportDiagnostics: true,
+  })
+  const errors = (transpiled.diagnostics ?? []).filter(
+    (d) => d.category === ts.DiagnosticCategory.Error
+  )
+  if (errors.length > 0) {
+    throw new Error(
+      `renderBlueprint: transpile failed — ${ts.flattenDiagnosticMessageText(errors[0].messageText, ' ')}`
+    )
+  }
+  const js = transpiled.outputText
   const body =
     js
       .replace(/import\s+[^;]+?\sfrom\s+['"][^'"]+['"];?/g, '')

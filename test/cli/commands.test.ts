@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { initProject } from '../../bin/tardis'
 import { compileSingleFile } from '../../src/cli/commands/compile'
 import { doctorProject } from '../../src/cli/commands/doctor'
+import { replaceRuntimeImport } from '../../src/cli/lib/project'
 
 const tempDirs: string[] = []
 
@@ -66,6 +67,21 @@ describe('compile command', () => {
     await fs.writeFile(input, 'blueprint { !!!', 'utf8')
     await expect(compileSingleFile(input, undefined, cwd)).rejects.toThrow(/TardisError/)
   })
+
+  it('fails loudly instead of emitting unparseable JS', async () => {
+    const cwd = await makeTempDir()
+    const input = path.join(cwd, 'Bad.tardis')
+    // valid .tardis, but the script block holds JS no parser can save —
+    // the build must throw here, not ship a black screen
+    await fs.writeFile(
+      input,
+      'blueprint Bad {\n  ui { <div /> }\n  script {\n    const o = {bad-key: 1}\n  }\n}',
+      'utf8'
+    )
+    await expect(compileSingleFile(input, undefined, cwd)).rejects.toThrow(
+      /failed to transpile/
+    )
+  })
 })
 
 describe('doctor command', () => {
@@ -94,5 +110,18 @@ describe('doctor command', () => {
     expect(byName.get('tardis.config.js present and valid')).toBe(false)
     const lines = log.mock.calls.map((call) => String(call[0]))
     expect(lines.some((line) => line.startsWith('FAIL'))).toBe(true)
+  })
+})
+
+describe('replaceRuntimeImport', () => {
+  it('rewrites statement-level runtime imports', () => {
+    const out = replaceRuntimeImport(`import { $runtime } from "tardisjs/runtime"\nconst x = 1`)
+    expect(out).toContain(`from '/tardis-runtime.js'`)
+    expect(out).not.toContain('tardisjs/runtime')
+  })
+
+  it('leaves import-looking text inside string literals alone', () => {
+    const src = `const SN = {\n  imports: 'import { signal } from "tardisjs/runtime"',\n}`
+    expect(replaceRuntimeImport(src)).toBe(src)
   })
 })

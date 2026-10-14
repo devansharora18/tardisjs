@@ -162,4 +162,10 @@ describe('renderBlueprint against real compiled blueprints', () => {
     r.cleanup()
     expect(document.body.contains(r.root)).toBe(false)
   })
+
+  it('throws instead of mounting unparseable output', () => {
+    expect(() =>
+      renderBlueprint('blueprint Bad {\n  ui { <div /> }\n  script {\n    const o = {bad-key: 1}\n  }\n}')
+    ).toThrow(/transpile failed/)
+  })
 })
