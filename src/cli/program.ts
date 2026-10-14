@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { buildProject } from './commands/build'
+import { registerCheckCommand } from './commands/check'
 import { compileSingleFile, registerCompileCommand } from './commands/compile'
 import { devServer } from './commands/dev'
 import { doctorProject, registerDoctorCommand } from './commands/doctor'
@@ -41,6 +42,7 @@ export function createProgram(): Command {
 		})
 
 	registerCompileCommand(program)
+	registerCheckCommand(program)
 	registerDoctorCommand(program)
 
 	return program
@@ -59,6 +61,7 @@ export async function runCLI(argv = process.argv): Promise<void> {
 
 // Kept here so `create-tardis-app` and external importers see one surface.
 export { buildProject } from './commands/build'
+export { checkProject } from './commands/check'
 export { compileSingleFile } from './commands/compile'
 export { devServer } from './commands/dev'
 export { doctorProject } from './commands/doctor'
