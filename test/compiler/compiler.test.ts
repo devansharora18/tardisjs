@@ -1186,6 +1186,42 @@ describe('ui compiler', () => {
       expect(out).not.toContain('&lt;Card')
     })
 
+    it('keeps comparison operators inside control-flow conditions', () => {
+      const out = compileSource(`
+        blueprint List {
+          state {
+            maxPrice: number = 0
+          }
+          ui {
+            <div>
+              $show(state.maxPrice === 0 || 450000 <= state.maxPrice) {
+                <p>cheap</p>
+              }
+              $show(state.maxPrice !== 0 && 825000 <= state.maxPrice) {
+                <p>pricey</p>
+              }
+            </div>
+          }
+        }
+      `)
+      expect(out.match(/\$runtime\.show\(/g)).toHaveLength(2)
+      expect(out).toContain('cheap')
+      expect(out).toContain('pricey')
+    })
+
+    it('treats bare less-than in text as literal text', () => {
+      const out = compileSource(`
+        blueprint Page {
+          ui {
+            <div>
+              <p>a < b and c > d</p>
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain('a < b and c > d')
+    })
+
     it('ignores spread on plain DOM elements', () => {
       const out = compileSource(`
         blueprint Page {

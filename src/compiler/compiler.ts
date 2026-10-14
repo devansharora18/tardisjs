@@ -955,8 +955,7 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 		const ch = raw[i];
 
 		if (ch === "<") {
-			if (raw[i + 1] === "/") {
-				if (depth === 0) {
+			if (raw[i + 1] === "/") {				if (depth === 0) {
 					// closing tag for PARENT element — push current and skip tag
 					const isEl = current.trimStart().startsWith('<');
 					const n = ws(current, isEl);
@@ -984,7 +983,10 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 					current = "";
 					continue;
 				}
-			} else if (raw[i + 1] !== "!") {
+			} else if (raw[i + 1] !== "!" && /[a-zA-Z]/.test(raw[i + 1] ?? "")) {
+				// Only `<letter` opens a tag. Anything else (`<=` in
+				// conditions, `a < b` in text) is literal text — treating it
+				// as a tag corrupts depth tracking for the rest of the block.
 				if (!isSelfClosingFrom(raw, i)) {
 					depth++;
 				} else {
@@ -1003,7 +1005,7 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 		if (depth === 0 && current.trim() && i > tagGuardEnd) {
 			const next = raw.slice(i).trimStart();
 			if (
-				next.startsWith("<") ||
+				/^<[a-zA-Z\/!]/.test(next) ||
 				next.startsWith("$") ||
 				next.startsWith("{")
 			) {
