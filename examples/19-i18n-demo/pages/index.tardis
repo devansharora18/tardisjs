@@ -1,0 +1,204 @@
+blueprint Home {
+	state {
+		locale: string = "en"
+		cart: number = 1
+	}
+	computed {
+		localeName: state.locale === "es" ? "Español" : (state.locale === "de" ? "Deutsch" : "English")
+		greeting: state.locale === "es" ? "Hola, constructor" : (state.locale === "de" ? "Hallo, Entwickler" : "Hello, builder")
+		tagline: state.locale === "es" ? "Crea frontends deterministas en minutos." : (state.locale === "de" ? "Deterministische Frontends in Minuten erstellen." : "Ship deterministic frontends in minutes.")
+		cta: state.locale === "es" ? "Empezar a crear" : (state.locale === "de" ? "Jetzt starten" : "Start building")
+		featuresTitle: state.locale === "es" ? "Por qué los equipos cambian" : (state.locale === "de" ? "Warum Teams wechseln" : "Why teams switch")
+		feat1: state.locale === "es" ? "Renderizado con compilador" : (state.locale === "de" ? "Compiler-basiertes Rendering" : "Compiler-first rendering")
+		feat2: state.locale === "es" ? "Reactividad sin DOM virtual" : (state.locale === "de" ? "Reaktivität ohne virtuelles DOM" : "Reactivity without a virtual DOM")
+		feat3: state.locale === "es" ? "Un archivo por página" : (state.locale === "de" ? "Eine Datei pro Seite" : "One file per page")
+		footNote: state.locale === "es" ? "El inglés es el idioma de respaldo." : (state.locale === "de" ? "Englisch ist die Fallback-Sprache." : "Fallback is English when a key is missing.")
+		itemsLabel: state.cart === 0 ? (state.locale === "es" ? "Tu cesta está vacía" : (state.locale === "de" ? "Dein Warenkorb ist leer" : "Your cart is empty")) : (state.cart === 1 ? (state.locale === "es" ? "1 artículo en tu cesta" : (state.locale === "de" ? "1 Artikel im Warenkorb" : "1 item in your cart")) : (state.locale === "es" ? state.cart + " artículos en tu cesta" : (state.locale === "de" ? state.cart + " Artikel im Warenkorb" : state.cart + " items in your cart")))
+	}
+	methods {
+		setLocale: (l) => $update(state.locale, l)
+		inc: () => $update(state.cart, state.cart + 1)
+		dec: () => $update(state.cart, Math.max(state.cart - 1, 0))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 760px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.topbar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 20px 0;
+		}
+		.brand {
+			font-weight: 800;
+			font-size: 16px;
+			letter-spacing: -0.02em;
+		}
+		.locales {
+			display: flex;
+			gap: 6px;
+		}
+		.locale-btn {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 7px 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.locale-on {
+			background: #ededed;
+			border: 1px solid #ededed;
+			color: #0a0a0a;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 7px 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.hero {
+			text-align: center;
+			padding: 64px 0 24px;
+		}
+		.greeting {
+			font-size: 46px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 14px;
+		}
+		.tagline {
+			font-size: 17px;
+			color: #a1a1a1;
+			margin-bottom: 24px;
+		}
+		.cta {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 15px;
+			font-weight: 700;
+			padding: 12px 28px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.locale-note {
+			margin-top: 16px;
+			font-size: 13px;
+			color: #666666;
+		}
+		.features {
+			margin-top: 48px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 32px;
+		}
+		.features h2 {
+			font-size: 20px;
+			font-weight: 800;
+			margin-bottom: 16px;
+		}
+		.features ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+		.features li {
+			font-size: 14px;
+			color: #c9c9c9;
+			padding: 10px 0;
+			border-top: 1px solid #262626;
+		}
+		.cart {
+			margin-top: 16px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 32px;
+			text-align: center;
+		}
+		.cart h2 {
+			font-size: 20px;
+			font-weight: 800;
+			margin-bottom: 8px;
+		}
+		.items-label {
+			font-size: 15px;
+			color: #7ee787;
+			margin-bottom: 16px;
+		}
+		.cart-row {
+			display: flex;
+			gap: 8px;
+			justify-content: center;
+		}
+		.cart-row button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #ededed;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 9px 18px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 48px;
+			font-size: 13px;
+			color: #666666;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<div class="topbar">
+					<span class="brand">Lingua</span>
+					<div class="locales">
+						<button class={state.locale === "en" ? "locale-on" : "locale-btn"} @click={() => methods.setLocale("en")}>EN</button>
+						<button class={state.locale === "es" ? "locale-on" : "locale-btn"} @click={() => methods.setLocale("es")}>ES</button>
+						<button class={state.locale === "de" ? "locale-on" : "locale-btn"} @click={() => methods.setLocale("de")}>DE</button>
+					</div>
+				</div>
+				<div class="hero">
+					<h1 class="greeting">{computed.greeting}</h1>
+					<p class="tagline">{computed.tagline}</p>
+					<button class="cta">{computed.cta}</button>
+					<p class="locale-note">Current locale: {state.locale} · {computed.localeName}</p>
+				</div>
+				<div class="features">
+					<h2>{computed.featuresTitle}</h2>
+					<ul>
+						<li>{computed.feat1}</li>
+						<li>{computed.feat2}</li>
+						<li>{computed.feat3}</li>
+					</ul>
+				</div>
+				<div class="cart">
+					<h2>Plurals</h2>
+					<p class="items-label">{computed.itemsLabel}</p>
+					<div class="cart-row">
+						<button class="cart-dec" @click={methods.dec}>− Remove</button>
+						<button class="cart-inc" @click={methods.inc}>+ Add</button>
+					</div>
+				</div>
+				<p class="foot">{computed.footNote} · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}

@@ -1,0 +1,200 @@
+blueprint Home {
+	state {
+		jobs: array = []
+		step: number = 0
+		retried: boolean = false
+	}
+	computed {
+		rows: state.jobs.map((j) => [j[0], state.step < j[1] ? "queued" : (state.step === j[1] ? "running" : ((j[2] && state.retried === false) ? "error" : "done"))])
+		doneCount: computed.rows.filter((r) => r[1] === "done").length
+		errorCount: computed.rows.filter((r) => r[1] === "error").length
+		pendingCount: state.jobs.length - computed.doneCount - computed.errorCount
+		canAdvance: state.step < 4
+		phase: state.step > 3 ? "Settled" : ("Step " + (state.step + 1) + " of 4")
+	}
+	methods {
+		advance: () => $update(state.step, state.step + 1)
+		retry: () => $batch(() => ($update(state.retried, true), $update(state.step, 2)))
+		reset: () => $batch(() => ($update(state.step, 0), $update(state.retried, false)))
+	}
+	events {
+		onMount: () => $update(state.jobs, [["Fetch sources", 0, false], ["Transcode video", 1, false], ["Export bundle", 2, true], ["Notify channel", 3, false]])
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 680px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.head {
+			padding: 48px 0 8px;
+		}
+		.head h1 {
+			font-size: 34px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+		}
+		.phase {
+			font-size: 14px;
+			color: #888888;
+			margin-top: 6px;
+		}
+		.counts {
+			display: flex;
+			gap: 8px;
+			margin: 20px 0;
+			flex-wrap: wrap;
+		}
+		.count-pending {
+			font-size: 12.5px;
+			font-weight: 700;
+			color: #79c0ff;
+			background: #0e2338;
+			border-radius: 999px;
+			padding: 5px 14px;
+		}
+		.count-done {
+			font-size: 12.5px;
+			font-weight: 700;
+			color: #7ee787;
+			background: #0f2c1a;
+			border-radius: 999px;
+			padding: 5px 14px;
+		}
+		.count-error {
+			font-size: 12.5px;
+			font-weight: 700;
+			color: #ff7b72;
+			background: #3a1414;
+			border-radius: 999px;
+			padding: 5px 14px;
+		}
+		.queue {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+		.job {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 10px;
+			padding: 16px 18px;
+		}
+		.job-label {
+			font-size: 15px;
+			font-weight: 600;
+		}
+		.pill {
+			font-size: 11.5px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			border-radius: 999px;
+			padding: 4px 12px;
+		}
+		.status-queued .pill {
+			color: #a1a1a1;
+			background: #262626;
+		}
+		.status-running .pill {
+			color: #79c0ff;
+			background: #0e2338;
+		}
+		.status-done .pill {
+			color: #7ee787;
+			background: #0f2c1a;
+		}
+		.status-error .pill {
+			color: #ff7b72;
+			background: #3a1414;
+		}
+		.status-error {
+			border-color: #6e1f1f;
+		}
+		.controls {
+			display: flex;
+			gap: 8px;
+			margin-top: 20px;
+		}
+		.advance {
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 11px 20px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.retry {
+			background: transparent;
+			border: 1px solid #6e1f1f;
+			color: #ff7b72;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 11px 20px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.reset {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 11px 20px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.hint {
+			margin-top: 20px;
+			font-size: 13px;
+			color: #666666;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<div class="head">
+					<h1>Taskline</h1>
+					<p class="phase">{computed.phase}</p>
+				</div>
+				<div class="counts">
+					<span class="count-pending">{computed.pendingCount} pending</span>
+					<span class="count-done">{computed.doneCount} done</span>
+					<span class="count-error">{computed.errorCount} error</span>
+				</div>
+				<div class="queue">
+					$each(computed.rows, (r) => {
+						<div class={"job status-" + r[1]}>
+							<span class="job-label">{r[0]}</span>
+							<span class="pill">{r[1]}</span>
+						</div>
+					})
+				</div>
+				<div class="controls">
+					$show(computed.canAdvance) {
+						<button class="advance" @click={methods.advance}>Advance queue</button>
+					}
+					$show(computed.errorCount === 1) {
+						<button class="retry" @click={methods.retry}>Retry failed job</button>
+					}
+					<button class="reset" @click={methods.reset}>Reset</button>
+				</div>
+				<p class="hint">Deterministic pipeline: export fails once, retry re-runs it to success.</p>
+			</div>
+		</div>
+	}
+}
