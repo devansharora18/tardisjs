@@ -58,6 +58,26 @@ export type { Messages, I18nOptions, I18n } from './i18n'
 export { fade, slide, cssTransition, prefersReducedMotion } from './transition'
 export type { El } from './transition'
 
+// ── http client ─────────────────────────────────────────────────────────────
+
+export { createHttpClient } from './http'
+export type { HttpMethod, HttpRequest, HttpResponse, HttpInterceptor, HttpClientOptions } from './http'
+
+// ── async tasks ─────────────────────────────────────────────────────────────
+
+export { useTask } from './tasks'
+export type { TaskStatus, TaskOptions, Task } from './tasks'
+
+// ── devtools ────────────────────────────────────────────────────────────────
+
+export { connectDevtools, recordEvent, getHook } from './devtools'
+export type { DevEvent, DevEventKind, TreeNode, DevtoolsHandle } from './devtools'
+
+// ── accessibility helpers ───────────────────────────────────────────────────
+
+export { trapFocus, announce, setExpanded, setPressed, setSelected, labelBy, skipLink } from './a11y'
+export type { A11yEl } from './a11y'
+
 // ── $runtime object ────────────────────────────────────────────────────────
 // the compiled output imports $runtime and calls methods on it
 // this is the single object the compiler references

@@ -12,6 +12,10 @@ const runtimeModules = [
   'forms',
   'i18n',
   'transition',
+  'http',
+  'tasks',
+  'devtools',
+  'a11y',
 ]
 
 export default [
@@ -43,4 +47,13 @@ export default [
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
   })),
+  // testing utilities
+  {
+    input: 'src/testing/index.ts',
+    output: [
+      { file: 'dist/testing/index.mjs', format: 'esm', sourcemap: true },
+      { file: 'dist/testing/index.cjs', format: 'cjs', sourcemap: true },
+    ],
+    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+  },
 ]

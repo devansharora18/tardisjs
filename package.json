@@ -59,6 +59,31 @@
       "types": "./dist/runtime/src/runtime/transition.d.ts",
       "import": "./dist/runtime/transition.mjs",
       "require": "./dist/runtime/transition.cjs"
+    },
+    "./runtime/http": {
+      "types": "./dist/runtime/src/runtime/http.d.ts",
+      "import": "./dist/runtime/http.mjs",
+      "require": "./dist/runtime/http.cjs"
+    },
+    "./runtime/tasks": {
+      "types": "./dist/runtime/src/runtime/tasks.d.ts",
+      "import": "./dist/runtime/tasks.mjs",
+      "require": "./dist/runtime/tasks.cjs"
+    },
+    "./runtime/devtools": {
+      "types": "./dist/runtime/src/runtime/devtools.d.ts",
+      "import": "./dist/runtime/devtools.mjs",
+      "require": "./dist/runtime/devtools.cjs"
+    },
+    "./runtime/a11y": {
+      "types": "./dist/runtime/src/runtime/a11y.d.ts",
+      "import": "./dist/runtime/a11y.mjs",
+      "require": "./dist/runtime/a11y.cjs"
+    },
+    "./testing": {
+      "types": "./dist/testing/src/testing/index.d.ts",
+      "import": "./dist/testing/index.mjs",
+      "require": "./dist/testing/index.cjs"
     }
   },
   "scripts": {
