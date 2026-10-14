@@ -924,6 +924,11 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 	let depth = 0;
 	let current = "";
 	let i = 0;
+	// End index of the self-closing tag currently being accumulated, if any.
+	// Braces inside such a tag (attribute values, spreads) must never split
+	// children: unlike open tags, self-closing tags never raise `<` depth,
+	// so without this guard `{...spread}` would shear the tag in two.
+	let tagGuardEnd = -1;
 
 	// Only normalize text-only fragments; leave element children as-is
 	// so that <pre> and similar tags can preserve their internal whitespace
@@ -966,6 +971,9 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 			} else if (raw[i + 1] !== "!") {
 				if (!isSelfClosingFrom(raw, i)) {
 					depth++;
+				} else {
+					const end = scanTagEnd(raw, i);
+					if (end > i) tagGuardEnd = end;
 				}
 			}
 		}
@@ -976,7 +984,7 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 		current += ch;
 		i++;
 
-		if (depth === 0 && current.trim()) {
+		if (depth === 0 && current.trim() && i > tagGuardEnd) {
 			const next = raw.slice(i).trimStart();
 			if (
 				next.startsWith("<") ||
@@ -1017,6 +1025,16 @@ function splitChildren(raw: string, preserveWs = false): string[] {
 
 // look-ahead to determine if a tag starting at tagStart is self-closing (ends with />)
 function isSelfClosingFrom(raw: string, tagStart: number): boolean {
+	const end = scanTagEnd(raw, tagStart);
+	if (end < 0) return false;
+	let k = end - 1;
+	while (k > tagStart && /\s/.test(raw[k])) k--;
+	return raw[k] === "/";
+}
+
+// index of the `>` closing the tag at tagStart, accounting for quoted
+// strings and braced attribute values; -1 when unbalanced
+function scanTagEnd(raw: string, tagStart: number): number {
 	let j = tagStart + 1;
 	let inQuote: string | null = null;
 	let braceDepth = 0;
@@ -1031,11 +1049,9 @@ function isSelfClosingFrom(raw: string, tagStart: number): boolean {
 		} else if (c === "}") {
 			braceDepth--;
 		} else if (c === ">" && braceDepth === 0) {
-			let k = j - 1;
-			while (k > tagStart && /\s/.test(raw[k])) k--;
-			return raw[k] === "/";
+			return j;
 		}
 		j++;
 	}
-	return false;
+	return -1;
 }

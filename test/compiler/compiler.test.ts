@@ -1167,6 +1167,25 @@ describe('ui compiler', () => {
       expect(out).toContain('..._state.extra')
     })
 
+    it('keeps spreads after static attributes on one tag', () => {
+      const out = compileSource(`
+        blueprint Page {
+          state {
+            tone: string = "highlight"
+            extra: object = {}
+          }
+          ui {
+            <div>
+              <Card title="hi" sub="yo" {...state.extra} />
+            </div>
+          }
+        }
+      `)
+      expect(out).toContain("$runtime.component('Card'")
+      expect(out).toContain('..._state.extra')
+      expect(out).not.toContain('&lt;Card')
+    })
+
     it('ignores spread on plain DOM elements', () => {
       const out = compileSource(`
         blueprint Page {
