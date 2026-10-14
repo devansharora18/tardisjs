@@ -1,0 +1,107 @@
+import Section from "../components/Section.tardis"
+import Button from "../components/Button.tardis"
+blueprint Home {
+	state {
+		tone: string = "highlight"
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 760px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.hero {
+			text-align: center;
+			padding: 72px 0 8px;
+		}
+		.kicker {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: #3291ff;
+			margin-bottom: 14px;
+		}
+		.hero h1 {
+			font-size: 42px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 14px;
+		}
+		.hero p {
+			font-size: 16px;
+			color: #a1a1a1;
+		}
+		.direct {
+			margin-top: 40px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 32px;
+		}
+		.direct h3 {
+			font-size: 18px;
+			font-weight: 800;
+			margin-bottom: 8px;
+		}
+		.direct p {
+			font-size: 14px;
+			color: #a1a1a1;
+			margin-bottom: 16px;
+		}
+		.direct-row {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+		.registry-note {
+			margin-top: 24px;
+			border: 1px dashed #404040;
+			border-radius: 12px;
+			padding: 20px 24px;
+			font-size: 13px;
+			color: #888888;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 64px;
+			font-size: 13px;
+			color: #666666;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<header class="hero">
+					<div class="kicker">Composition model</div>
+					<h1>Pages composed from components</h1>
+					<p>This page imports Section, and Section imports Button. Named slots, spreads, and the registry fallback are all live below.</p>
+				</header>
+				<Section title="Every slot filled" sub="The parent supplies the eyebrow, the body, and the actions.">
+					<p slot="eyebrow" class="custom-eyebrow">Custom eyebrow — parent wins</p>
+					<p>Custom body — this replaces the default fallback copy.</p>
+					<div slot="actions"><Button label="Custom action" variant="ghost" /></div>
+				</Section>
+				<Section title="Nothing passed" sub="No slots given — every fallback renders instead." />
+				<Section title="Spread merge" sub="Explicit title and sub, tone merged in through a spread." {...{ tone: state.tone }} />
+				<div class="direct">
+					<h3>Imported directly</h3>
+					<p>Buttons used straight from the page: one relies on the default slot fallback, the other fills it.</p>
+					<div class="direct-row">
+						<Button label="Docs" />
+						<Button label="Guide"><span> →</span></Button>
+					</div>
+				</div>
+				<NewsletterSignup compact="true" />
+				<div class="registry-note">NewsletterSignup is never imported, so the component registry renders a placeholder for it. Inspect the DOM for a node tagged with that component name.</div>
+				<p class="foot">© 2026 Slots Showcase · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}

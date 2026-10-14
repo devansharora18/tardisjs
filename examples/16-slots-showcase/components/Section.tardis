@@ -1,0 +1,67 @@
+import Button from "./Button.tardis"
+blueprint Section {
+	props {
+		title: string = ""
+		sub: string = ""
+		tone: string = "plain"
+	}
+	style {
+		.card {
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 32px;
+			margin-top: 24px;
+		}
+		.tone-highlight {
+			border-color: #3291ff;
+			background: #0e1626;
+		}
+		.eyebrow {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			color: #3291ff;
+			margin-bottom: 10px;
+		}
+		.eyebrow-fallback {
+			color: #666666;
+		}
+		.card h2 {
+			font-size: 24px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			margin-bottom: 8px;
+		}
+		.sub {
+			font-size: 14px;
+			color: #a1a1a1;
+			margin-bottom: 16px;
+		}
+		.body {
+			font-size: 15px;
+			line-height: 1.6;
+		}
+		.body-fallback {
+			color: #888888;
+		}
+		.actions {
+			margin-top: 20px;
+			display: flex;
+			gap: 8px;
+		}
+		.custom-eyebrow {
+			color: #7ee787;
+		}
+	}
+	ui {
+		<div class={props.tone === "highlight" ? "card tone-highlight" : "card"}>
+			<div class="eyebrow"><slot name="eyebrow"><span class="eyebrow-fallback">Featured section</span></slot></div>
+			<h2>{props.title}</h2>
+			<p class="sub">{props.sub}</p>
+			<div class="body"><slot><p class="body-fallback">Default body copy — pass children to replace this fallback.</p></slot></div>
+			<div class="actions"><slot name="actions"><Button label="Get started" /></slot></div>
+		</div>
+	}
+}
