@@ -126,6 +126,22 @@ describe('renderToString', () => {
     expect(renderToString(Page)).toBe('<div><div data-each=""></div> <p>empty</p></div>')
   })
 
+  it('serializes live form values', async () => {
+    const Page = await buildFactory(
+      `blueprint Page {
+        state {
+          name: string = "Ada"
+          agree: boolean = true
+        }
+        ui {
+          <div><input value={state.name} /><input type="checkbox" checked={state.agree} /></div>
+        }
+      }`,
+      'Page'
+    )
+    expect(renderToString(Page)).toBe('<div><input value="Ada"><input type="checkbox" checked=""></div>')
+  })
+
   it('renders void elements without closing tags', async () => {
     const Page = await buildFactory(
       `blueprint Page {
@@ -136,7 +152,7 @@ describe('renderToString', () => {
       }`,
       'Page'
     )
-    expect(renderToString(Page)).toBe('<div><input value=""><br><img src="/a.png"></div>')
+    expect(renderToString(Page)).toBe('<div><input><br><img src="/a.png"></div>')
   })
 
   it('does not run scripts', async () => {

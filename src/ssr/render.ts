@@ -52,15 +52,16 @@ export function serializeNode(node: MiniNode): string {
   const style = styleAttr(el.style)
   if (style) attrs += ` style="${escapeAttr(style)}"`
   const merged: Record<string, string> = { ...el.attrs }
-  // IDL attribute reflections (value, checked, ...): a live property binding
-  // writes the expando, not the content attribute. Serialize current state.
   for (const key of ['value', 'checked', 'selected', 'disabled']) {
     if (!Object.prototype.hasOwnProperty.call(el, key)) continue
     const current = (el as unknown as Record<string, unknown>)[key]
-    if (current === false || current === null || current === undefined) {
+    // Defaults ('' / false) reflect nothing, exactly like real elements.
+    if (current === false || current === null || current === undefined || current === '') {
       delete merged[key]
     } else if (current === true) {
-      merged[key] = key
+      // Real serialization renders reflected booleans as empty-valued
+      // attributes (checked=""), so match that exactly.
+      merged[key] = ''
     } else {
       merged[key] = String(current)
     }
