@@ -129,6 +129,8 @@ function restoreGlobals(previous: Record<string, unknown>): void {
 export function renderToString(factory: ComponentFactory, opts: RenderOptions = {}): string {
   const { previous, shim } = installGlobals()
   try {
+    // Bridge the registry option into the shim window: nested
+    // `$runtime.component` calls resolve factories the same way as clients.
     for (const [name, fn] of Object.entries(opts.components ?? {})) {
       shim.window[`__tardis_${name}`] = fn
     }
