@@ -73,7 +73,7 @@ blueprint DocsForms {
 					</ul>
 
 					<h2 id="useform">useForm</h2>
-					<p>Declare fields with <code>FieldDef</code> entries of shape <code>{`{`} initial?: unknown, validate?: Validator[] {`}`}</code>. The helper returns reactive <code>values</code>, <code>errors</code>, and <code>touched</code> state objects plus control methods. Bindings over these objects re-run like any other state, so <code>{`{`}form.errors.email{`}`}</code> in markup updates as validation runs.</p>
+					<p>Declare fields with <code>FieldDef</code> entries of shape <code>&#123; initial?: unknown, validate?: Validator[] &#125;</code>. The helper returns reactive <code>values</code>, <code>errors</code>, and <code>touched</code> state objects plus control methods. Bindings over these objects re-run like any other state, so <code>&#123;form.errors.email&#125;</code> in markup updates as validation runs.</p>
 					<p>Both members of a field definition are optional. A field with no <code>initial</code> starts as <code>undefined</code>; a field with no <code>validate</code> list always passes. This makes free-form and display-only fields cheap to include.</p>
 					<div class="docs-table-wrap">
 						<table class="docs-table">

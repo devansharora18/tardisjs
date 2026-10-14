@@ -40,7 +40,7 @@ blueprint DocsTesting {
 						<table class="docs-table">
 							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>renderBlueprint</td><td>renderBlueprint(source: string, opts?: RenderOptions)</td><td>Compile, mount, and flush; returns <code>{`{`} root, document, window, cleanup {`}`}</code>.</td></tr>
+								<tr><td>renderBlueprint</td><td>renderBlueprint(source: string, opts?: RenderOptions)</td><td>Compile, mount, and flush; returns <code>&#123; root, document, window, cleanup &#125;</code>.</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -54,8 +54,8 @@ blueprint DocsTesting {
 						<table class="docs-table">
 							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>RenderOptions</td><td>{`{`} props?: Record&lt;string, unknown&gt; {`}`}</td><td>The optional second argument to <code>renderBlueprint</code>.</td></tr>
-								<tr><td>RenderResult</td><td>{`{`} root, document, window, cleanup {`}`}</td><td>Everything a test needs: the mounted root plus teardown.</td></tr>
+								<tr><td>RenderOptions</td><td>&#123; props?: Record&lt;string, unknown&gt; &#125;</td><td>The optional second argument to <code>renderBlueprint</code>.</td></tr>
+								<tr><td>RenderResult</td><td>&#123; root, document, window, cleanup &#125;</td><td>Everything a test needs: the mounted root plus teardown.</td></tr>
 								<tr><td>BlueprintComponent</td><td>(props?) =&gt; HTMLElement</td><td>The evaluated component shape, useful for typing stubs.</td></tr>
 							</tbody>
 						</table>
@@ -64,7 +64,7 @@ blueprint DocsTesting {
 					<p>It removes the container, clears the event queues, clears the component registry, and restores the rAF shim.</p>
 
 					<h2 id="props">Props</h2>
-					<p>Pass initial props through <code>{`{`} props {`}`}</code> to exercise the component conditional branches, default handling, and validation from the first render. The object is handed to the component as-is, so the same reference semantics as production apply: mutate it after render only if the component contract allows it.</p>
+					<p>Pass initial props through <code>&#123; props &#125;</code> to exercise the component conditional branches, default handling, and validation from the first render. The object is handed to the component as-is, so the same reference semantics as production apply: mutate it after render only if the component contract allows it.</p>
 					<p>Cover both the populated and the empty case. A component that renders correctly with full props but throws on the default empty object has a latent crash on every route that forgets an attribute. The empty-props render is the cheapest regression test in the file.</p>
 					<p>Type the props object at the test boundary when the component contract matters. A sloppy <code>as unknown as</code> cast in the test hides exactly the shape mismatch the test should catch; write the props literal to match the documented contract and let the compiler flag drift.</p>
 
@@ -73,7 +73,7 @@ blueprint DocsTesting {
 						<table class="docs-table">
 							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>mountHtml</td><td>mountHtml(html: string)</td><td>Parse static HTML into an attached container; returns <code>{`{`} container, cleanup {`}`}</code>.</td></tr>
+								<tr><td>mountHtml</td><td>mountHtml(html: string)</td><td>Parse static HTML into an attached container; returns <code>&#123; container, cleanup &#125;</code>.</td></tr>
 								<tr><td>flushAll</td><td>flushAll(): void</td><td>Drain the mount, update, and destroy callback queues.</td></tr>
 							</tbody>
 						</table>

@@ -226,10 +226,10 @@ blueprint DocsReconcile {
 	}
 	script {
 		const SN = {
-			keyed-list: "import { keyed } from \"tardisjs/runtime\"\n\nconst list = keyed(\n  () => state.items,\n  (item) => item.id,\n  (item) => {\n    const li = document.createElement(\"li\")\n    li.textContent = item.name\n    return li\n  }\n)\nmount.appendChild(list)",
-			keyed-reorder: "import { keyed } from \"tardisjs/runtime\"\n\nconst board = keyed(\n  () => state.tasks,\n  (task) => task.id,\n  (task) => {\n    const row = document.createElement(\"div\")\n    row.className = \"task-row\"\n    row.textContent = task.title\n    return row\n  }\n)\n// Reordering state.tasks moves rows; focus inside a row survives.",
+			"keyed-list": "import { keyed } from \"tardisjs/runtime\"\n\nconst list = keyed(\n  () => state.items,\n  (item) => item.id,\n  (item) => {\n    const li = document.createElement(\"li\")\n    li.textContent = item.name\n    return li\n  }\n)\nmount.appendChild(list)",
+			"keyed-reorder": "import { keyed } from \"tardisjs/runtime\"\n\nconst board = keyed(\n  () => state.tasks,\n  (task) => task.id,\n  (task) => {\n    const row = document.createElement(\"div\")\n    row.className = \"task-row\"\n    row.textContent = task.title\n    return row\n  }\n)\n// Reordering state.tasks moves rows; focus inside a row survives.",
 			fragment: "import { fragment } from \"tardisjs/runtime\"\n\nconst group = fragment([\n  document.createElement(\"dt\"),\n  document.createElement(\"dd\")\n])\nlist.appendChild(group)",
-			svg-icon: "import { svg } from \"tardisjs/runtime\"\n\nconst dot = svg(\"circle\", { cx: 8, cy: 8, r: 6, fill: \"currentColor\" })\nconst icon = svg(\"svg\", { width: 16, height: 16, viewBox: \"0 0 16 16\" })\nicon.appendChild(dot)\ntoolbar.appendChild(icon)",
+			"svg-icon": "import { svg } from \"tardisjs/runtime\"\n\nconst dot = svg(\"circle\", { cx: 8, cy: 8, r: 6, fill: \"currentColor\" })\nconst icon = svg(\"svg\", { width: 16, height: 16, viewBox: \"0 0 16 16\" })\nicon.appendChild(dot)\ntoolbar.appendChild(icon)",
 			refs: "import { createRef, setRef } from \"tardisjs/runtime\"\n\nconst inputRef = createRef()\nmethods {\n  mountInput: (el) => setRef(inputRef, el)\n  focusInput: () => inputRef.current && inputRef.current.focus()\n  clearInput: () => setRef(inputRef, null)\n}",
 			move: "import { moveChild } from \"tardisjs/runtime\"\n\nmethods {\n  pinToTop: (row) => moveChild(listEl, row, listEl.firstElementChild)\n  sendToEnd: (row) => moveChild(listEl, row, null)\n}"
 		}

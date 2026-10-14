@@ -27,7 +27,7 @@ blueprint DocsI18n {
 						</table>
 					</div>
 					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
-					<p>Interpolation fills <code>{`{`}name{`}`}</code> placeholders from the vars object. Placeholders with no matching entry are left untouched, and calling <code>t</code> without vars returns the template as stored.</p>
+					<p>Interpolation fills <code>&#123;name&#125;</code> placeholders from the vars object. Placeholders with no matching entry are left untouched, and calling <code>t</code> without vars returns the template as stored.</p>
 					<p>Locale codes are exact table keys with no viscoelastic matching: <code>"en-US"</code> does not fall back to <code>"en"</code>. Register every variant you ship, or normalize the code before calling <code>setLocale</code>.</p>
 
 					<h2 id="switching">Switching locales</h2>
@@ -70,7 +70,7 @@ blueprint DocsI18n {
 								<tr><td>t</td><td>t(key: string, vars?: Record&lt;string, string | number&gt;): string</td><td>Translate with fallback chain and interpolation.</td></tr>
 								<tr><td>has</td><td>has(key: string, locale?: string): boolean</td><td>True when the key exists in the given locale, or the active one by default.</td></tr>
 								<tr><td>availableLocales</td><td>availableLocales(): string[]</td><td>Every locale code present in messages.</td></tr>
-								<tr><td>plural</td><td>plural(count: number, forms: {`{`} zero?: string, one: string, other: string {`}`}) : string</td><td>Pick a plural form for a count. Standalone helper, not tied to a translator.</td></tr>
+								<tr><td>plural</td><td>plural(count: number, forms: &#123; zero?: string, one: string, other: string &#125;) : string</td><td>Pick a plural form for a count. Standalone helper, not tied to a translator.</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -78,11 +78,11 @@ blueprint DocsI18n {
 					<p>In this example <code>nav.home</code> resolves from the Spanish table, <code>bye</code> is absent in Spanish and falls back to English, and the fully missing key echoes back as <code>"nope.nowhere"</code> so untranslated strings stay visible during development.</p>
 
 					<h2 id="interpolation">Interpolation reference</h2>
-					<p>Placeholders use single braces around a word: <code>{`{`}name{`}`}</code>, <code>{`{`}count{`}`}</code>. The matcher accepts letters, digits, and underscores; anything else stays literal. Values are stringified at replacement time.</p>
+					<p>Placeholders use single braces around a word: <code>&#123;name&#125;</code>, <code>&#123;count&#125;</code>. The matcher accepts letters, digits, and underscores; anything else stays literal. Values are stringified at replacement time.</p>
 					<p>Because interpolation is textual, word order lives in the template where translators can rearrange it. Never split a sentence across two <code>t</code> calls with concatenation in between.</p>
 					<ul>
-						<li><code>t("hello", {`{`} name: "Ada" {`}`})</code> fills one placeholder.</li>
-						<li><code>t("save", {`{`} count: 3 {`}`})</code> fills a numeric placeholder.</li>
+						<li><code>t("hello", &#123; name: "Ada" &#125;)</code> fills one placeholder.</li>
+						<li><code>t("save", &#123; count: 3 &#125;)</code> fills a numeric placeholder.</li>
 						<li>Missing entries leave the placeholder text in place, which surfaces mistakes visibly.</li>
 						<li>Extra entries are ignored, so one vars object can serve several keys.</li>
 						<li>Format dates and currency before passing them; only strings and numbers are accepted.</li>
@@ -114,7 +114,7 @@ blueprint DocsI18n {
 						<span class="callout-icon" data-icon="info"></span>
 						<div class="callout-body">
 							<div class="callout-title">Compose, do not concatenate blindly</div>
-							<p>Because word order differs across languages, prefer full-sentence templates with interpolation (for example <code>t("inbox", {`{`} n {`}`}</code>) over gluing <code>plural</code> output onto a count. <code>plural</code> shines for short labels and for languages whose rules you handle explicitly.</p>
+							<p>Because word order differs across languages, prefer full-sentence templates with interpolation (for example <code>t("inbox", &#123; n &#125;</code>) over gluing <code>plural</code> output onto a count. <code>plural</code> shines for short labels and for languages whose rules you handle explicitly.</p>
 						</div>
 					</div>
 
@@ -136,9 +136,9 @@ blueprint DocsI18n {
 						<table class="docs-table">
 							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>Messages</td><td>{`{`} [key: string]: string | Messages {`}`}</td><td>Nested message table for one locale.</td></tr>
-								<tr><td>I18nOptions</td><td>{`{`} locale, fallbackLocale?, messages {`}`}</td><td>The createI18n argument.</td></tr>
-								<tr><td>I18n</td><td>{`{`} locale, setLocale, t, has, availableLocales {`}`}</td><td>The translator object createI18n returns.</td></tr>
+								<tr><td>Messages</td><td>&#123; [key: string]: string | Messages &#125;</td><td>Nested message table for one locale.</td></tr>
+								<tr><td>I18nOptions</td><td>&#123; locale, fallbackLocale?, messages &#125;</td><td>The createI18n argument.</td></tr>
+								<tr><td>I18n</td><td>&#123; locale, setLocale, t, has, availableLocales &#125;</td><td>The translator object createI18n returns.</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -168,7 +168,7 @@ blueprint DocsI18n {
 						</div>
 					</div>
 					<ul>
-						<li>Interpolation only replaces <code>{`{`}word{`}`}</code> shapes matched by <code>{`{`}\w+{`}`}</code>. Dotted or dashed placeholder names are left as written.</li>
+						<li>Interpolation only replaces <code>&#123;word&#125;</code> shapes matched by <code>&#123;\w+&#125;</code>. Dotted or dashed placeholder names are left as written.</li>
 						<li>Vars values are limited to strings and numbers. Format dates and other objects before passing them in.</li>
 						<li><code>has</code> ignores the fallback locale. A key present only in the fallback reports false for the active locale.</li>
 						<li><code>setLocale</code> accepts any string, including codes with no table. Reads then fall back per key rather than throwing.</li>

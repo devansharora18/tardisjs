@@ -71,7 +71,7 @@ blueprint DocsStore {
 						</div>
 						<div class="step-row">
 							<h3>Notify on success</h3>
-							<p>When the action returns, every subscriber receives <code>{`{`} type: name, payload: args {`}`}</code>. A throwing action skips this phase entirely.</p>
+							<p>When the action returns, every subscriber receives <code>&#123; type: name, payload: args &#125;</code>. A throwing action skips this phase entirely.</p>
 						</div>
 						<div class="step-row">
 							<h3>Persist on success</h3>
@@ -92,7 +92,7 @@ blueprint DocsStore {
 							</tbody>
 						</table>
 					</div>
-					<p>Notification and persistence happen once per successful <code>call</code>, not once per <code>ctx.set</code>. An action that sets three keys still produces exactly one mutation of shape <code>{`{`} type: name, payload: args {`}`}</code>. If the action throws, the error propagates to the caller with no notification and no persistence write.</p>
+					<p>Notification and persistence happen once per successful <code>call</code>, not once per <code>ctx.set</code>. An action that sets three keys still produces exactly one mutation of shape <code>&#123; type: name, payload: args &#125;</code>. If the action throws, the error propagates to the caller with no notification and no persistence write.</p>
 					<div class="codeblock" data-code="subscribe" data-lang="tardis"></div>
 					<p>Subscribers are isolated from each other: a listener that throws cannot prevent the remaining listeners from running. Unsubscribe by calling the function <code>subscribe</code> returned.</p>
 
@@ -109,7 +109,7 @@ blueprint DocsStore {
 							<thead><tr><th>Option</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
 								<tr><td>key</td><td>key: string</td><td>Storage key. Required when persist is used.</td></tr>
-								<tr><td>storage</td><td>storage?: {`{`} getItem, setItem {`}`}</td><td>Custom storage. Defaults to global localStorage when available.</td></tr>
+								<tr><td>storage</td><td>storage?: &#123; getItem, setItem &#125;</td><td>Custom storage. Defaults to global localStorage when available.</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -135,10 +135,10 @@ blueprint DocsStore {
 							<tbody>
 								<tr><td>Getter&lt;S&gt;</td><td>(state: S) =&gt; unknown</td><td>A named derivation over live state.</td></tr>
 								<tr><td>Action&lt;S&gt;</td><td>(ctx: ActionContext&lt;S&gt;, ...args: unknown[]) =&gt; unknown</td><td>A named mutation with context plus call arguments.</td></tr>
-								<tr><td>ActionContext&lt;S&gt;</td><td>{`{`} state, get, set, reset {`}`}</td><td>What an action receives: live state and the four helpers above.</td></tr>
-								<tr><td>Mutation</td><td>{`{`} type: string, payload: unknown[] {`}`}</td><td>What subscribers receive: the action name (or reset) plus the call arguments.</td></tr>
-								<tr><td>Store&lt;S&gt;</td><td>{`{`} state, get, call, subscribe, reset {`}`}</td><td>The object createStore returns.</td></tr>
-								<tr><td>StoreOptions&lt;S&gt;</td><td>{`{`} state, getters?, actions?, persist? {`}`}</td><td>The createStore argument.</td></tr>
+								<tr><td>ActionContext&lt;S&gt;</td><td>&#123; state, get, set, reset &#125;</td><td>What an action receives: live state and the four helpers above.</td></tr>
+								<tr><td>Mutation</td><td>&#123; type: string, payload: unknown[] &#125;</td><td>What subscribers receive: the action name (or reset) plus the call arguments.</td></tr>
+								<tr><td>Store&lt;S&gt;</td><td>&#123; state, get, call, subscribe, reset &#125;</td><td>The object createStore returns.</td></tr>
+								<tr><td>StoreOptions&lt;S&gt;</td><td>&#123; state, getters?, actions?, persist? &#125;</td><td>The createStore argument.</td></tr>
 							</tbody>
 						</table>
 					</div>

@@ -201,7 +201,7 @@ blueprint DocsComposition {
 		const SN = {
 			imports: 'import Card from "./Card.tardis"\nimport Modal from "../shared/Modal.tardis"\n\nblueprint Shop {\n  ui {\n    <Card title="Sale" />\n  }\n}',
 			usage: 'blueprint Shop {\n  ui {\n    <Card title="Sale" count={state.items.length} onAdd={addItem}>\n      <p>Everything must go.</p>\n    </Card>\n  }\n}',
-			named-slots: 'blueprint Shop {\n  ui {\n    <Card title="Sale">\n      <p>Default body copy.</p>\n      <div slot="footer">Ships tomorrow.</div>\n    </Card>\n  }\n}',
+			"named-slots": 'blueprint Shop {\n  ui {\n    <Card title="Sale">\n      <p>Default body copy.</p>\n      <div slot="footer">Ships tomorrow.</div>\n    </Card>\n  }\n}',
 			outlets: 'blueprint Card {\n  ui {\n    <article>\n      <h2>{props.title}</h2>\n      <slot />\n      <slot name="footer">No footer yet.</slot>\n    </article>\n  }\n}',
 			spread: 'blueprint Shop {\n  ui {\n    <Card title="Sale" {...state.cardAttrs} />\n  }\n}',
 			fallback: "import { $runtime } from \"tardisjs/runtime\"\n\nconst node = $runtime.component(\"LegacyBadge\", { label: \"beta\" })\n// Registered: calls the factory with owner tracking.\n// Missing: renders a div with data-component and data-props."

@@ -197,11 +197,11 @@ blueprint DocsTransition {
 	}
 	script {
 		const SN = {
-			el-fake: "import { fade } from \"tardisjs/runtime\"\n\nconst seen = []\nconst fake = {\n  classList: {\n    add: (...c) => seen.push([\"add\", ...c]),\n    remove: (...c) => seen.push([\"remove\", ...c])\n  },\n  style: {}\n}\nfade(fake, true, 150)\nconsole.log(fake.style, seen)",
+			"el-fake": "import { fade } from \"tardisjs/runtime\"\n\nconst seen = []\nconst fake = {\n  classList: {\n    add: (...c) => seen.push([\"add\", ...c]),\n    remove: (...c) => seen.push([\"remove\", ...c])\n  },\n  style: {}\n}\nfade(fake, true, 150)\nconsole.log(fake.style, seen)",
 			fade: "import { fade } from \"tardisjs/runtime\"\n\nmethods {\n  toggleToast: () => {\n    state.open = !state.open\n    fade(toastEl, state.open, 200)\n  }\n}\n// Showing sets display empty and opacity 1; hiding sets opacity 0 and display none.",
 			slide: "import { slide } from \"tardisjs/runtime\"\n\nmethods {\n  toggleSection: () => {\n    state.expanded = !state.expanded\n    slide(panelEl, state.expanded, 250)\n  }\n}",
 			css: "import { cssTransition } from \"tardisjs/runtime\"\n\nmethods {\n  toggleDrawer: () => {\n    state.open = !state.open\n    cssTransition(drawerEl, \"drawer\", state.open, 300)\n  }\n}\n// Show: remove drawer-hidden, add drawer-visible. Hide: the reverse.",
-			css-sheet: ".drawer { transition-property: transform, opacity; transition-duration: 300ms }\n.drawer-hidden { transform: translateX(-100%); opacity: 0 }\n.drawer-visible { transform: translateX(0); opacity: 1 }",
+			"css-sheet": ".drawer { transition-property: transform, opacity; transition-duration: 300ms }\n.drawer-hidden { transform: translateX(-100%); opacity: 0 }\n.drawer-visible { transform: translateX(0); opacity: 1 }",
 			reduced: "import { fade, prefersReducedMotion } from \"tardisjs/runtime\"\n\nmethods {\n  reveal: () => {\n    state.open = true\n    if (prefersReducedMotion()) {\n      panelEl.style.display = \"\"\n    } else {\n      fade(panelEl, true, 200)\n    }\n  }\n}"
 		}
 		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)

@@ -140,7 +140,7 @@ blueprint DocsA11y {
 						<table class="docs-table">
 							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>A11yEl</td><td>{`{`} setAttribute, removeAttribute, getAttribute, addEventListener, ... {`}`}</td><td>The minimal element interface every helper accepts.</td></tr>
+								<tr><td>A11yEl</td><td>&#123; setAttribute, removeAttribute, getAttribute, addEventListener, ... &#125;</td><td>The minimal element interface every helper accepts.</td></tr>
 							</tbody>
 						</table>
 					</div>

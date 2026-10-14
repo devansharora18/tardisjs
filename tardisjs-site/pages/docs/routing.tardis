@@ -206,7 +206,7 @@ blueprint DocsRouting {
 			match: "import { matchPath } from \"tardisjs/runtime\"\n\nconsole.log(matchPath(\"/blog/:id\", \"/blog/42\"))\nconsole.log(matchPath(\"/docs/:slug?\", \"/docs\"))\nconsole.log(matchPath(\"/files/*\", \"/files/a/b/c\"))",
 			redirects: "import { resolveRedirect } from \"tardisjs/runtime\"\n\nconst rules = [\n  { from: \"/blog/:id\", to: \"/posts/:id\" },\n  { from: \"/old/*\", to: \"/archive/*\" }\n]\nconsole.log(resolveRedirect(\"/blog/42\", rules))\nconsole.log(resolveRedirect(\"/old/2020/x\", rules))",
 			guards: "import { createGuards } from \"tardisjs/runtime\"\n\nconst guards = createGuards()\nconst remove = guards.addGuard(async (to, from) => {\n  if (to === \"/admin\" && !state.user) return \"/login\"\n  if (state.dirty) return false\n})\nconst outcome = await guards.runGuards(\"/admin\", \"/home\")\nremove()",
-			lazy-scroll: "import { lazyRoute, scrollToId } from \"tardisjs/runtime\"\n\nconst loadAdmin = lazyRoute(() => import(\"./Admin.js\"), { timeout: 5000 })\nmethods {\n  openAdmin: async () => {\n    const page = await loadAdmin()\n    mount.appendChild(page.render())\n  }\n  jumpToFaq: () => scrollToId(\"faq\")\n}"
+			"lazy-scroll": "import { lazyRoute, scrollToId } from \"tardisjs/runtime\"\n\nconst loadAdmin = lazyRoute(() => import(\"./Admin.js\"), { timeout: 5000 })\nmethods {\n  openAdmin: async () => {\n    const page = await loadAdmin()\n    mount.appendChild(page.render())\n  }\n  jumpToFaq: () => scrollToId(\"faq\")\n}"
 		}
 		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
 		run()

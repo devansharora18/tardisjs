@@ -51,9 +51,9 @@ blueprint DocsDevtools {
 						<table class="docs-table">
 							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>connectDevtools</td><td>connectDevtools({`{`} maxEvents? {`}`})</td><td>Start a session and return a handle. Resets the buffer and subscribers.</td></tr>
+								<tr><td>connectDevtools</td><td>connectDevtools(&#123; maxEvents? &#125;)</td><td>Start a session and return a handle. Resets the buffer and subscribers.</td></tr>
 								<tr><td>disconnect</td><td>handle.disconnect(): void</td><td>End the session; clears the buffer and all subscribers.</td></tr>
-								<tr><td>getHook</td><td>getHook(): {`{`} connected: boolean {`}`}</td><td>Cheap session-state check without holding a handle.</td></tr>
+								<tr><td>getHook</td><td>getHook(): &#123; connected: boolean &#125;</td><td>Cheap session-state check without holding a handle.</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -121,7 +121,7 @@ blueprint DocsDevtools {
 					<p>Size the cap to the investigation. A leak hunt spanning minutes of interaction wants thousands of entries; a focused mount assertion wants a cap of ten and fails loudly if anything unexpected records.</p>
 
 					<h2 id="tree">Component tree</h2>
-					<p><code>handle.tree()</code> returns a flat list of <code>{`{`} name, id, children {`}`}</code> nodes. The registry stores no parent links, so every instance is reported as a root and <code>children</code> is always empty. Only blueprint names seen in a <code>mount</code> event are enumerated: the hook remembers mount labels because the registry itself exposes no name listing. Instances registered under a name that was never recorded as mounted do not appear.</p>
+					<p><code>handle.tree()</code> returns a flat list of <code>&#123; name, id, children &#125;</code> nodes. The registry stores no parent links, so every instance is reported as a root and <code>children</code> is always empty. Only blueprint names seen in a <code>mount</code> event are enumerated: the hook remembers mount labels because the registry itself exposes no name listing. Instances registered under a name that was never recorded as mounted do not appear.</p>
 					<p>The tree is a snapshot built from live registry reads at call time, so it reflects mounts and unregisters that happened since the last call. Re-call it after the action under observation rather than caching it. Reads never mutate the registry; the integration is strictly read-only through <code>getAll</code>.</p>
 					<p>Names in the tree are mount labels, so identical blueprints mounted twice appear as siblings with distinct ids. That makes the tree a natural leak detector: repeated navigation that grows the list without bound is retaining instances.</p>
 					<div class="codeblock" data-code="tree" data-lang="tardis"></div>
@@ -142,9 +142,9 @@ blueprint DocsDevtools {
 							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
 								<tr><td>DevEventKind</td><td>mount | destroy | update | route | state | error</td><td>The six recordable event kinds.</td></tr>
-								<tr><td>DevEvent</td><td>{`{`} seq, at, kind, label, detail? {`}`}</td><td>One log entry.</td></tr>
-								<tr><td>TreeNode</td><td>{`{`} name, id, children {`}`}</td><td>One flat tree entry; children is always empty.</td></tr>
-								<tr><td>DevtoolsHandle</td><td>{`{`} events, clear, tree, subscribe, disconnect {`}`}</td><td>The session object <code>connectDevtools</code> returns.</td></tr>
+								<tr><td>DevEvent</td><td>&#123; seq, at, kind, label, detail? &#125;</td><td>One log entry.</td></tr>
+								<tr><td>TreeNode</td><td>&#123; name, id, children &#125;</td><td>One flat tree entry; children is always empty.</td></tr>
+								<tr><td>DevtoolsHandle</td><td>&#123; events, clear, tree, subscribe, disconnect &#125;</td><td>The session object <code>connectDevtools</code> returns.</td></tr>
 							</tbody>
 						</table>
 					</div>

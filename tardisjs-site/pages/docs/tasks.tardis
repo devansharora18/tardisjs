@@ -72,7 +72,7 @@ blueprint DocsTasks {
 						<table class="docs-table">
 							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
-								<tr><td>useTask</td><td>useTask({`{`} run, onDone?, onError? {`}`})</td><td>Create a task. <code>run</code> is the async worker; the callbacks are optional.</td></tr>
+								<tr><td>useTask</td><td>useTask(&#123; run, onDone?, onError? &#125;)</td><td>Create a task. <code>run</code> is the async worker; the callbacks are optional.</td></tr>
 								<tr><td>task.run</td><td>run(...args: A): Promise&lt;T | null&gt;</td><td>Invoke the worker; resolves to the result, or <code>null</code> when stale or failed.</td></tr>
 								<tr><td>task.cancel</td><td>cancel(): void</td><td>Invalidate the in-flight run; pending returns to <code>idle</code>.</td></tr>
 								<tr><td>task.reset</td><td>reset(): void</td><td>Invalidate any run and restore idle / null / null.</td></tr>
@@ -100,8 +100,8 @@ blueprint DocsTasks {
 							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
 								<tr><td>TaskStatus</td><td>idle | pending | done | error</td><td>The four states a task can be in.</td></tr>
-								<tr><td>TaskOptions&lt;T, A&gt;</td><td>{`{`} run, onDone?, onError? {`}`}</td><td>The <code>useTask</code> argument: worker plus optional callbacks.</td></tr>
-								<tr><td>Task&lt;T, A&gt;</td><td>{`{`} status, data, error, run, cancel, reset {`}`}</td><td>The object <code>useTask</code> returns.</td></tr>
+								<tr><td>TaskOptions&lt;T, A&gt;</td><td>&#123; run, onDone?, onError? &#125;</td><td>The <code>useTask</code> argument: worker plus optional callbacks.</td></tr>
+								<tr><td>Task&lt;T, A&gt;</td><td>&#123; status, data, error, run, cancel, reset &#125;</td><td>The object <code>useTask</code> returns.</td></tr>
 							</tbody>
 						</table>
 					</div>

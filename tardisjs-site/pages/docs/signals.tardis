@@ -88,7 +88,7 @@ blueprint DocsSignals {
 							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
 							<tbody>
 								<tr><td>effect</td><td>effect(fn: () =&gt; void | (() =&gt; void)): () =&gt; void</td><td>Run fn immediately, re-run on dependency change. A returned function is the cleanup.</td></tr>
-								<tr><td>watch</td><td>watch&lt;T&gt;(source: () =&gt; T, cb: (next: T, prev: T) =&gt; void, opts?: {`{`} immediate?: boolean {`}`}) : () =&gt; void</td><td>Call cb with next and prev values when source output changes.</td></tr>
+								<tr><td>watch</td><td>watch&lt;T&gt;(source: () =&gt; T, cb: (next: T, prev: T) =&gt; void, opts?: &#123; immediate?: boolean &#125;) : () =&gt; void</td><td>Call cb with next and prev values when source output changes.</td></tr>
 								<tr><td>watchEffect</td><td>watchEffect(fn: () =&gt; void | (() =&gt; void)): () =&gt; void</td><td>Alias for effect.</td></tr>
 								<tr><td>stop</td><td>stop(handle: () =&gt; void): void</td><td>Stop an effect or watcher via the handle it returned.</td></tr>
 								<tr><td>batch</td><td>batch(fn: () =&gt; void): void</td><td>Coalesce writes so downstream effects run once after fn returns. Batches nest.</td></tr>
@@ -109,7 +109,7 @@ blueprint DocsSignals {
 					<div class="codeblock" data-code="batching" data-lang="tardis"></div>
 					<p>Without <code>batch</code>, each <code>set</code> flushes synchronously. With <code>batch</code>, dirty computeds are still marked synchronously but effect runs are deferred until the outermost batch exits, so the effect above logs twice total: once on creation, once after the batch.</p>
 					<div class="codeblock" data-code="watching" data-lang="tardis"></div>
-					<p>The first watcher run only records the previous value, so the callback does not fire on creation. Pass <code>{`{`} immediate: true {`}`}</code> to invoke the callback once right away with next equal to prev. The callback itself always runs untracked, so reads inside it never create new subscriptions.</p>
+					<p>The first watcher run only records the previous value, so the callback does not fire on creation. Pass <code>&#123; immediate: true &#125;</code> to invoke the callback once right away with next equal to prev. The callback itself always runs untracked, so reads inside it never create new subscriptions.</p>
 
 					<h2 id="untracked">Reading without subscribing</h2>
 					<p>Three tools read without creating a dependency: <code>peek</code> on a single signal, <code>untrack</code> around any block of reads, and <code>subscribe</code> callbacks, which always run untracked. Use them when a value is needed for a decision but must not re-trigger the observer.</p>

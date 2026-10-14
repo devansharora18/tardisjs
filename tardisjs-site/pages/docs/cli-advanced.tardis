@@ -110,7 +110,7 @@ blueprint DocsCliAdvanced {
 							</tbody>
 						</table>
 					</div>
-					<p>Programmatic use goes through <code>checkProject(cwd?)</code>, which prints the same lines and returns <code>{`{`} diagnostics, ok {`}`}</code>, where each diagnostic carries <code>file</code>, <code>line</code>, <code>col</code>, <code>code</code>, <code>message</code>, and an optional <code>hint</code>. Like <code>doctorProject</code>, it never exits the process; the CLI wrapper applies the exit code.</p>
+					<p>Programmatic use goes through <code>checkProject(cwd?)</code>, which prints the same lines and returns <code>&#123; diagnostics, ok &#125;</code>, where each diagnostic carries <code>file</code>, <code>line</code>, <code>col</code>, <code>code</code>, <code>message</code>, and an optional <code>hint</code>. Like <code>doctorProject</code>, it never exits the process; the CLI wrapper applies the exit code.</p>
 
 					<h2 id="exit">Exit codes and errors</h2>
 					<p>Both commands follow the same failure contract: success is silent apart from the requested output, and failure throws before producing partial results. A missing input file raises a file-not-found error naming the resolved path. A malformed blueprint raises the parser <code>TardisError</code> with its location, identical to what <code>build</code> would report for the same file.</p>
@@ -164,7 +164,7 @@ blueprint DocsCliAdvanced {
 					</div>
 
 					<h2 id="doctor-api">Using doctor programmatically</h2>
-					<p>Programmatic use goes through <code>doctorProject(cwd?)</code>, which prints the same lines and returns <code>{`{`} checks, ok {`}`}</code>, where each check is <code>{`{`} name, pass, detail? {`}`}</code>. Unlike the CLI command, the function never exits the process; it reports <code>ok: false</code> and lets the caller decide what to do.</p>
+					<p>Programmatic use goes through <code>doctorProject(cwd?)</code>, which prints the same lines and returns <code>&#123; checks, ok &#125;</code>, where each check is <code>&#123; name, pass, detail? &#125;</code>. Unlike the CLI command, the function never exits the process; it reports <code>ok: false</code> and lets the caller decide what to do.</p>
 					<div class="docs-table-wrap">
 						<table class="docs-table">
 							<thead><tr><th>Member</th><th>Description</th></tr></thead>
