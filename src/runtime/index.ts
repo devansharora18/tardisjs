@@ -19,6 +19,45 @@ export { createRouter, $navigate, $back, $forward, $params } from './router'
 
 export { registerEvents, flushMountCallbacks, flushDestroyCallbacks, flushUpdateCallbacks, clearEvents } from './events'
 
+// ── signals ────────────────────────────────────────────────────────────────
+// fine-grained reactive primitives (signal/computed/effect/watch)
+
+export { signal, computed, effect, stop, batch, untrack, watch, watchEffect, isSignal, toSignal } from './signals'
+
+// ── keyed reconciliation, fragments, SVG, refs ─────────────────────────────
+
+export { keyed, fragment, svg, createRef, setRef, moveChild } from './reconcile'
+
+// ── component model: options, props, slots, DI, lazy, boundaries ───────────
+
+export { defineComponent, normalizeProps, validateProps, pushOwner, popOwner, provide, inject, renderSlot, lazyComponent, withErrorBoundary } from './components'
+export type { PropDef, ComponentOptions, SetupContext } from './components'
+
+// ── global store ────────────────────────────────────────────────────────────
+
+export { createStore } from './store'
+export type { Getter, Action, ActionContext, PersistOptions, StoreOptions, Mutation, Store } from './store'
+
+// ── routing utilities: query, matching, guards, lazy, scroll ───────────────
+
+export { parseQuery, stringifyQuery, joinPaths, matchPath, resolveRedirect, createGuards, lazyRoute, scrollToId } from './routing'
+export type { RedirectRule, GuardFn } from './routing'
+
+// ── forms: validators, useForm, two-way model binding ──────────────────────
+
+export { required, minLength, maxLength, pattern, email, isNumber, min, max, oneOf, custom, validateField, useForm, bindModel } from './forms'
+export type { Validator, FieldDef } from './forms'
+
+// ── i18n ────────────────────────────────────────────────────────────────────
+
+export { createI18n, plural } from './i18n'
+export type { Messages, I18nOptions, I18n } from './i18n'
+
+// ── transitions ─────────────────────────────────────────────────────────────
+
+export { fade, slide, cssTransition, prefersReducedMotion } from './transition'
+export type { El } from './transition'
+
 // ── $runtime object ────────────────────────────────────────────────────────
 // the compiled output imports $runtime and calls methods on it
 // this is the single object the compiler references
@@ -31,6 +70,7 @@ import { register, unregister, getAll, getById } from './registry'
 import { registerEvents, flushMountCallbacks } from './events'
 import { $ } from './selector'
 import { $navigate, $back, $forward, $params } from './router'
+import { pushOwner, popOwner } from './components'
 
 export const $runtime = {
   // selector
@@ -102,7 +142,15 @@ export const $runtime = {
     const factory = globalRegistry[`__tardis_${name}`] as
       | ((props: Record<string, unknown>) => HTMLElement)
       | undefined
-    if (factory) return factory(props)
+    if (factory) {
+      // owner tracking powers provide/inject across the factory boundary
+      pushOwner({ name, provides: new Map<unknown, unknown>() })
+      try {
+        return factory(props)
+      } finally {
+        popOwner()
+      }
+    }
     const el = document.createElement('div')
     el.setAttribute('data-component', name)
     el.setAttribute('data-props', JSON.stringify(props))

@@ -1,5 +1,19 @@
 import typescript from '@rollup/plugin-typescript'
 
+// each runtime module also ships standalone so apps can import only what
+// they use, e.g. `tardisjs/runtime/signals`. Shared deps (state, events)
+// are bundled into each entry to keep every subpath self-contained.
+const runtimeModules = [
+  'signals',
+  'reconcile',
+  'components',
+  'store',
+  'routing',
+  'forms',
+  'i18n',
+  'transition',
+]
+
 export default [
   // main package — compiler + CLI utilities
   {
@@ -19,5 +33,14 @@ export default [
       { file: 'dist/runtime/index.cjs', format: 'cjs', sourcemap: true },
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
-  }
+  },
+  // standalone runtime modules
+  ...runtimeModules.map((name) => ({
+    input: `src/runtime/${name}.ts`,
+    output: [
+      { file: `dist/runtime/${name}.mjs`, format: 'esm', sourcemap: true },
+      { file: `dist/runtime/${name}.cjs`, format: 'cjs', sourcemap: true },
+    ],
+    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+  })),
 ]

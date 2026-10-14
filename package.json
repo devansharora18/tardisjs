@@ -16,8 +16,49 @@
       "require": "./dist/index.cjs"
     },
     "./runtime": {
+      "types": "./dist/runtime/src/runtime/index.d.ts",
       "import": "./dist/runtime/index.mjs",
       "require": "./dist/runtime/index.cjs"
+    },
+    "./runtime/signals": {
+      "types": "./dist/runtime/src/runtime/signals.d.ts",
+      "import": "./dist/runtime/signals.mjs",
+      "require": "./dist/runtime/signals.cjs"
+    },
+    "./runtime/reconcile": {
+      "types": "./dist/runtime/src/runtime/reconcile.d.ts",
+      "import": "./dist/runtime/reconcile.mjs",
+      "require": "./dist/runtime/reconcile.cjs"
+    },
+    "./runtime/components": {
+      "types": "./dist/runtime/src/runtime/components.d.ts",
+      "import": "./dist/runtime/components.mjs",
+      "require": "./dist/runtime/components.cjs"
+    },
+    "./runtime/store": {
+      "types": "./dist/runtime/src/runtime/store.d.ts",
+      "import": "./dist/runtime/store.mjs",
+      "require": "./dist/runtime/store.cjs"
+    },
+    "./runtime/routing": {
+      "types": "./dist/runtime/src/runtime/routing.d.ts",
+      "import": "./dist/runtime/routing.mjs",
+      "require": "./dist/runtime/routing.cjs"
+    },
+    "./runtime/forms": {
+      "types": "./dist/runtime/src/runtime/forms.d.ts",
+      "import": "./dist/runtime/forms.mjs",
+      "require": "./dist/runtime/forms.cjs"
+    },
+    "./runtime/i18n": {
+      "types": "./dist/runtime/src/runtime/i18n.d.ts",
+      "import": "./dist/runtime/i18n.mjs",
+      "require": "./dist/runtime/i18n.cjs"
+    },
+    "./runtime/transition": {
+      "types": "./dist/runtime/src/runtime/transition.d.ts",
+      "import": "./dist/runtime/transition.mjs",
+      "require": "./dist/runtime/transition.cjs"
     }
   },
   "scripts": {

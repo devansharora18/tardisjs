@@ -42,12 +42,34 @@ Rules:
 - Component use: `<Button label={props.x} />` (capitalized = component).
 - Chain: `{<button>Go</button>}.click(methods.go)`
 
+## Composition (imports, children, slots, spread)
+
+- Explicit dependency: `import Button from "./components/Button.tardis"` at the top of the file (relative path, must end `.tardis`, Capitalized binding). Imported tags compile to direct calls — tree-shakeable, no registry.
+- Un-imported Capitalized tags fall back to the global component registry (`$runtime.component`).
+- Children: `<Card title="x"><p>body</p><span slot="footer">f</span></Card>` passes `children: { default: () => ..., footer: () => ... }`. Only static `slot="name"` attributes route; anything else lands in `default`.
+- Outlet: `<slot />` renders `children.default`; `<slot name="footer"><p>fallback</p></slot>` renders the named builder, the fallback, or a comment anchor.
+- Spread: `<Card title="x" {...state.extra} />` merges into props. Spread on plain DOM elements is ignored — components only.
+- In setup-style code (`defineComponent`), slot builders also arrive via `props.children`.
+
 ## Runtime
 
 - `$update(state.count, v)` / `$toggle(state.flag)` / `$reset(state, initial)` / `$batch(fn)`
 - `$navigate(path)` / `$params` / `$back()` / `$forward()`
 - `$fetch(url).done(fn).fail(fn).always(fn)`
 - `$(selector).hide().show().addClass("x").attr("k", "v")`
+- `$runtime.slot(slots, name, fallback?)` — compiler protocol for `<slot>`; prefer `<slot>` syntax over calling it directly.
+
+## Runtime modules (deep imports, tree-shakeable)
+
+- `tardisjs/runtime/signals` — `signal`, `computed`, `effect`, `batch`, `untrack`, `watch`, `watchEffect`, `isSignal`, `toSignal`
+- `tardisjs/runtime/reconcile` — `keyed` (keyed lists), `fragment`, `svg`, `createRef`/`setRef`, `moveChild`
+- `tardisjs/runtime/components` — `defineComponent`, `normalizeProps`/`validateProps`, `renderSlot`, `provide`/`inject` (owner-tracked), `lazyComponent`, `withErrorBoundary`
+- `tardisjs/runtime/store` — `createStore` with getters/actions/subscribe/reset/persist
+- `tardisjs/runtime/routing` — `parseQuery`/`stringifyQuery`, `matchPath` (`:param`, `:param?`, `*`), `resolveRedirect`, `createGuards`, `lazyRoute`, `scrollToId`
+- `tardisjs/runtime/forms` — validators (`required`, `email`, …), `validateField`, `useForm`, `bindModel`
+- `tardisjs/runtime/i18n` — `createI18n`, `plural`
+- `tardisjs/runtime/transition` — `fade`, `slide`, `cssTransition`, `prefersReducedMotion`
+- Everything above is also re-exported from `tardisjs/runtime`.
 
 ## Routing
 
