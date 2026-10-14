@@ -1,0 +1,204 @@
+blueprint DocsComponents {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Components" crumb="Reference" />
+
+					<p>The components module is the programmatic component model behind blueprint composition. It covers defining components, validating props, rendering slots, sharing data with provide and inject, loading components lazily, and isolating failures with error boundaries.</p>
+					<p>Most components are blueprints compiled to factory functions, composed with tags in <code>ui</code>. The functions on this page are the runtime those factories are built on.</p>
+					<p>They are public for cases the template syntax cannot express: dynamic factories, shared libraries, manual mounting, and tests that instantiate components directly.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>The central function is <code>defineComponent</code>. It takes an options object with a name, optional prop definitions, and a setup function, and returns a factory.</p>
+					<p>The factory accepts an optional props record and an optional slots record and returns the mounted element. The compiler passes slot builders inside props dot children when templates invoke the factory.</p>
+					<p>Setup runs once inside a reactive effect. Lifecycle callbacks registered through the context wire into the shared events module rather than driving re-renders.</p>
+					<p>Props flow through <code>normalizeProps</code> for defaults and required checks and <code>validateProps</code> for type and custom checks.</p>
+					<p>Slots render through <code>renderSlot</code> with an optional fallback. Ancestor data flows through <code>provide</code> and <code>inject</code> over an owner stack.</p>
+					<p>Lazy loading and error boundaries wrap factories and builders so heavy or risky subtrees stay isolated from the rest of the page.</p>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>defineComponent(options)</td><td>Define a component factory from name, props, and setup.</td></tr>
+								<tr><td>normalizeProps(defs, raw?)</td><td>Apply defaults and report missing required props.</td></tr>
+								<tr><td>validateProps(defs, values)</td><td>Check value types and custom validators.</td></tr>
+								<tr><td>pushOwner(ctx)</td><td>Push a component owner onto the DI stack.</td></tr>
+								<tr><td>popOwner()</td><td>Pop the current component owner off the DI stack.</td></tr>
+								<tr><td>provide(key, value)</td><td>Publish a value on the current owner. Throws with no owner.</td></tr>
+								<tr><td>inject(key, fallback?)</td><td>Read the nearest provided value, or the fallback.</td></tr>
+								<tr><td>renderSlot(slots, name, fallback?)</td><td>Render a named slot builder, the fallback, or a comment anchor.</td></tr>
+								<tr><td>lazyComponent(loader, loading?)</td><td>Defer a component import until render with a placeholder.</td></tr>
+								<tr><td>withErrorBoundary(fn, onError)</td><td>Run a builder and render the fallback element on throw.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="types">Types</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Shape</th></tr></thead>
+							<tbody>
+								<tr><td>PropDef</td><td>Optional type string, default unknown, required boolean, validate callback returning true or a message.</td></tr>
+								<tr><td>ComponentOptions</td><td>Required name string, optional props record, optional setup function.</td></tr>
+								<tr><td>SetupContext</td><td>Slots record plus provide, inject, onMount, onDestroy, and onUpdate.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Prop types are one of string, number, boolean, array, object, or function. Each maps to a runtime check with array and object handled precisely.</p>
+					<p>The setup function receives resolved props and the context and returns either an element or a render function that produces one.</p>
+					<p>A setup without a return is not useful: always return the element or a function producing it.</p>
+
+					<h2 id="context">Setup context</h2>
+					<p>The context object is the component API surface during setup. It carries everything setup needs without extra imports:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Field</th><th>Role</th></tr></thead>
+							<tbody>
+								<tr><td>slots</td><td>Resolved slot builders, preferring the explicit record over children.</td></tr>
+								<tr><td>provide</td><td>Publish a value on the component currently being set up.</td></tr>
+								<tr><td>inject</td><td>Read the nearest provided value from any enclosing owner.</td></tr>
+								<tr><td>onMount</td><td>Register a callback for component mount.</td></tr>
+								<tr><td>onDestroy</td><td>Register a callback for component teardown.</td></tr>
+								<tr><td>onUpdate</td><td>Register a listener invoked when setup dependencies change.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Callbacks registered on the context are collected during setup and wired into the events module after setup returns.</p>
+					<p>Reading reactive state during setup subscribes an internal dispatcher, which is what later invokes the onUpdate listeners.</p>
+
+					<h2 id="define">Defining a component</h2>
+					<p>Call <code>defineComponent</code> with a name and a setup function. The returned factory accepts an optional props record and an optional slots record.</p>
+					<p>The factory normalizes props, resolves slots, pushes an owner, runs setup inside an effect, wires lifecycle callbacks, and returns the element.</p>
+					<p>When setup returns a function instead of an element, the factory calls it to obtain the element. Both forms mount identically.</p>
+					<div class="codeblock" data-code="define-basic" data-lang="js"></div>
+					<p>Lifecycle callbacks registered in setup do not trigger re-renders by themselves. Mount and destroy fire through the shared events module.</p>
+					<p>The onUpdate semantics are listener-only: reactive reads during setup subscribe an internal dispatcher, and later state changes invoke your onUpdate listeners without rebuilding the component.</p>
+
+					<h2 id="props">Props validation</h2>
+					<p>Normalization and validation are separate steps with separate return shapes. <code>normalizeProps</code> returns values plus errors; <code>validateProps</code> returns errors only.</p>
+					<p><code>normalizeProps</code> copies the raw props, fills defaults for missing keys, and collects one missing-required error per absent key.</p>
+					<p><code>validateProps</code> then checks declared types and runs custom validators, skipping keys whose value is undefined.</p>
+					<div class="codeblock" data-code="props-check" data-lang="js"></div>
+					<p>Type checking is strict per kind: arrays must pass the array check, objects must be non-null and non-array, and functions must have function type.</p>
+					<p>A validator returns true when valid or a string message when invalid. A non-string failure still produces a generic invalid-prop message.</p>
+
+					<h2 id="flow">Defaults and required flow</h2>
+					<p>The pipeline order matters. Defaults apply first so explicitly required props with defaults never report missing when omitted:</p>
+					<ul>
+						<li><strong>Copy</strong> — raw props are spread into a fresh values record.</li>
+						<li><strong>Defaults</strong> — undefined keys with declared defaults receive them.</li>
+						<li><strong>Required</strong> — keys still undefined and marked required produce errors.</li>
+						<li><strong>Types</strong> — defined values are checked against their declared kind.</li>
+						<li><strong>Custom</strong> — validators run last and append their messages.</li>
+					</ul>
+					<p>The factory itself applies normalization silently and passes resolved values into setup. Call the helpers directly when you want the error lists.</p>
+					<p>Compiled blueprints add their own layer: static defaults in props blocks and single-unwrap of function props happen at compile time.</p>
+
+					<h2 id="slots">Slots</h2>
+					<p><code>renderSlot</code> looks up the named builder in the slots record. When the builder exists it is called and its element returned.</p>
+					<p>When the builder is missing, the optional fallback builder runs. When neither exists, a comment anchor shaped like slot colon name is returned so layout stays stable.</p>
+					<p>When a factory is invoked with both an explicit slots record and children builders, the explicit record wins. An empty explicit record falls back to children.</p>
+					<div class="codeblock" data-code="slots" data-lang="js"></div>
+					<p>This fallback chain is how compiled templates keep working when called directly: template children arrive as builders and render without extra wiring.</p>
+					<p>Slot builders are plain functions returning elements, so they compose with fragments, keyed lists, and conditional branches.</p>
+
+					<h2 id="di">Provide and inject</h2>
+					<p>Provide and inject share data across component boundaries without threading props. Each component pushes an owner with its own provides map while setup runs.</p>
+					<p>Provide always targets the currently setting-up component. Inject walks outward from the current owner to the nearest ancestor holding the key.</p>
+					<p>Keys can be strings, symbols, or any value usable as a map key. Symbols are preferred for shared library keys because they cannot collide with ad-hoc string keys.</p>
+					<div class="codeblock" data-code="di" data-lang="js"></div>
+					<p>When no ancestor provides the key, inject returns the fallback, or undefined when no fallback was given.</p>
+					<p>Owners are strictly stacked: setup pushes before running and pops in a finally block, so early throws cannot leak an owner.</p>
+
+					<h2 id="owners">The owner stack</h2>
+					<p>The stack is the whole dependency-injection mechanism. There is no global container and no string registry to configure.</p>
+					<p>Push and pop are public so hand-written factories and the registry path can bracket factory calls exactly like the component factory does.</p>
+					<p>Mismatched push and pop calls corrupt injection for everything after them, so always pair them with try and finally.</p>
+					<ul>
+						<li><strong>pushOwner</strong> — takes a name and a provides map and appends it to the stack.</li>
+						<li><strong>popOwner</strong> — removes the top owner with no arguments.</li>
+						<li><strong>provide</strong> — writes to the top owner or throws when the stack is empty.</li>
+						<li><strong>inject</strong> — scans from the top down and returns the first hit.</li>
+					</ul>
+					<p>Compiled output and the global registry path both push owners across factory boundaries, so injection works identically for imported and legacy components.</p>
+
+					<h2 id="lazy">Lazy components</h2>
+					<p><code>lazyComponent</code> takes an async loader returning a component factory plus an optional loading placeholder builder.</p>
+					<p>It returns a synchronous factory that renders the placeholder immediately and swaps in the loaded component when the import resolves, as long as the placeholder is still connected.</p>
+					<p>The loader result receives the same props the lazy factory was called with, so lazy components are transparent to callers.</p>
+					<div class="codeblock" data-code="lazy" data-lang="js"></div>
+					<p>Load failures are reported through console error and leave the placeholder in place. There is no error builder parameter by design.</p>
+					<p>Pair lazy components with route-level splitting so each page pays only for what it renders.</p>
+
+					<h2 id="boundary">Error boundaries</h2>
+					<p><code>withErrorBoundary</code> runs a builder synchronously and returns its element. When the builder throws, the error passes to the handler and the handler element returns instead.</p>
+					<p>Boundaries catch render-time throws only, not async rejections or event-handler errors. Those need their own handling at the call site.</p>
+					<p>Place boundaries around risky subtrees such as user-provided widgets so one failing panel cannot take down the whole page.</p>
+					<div class="codeblock" data-code="boundary" data-lang="js"></div>
+					<p>Keep fallback elements simple and dependency-free. A fallback that throws leaves you with an uncaught error and no rendered output.</p>
+					<p>Nest boundaries when sections have different criticality: a chat panel can fail softly while the checkout form stays strict.</p>
+
+					<h2 id="patterns">Common patterns</h2>
+					<h3 id="pattern-card">Configurable cards</h3>
+					<p>Define prop types for title and variant, render named header and footer slots with fallbacks, and let callers fill either, both, or neither.</p>
+					<p>Validation errors surface through the helpers during development while production renders with defaults applied.</p>
+					<h3 id="pattern-theme">Theme providers</h3>
+					<p>Provide a theme object high in the tree and inject it in leaves. Leaves stay prop-free while the provider owns the value and its updates.</p>
+					<p>Prefer symbol keys shared from one module so providers and consumers cannot drift on spelling.</p>
+					<h3 id="pattern-split">Route splitting</h3>
+					<p>Wrap each heavy route panel in a lazy component with a skeleton placeholder. The shell renders instantly and panels swap in as their imports resolve.</p>
+					<p>Combine with error boundaries per panel so a failed chunk degrades to one placeholder instead of a blank page.</p>
+
+					<h2 id="testing">Testing</h2>
+					<p>Factories are plain functions, so tests call them with literal props and slot builders and assert on the returned element.</p>
+					<p>Drive provide and inject by wrapping the consumer factory call inside a provider setup, or by pushing an owner manually around the call.</p>
+					<p>Assert validation separately: normalization and validation are pure functions of their inputs with no DOM required.</p>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/composition">Composition</a> page covers the template side: imports, tags, children, and outlets.</p>
+					<p>The <a href="/docs/reconcile">Reconciliation</a> page covers keyed lists for stateful collections inside components.</p>
+					<p>The <a href="/docs/runtime">Runtime API</a> page covers the events module that lifecycle callbacks wire into.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>Setup runs once.</strong> Do not expect setup to re-run on prop changes; subscribe with onUpdate instead.</li>
+						<li><strong>onUpdate does not re-render.</strong> It invokes listeners only. Rebuild output manually when a listener needs fresh DOM.</li>
+						<li><strong>provide needs an owner.</strong> Calling provide outside setup throws, so publish values inside setup only.</li>
+						<li><strong>Explicit slots beat children.</strong> Passing both means children builders are ignored whenever the explicit record is non-empty.</li>
+						<li><strong>Validation skips undefined.</strong> Missing optional props produce no type errors; requiredness is enforced by normalizeProps instead.</li>
+						<li><strong>Defaults apply before required.</strong> A required prop with a default never reports missing when omitted.</li>
+						<li><strong>Validators return true or a string.</strong> Any other failure value still errors, but with a generic message.</li>
+						<li><strong>Boundaries are synchronous.</strong> Async loader failures and event-handler throws are not caught by withErrorBoundary.</li>
+						<li><strong>Keep fallbacks simple.</strong> A throwing fallback replaces one crash with another and renders nothing.</li>
+						<li><strong>Disconnected placeholders never swap.</strong> If a lazy placeholder leaves the DOM before load resolves, the component is dropped.</li>
+						<li><strong>Pair every push with a pop.</strong> A leaked owner misdirects every later provide and inject.</li>
+						<li><strong>Slots are functions, not elements.</strong> Call the builder to render; appending the function itself fails.</li>
+						<li><strong>Factories need names.</strong> The options name feeds diagnostics and owner tracking, so keep it accurate.</li>
+					</ul>
+
+					<DocsPager prev="/docs/reconcile" prevLabel="Reconciliation" next="/docs/routing" nextLabel="Routing utils" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			define-basic: "import { defineComponent } from \"tardisjs/runtime\"\n\nconst Badge = defineComponent({\n  name: \"Badge\",\n  setup: (props, ctx) => {\n    ctx.onMount(() => console.log(\"badge mounted\"))\n    const el = document.createElement(\"span\")\n    el.textContent = String(props.label ?? \"new\")\n    return el\n  }\n})\nlist.appendChild(Badge({ label: \"beta\" }))",
+			props-check: "import { normalizeProps, validateProps } from \"tardisjs/runtime\"\n\nconst defs = {\n  title: { type: \"string\", required: true },\n  count: { type: \"number\", default: 0 },\n  tag: { validate: (v) => v === \"a\" || \"expected tag a\" }\n}\nconst shaped = normalizeProps(defs, { title: \"Hello\" })\nconst errors = validateProps(defs, shaped.values)\nconsole.log(shaped.values, errors)",
+			slots: "import { renderSlot } from \"tardisjs/runtime\"\n\nconst body = renderSlot(slots, \"default\", () => {\n  const empty = document.createElement(\"p\")\n  empty.textContent = \"No content yet.\"\n  return empty\n})\ncard.appendChild(body)",
+			di: "import { defineComponent, provide, inject } from \"tardisjs/runtime\"\n\nconst ThemeKey = Symbol(\"theme\")\nconst Shell = defineComponent({\n  name: \"Shell\",\n  setup: (props, ctx) => {\n    provide(ThemeKey, \"dark\")\n    return ctx.slots.default ? ctx.slots.default() : document.createElement(\"div\")\n  }\n})\nconst Panel = defineComponent({\n  name: \"Panel\",\n  setup: () => {\n    const theme = inject(ThemeKey, \"light\")\n    const el = document.createElement(\"section\")\n    el.setAttribute(\"data-theme\", String(theme))\n    return el\n  }\n})",
+			lazy: "import { lazyComponent } from \"tardisjs/runtime\"\n\nconst Chart = lazyComponent(\n  () => import(\"./Chart.js\"),\n  () => {\n    const note = document.createElement(\"p\")\n    note.textContent = \"Loading chart...\"\n    return note\n  }\n)\nreport.appendChild(Chart({ rows: state.rows }))",
+			boundary: "import { withErrorBoundary } from \"tardisjs/runtime\"\n\nconst panel = withErrorBoundary(\n  () => renderWidget(state.widget),\n  (err) => {\n    const note = document.createElement(\"p\")\n    note.textContent = \"Widget failed to render.\"\n    return note\n  }\n)\npage.appendChild(panel)"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

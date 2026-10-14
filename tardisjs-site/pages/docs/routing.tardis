@@ -1,0 +1,214 @@
+blueprint DocsRouting {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Routing utils" crumb="Reference" />
+
+					<p>The routing module is the utility layer underneath file-based routing. It parses and builds query strings, matches paths with parameters, resolves redirect chains, runs navigation guards, defers route loading, and scrolls to anchors.</p>
+					<p>Every function is pure except scrollToId, which touches the document. Pure functions are importable in server code and unit tests without a browser.</p>
+					<p>File-based routing handles the common case with no configuration: pages map to paths and dynamic segments land on params. These utilities cover everything around that core.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>Reading filters from the query string, linking with rebuilt query strings, and joining base paths with dynamic segments are daily tasks. parseQuery, stringifyQuery, and joinPaths do exactly those three jobs.</p>
+					<p>Matching custom patterns, migrating old URLs with redirects, and gating navigation with guards handle the less frequent but higher-stakes routing work.</p>
+					<p>Splitting heavy routes with lazyRoute keeps initial loads small, and scrollToId jumps to sections after renders or from tables of contents.</p>
+					<p>Matching works on path segments. A literal segment matches itself and a colon segment captures one segment into a named parameter.</p>
+					<p>A trailing question mark makes a parameter optional, and a lone star captures the remaining path into the star key. Query strings and hash fragments are stripped before matching.</p>
+					<p>Decoding is defensive throughout. Malformed percent sequences keep their raw text instead of throwing, and repeated query keys collect into arrays.</p>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>parseQuery(search)</td><td>Parse a query string into a record of strings or string arrays.</td></tr>
+								<tr><td>stringifyQuery(params)</td><td>Build a query string from a record of scalars or arrays.</td></tr>
+								<tr><td>joinPaths(...parts)</td><td>Join path parts with exactly one leading slash preserved.</td></tr>
+								<tr><td>matchPath(route, path)</td><td>Match a pattern against a path and extract parameters.</td></tr>
+								<tr><td>resolveRedirect(path, rules)</td><td>Follow redirect rules up to ten hops and return the final path.</td></tr>
+								<tr><td>createGuards()</td><td>Create an isolated guard list with addGuard and runGuards.</td></tr>
+								<tr><td>lazyRoute(loader, opts?)</td><td>Cache an async route loader with an optional timeout in ms.</td></tr>
+								<tr><td>scrollToId(id)</td><td>Scroll the element with the id into view. Returns success.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="types">Types</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Shape</th></tr></thead>
+							<tbody>
+								<tr><td>RedirectRule</td><td>Record with a from pattern string and a to template string.</td></tr>
+								<tr><td>GuardFn</td><td>Function of to and from returning boolean, string, void, or a promise of those.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Guard results have fixed meaning: true or void allows navigation, false blocks it, and a string redirects to that path.</p>
+					<p>A throwing guard blocks navigation the same way false does, so unexpected errors fail closed rather than letting users through.</p>
+					<p>Redirect targets are templates, not literals: captured parameters substitute into them before the walk continues.</p>
+
+					<h2 id="query">Query strings</h2>
+					<p><code>parseQuery</code> accepts the search with or without a leading question mark. An empty input returns an empty record.</p>
+					<p>Keys without an equals sign map to an empty string. A key that appears several times collects every value into an array in order.</p>
+					<p>Both names and values are decoded defensively: malformed sequences keep their raw text instead of throwing.</p>
+					<div class="codeblock" data-code="query" data-lang="js"></div>
+					<p><code>stringifyQuery</code> is the inverse. Scalars encode as one pair and arrays repeat the key once per value.</p>
+					<p>An empty-string value renders as a bare key with no equals sign. Both names and values are percent-encoded.</p>
+					<p>An empty input record returns an empty string, so callers can concatenate unconditionally without producing a stray question mark.</p>
+
+					<h2 id="decoding">Decoding edge cases</h2>
+					<p>Real URLs contain mistakes: truncated percent escapes, plus signs, and duplicated keys from multi-select forms. The parser handles each without throwing.</p>
+					<ul>
+						<li><strong>Truncated escapes</strong> — malformed sequences keep their raw text.</li>
+						<li><strong>Bare keys</strong> — a pair with no equals sign maps to an empty string.</li>
+						<li><strong>Empty pairs</strong> — doubled ampersands and trailing separators are skipped.</li>
+						<li><strong>Repeats</strong> — the second value converts the entry to an array, later values append.</li>
+						<li><strong>Encoding</strong> — stringify encodes names and values on the way out.</li>
+					</ul>
+					<p>Round-trips are stable for well-formed input: stringify then parse returns the same scalars and arrays.</p>
+					<p>Treat parsed output as user input regardless. Validate filters and page numbers before trusting them.</p>
+
+					<h2 id="paths">Joining paths</h2>
+					<p><code>joinPaths</code> splits every part on slashes, drops empties, and rejoins with single slashes. Double slashes can never survive.</p>
+					<p>A leading slash on the first part is preserved; otherwise the result is relative. Joining nothing at all returns the root slash.</p>
+					<p>Prefer joinPaths when concatenating a base with dynamic segments so double and missing slashes cannot produce broken links.</p>
+					<div class="codeblock" data-code="join" data-lang="js"></div>
+					<p>The function is purely textual. It does not resolve dot segments or consult the router, so what you pass is what you get back.</p>
+					<p>Assemble navigation targets, asset paths, and API prefixes with the same helper for consistent output.</p>
+
+					<h2 id="match">Matching paths</h2>
+					<p><code>matchPath</code> returns a matched flag plus a params record. Named parameters use the colon form and capture exactly one segment each.</p>
+					<p>Optional parameters add a question mark and match whether the segment is present or not. Missing optionals simply stay out of the params record.</p>
+					<p>A star captures the rest of the path including slashes into the star key and always matches from its position.</p>
+					<div class="codeblock" data-code="match" data-lang="js"></div>
+					<p>When the path has more segments than the pattern, or a literal segment differs, the result is unmatched with an empty params record.</p>
+					<p>Patterns see the stripped path only: query strings and hashes never participate in matching, so read filters with parseQuery instead.</p>
+
+					<h2 id="patterns-segments">Segment reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Segment</th><th>Meaning</th></tr></thead>
+							<tbody>
+								<tr><td>posts</td><td>Literal. Matches only the identical segment.</td></tr>
+								<tr><td>:id</td><td>Required parameter. Captures one segment into params by name.</td></tr>
+								<tr><td>:slug?</td><td>Optional parameter. Captures when present, skipped when absent.</td></tr>
+								<tr><td>*</td><td>Wildcard. Captures the remaining segments joined with slashes.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Route patterns keep their question marks during splitting so optional markers survive; only hashes are stripped from the pattern side.</p>
+					<p>Path inputs strip both query and hash, which lets you match full href values without preprocessing them.</p>
+
+					<h2 id="redirects">Redirects</h2>
+					<p><code>resolveRedirect</code> walks a rule list against the current path. The first matching rule rewrites the path, then walking restarts from the new path.</p>
+					<p>Captured parameters substitute into the target template before continuing, so one rule migrates a whole family of URLs.</p>
+					<p>Chains stop after ten hops to bound redirect loops. A longer loop returns its mid-chain output, so keep redirect graphs acyclic.</p>
+					<div class="codeblock" data-code="redirects" data-lang="js"></div>
+					<p>Targets support the same placeholders as patterns: named parameters by colon name, optional forms included, and the remainder by star.</p>
+					<p>Missing parameters substitute as empty strings rather than throwing, which keeps partial migrations rendering instead of crashing.</p>
+
+					<h2 id="substitution">Substitution rules</h2>
+					<p>Substitution replaces every colon placeholder with the captured value for that name, then replaces every star with the captured remainder.</p>
+					<ul>
+						<li><strong>Named</strong> — colon plus name becomes the captured segment.</li>
+						<li><strong>Optional</strong> — colon plus name plus question mark behaves the same way.</li>
+						<li><strong>Wildcard</strong> — each star becomes the captured remainder.</li>
+						<li><strong>Missing</strong> — names with no capture become empty strings.</li>
+						<li><strong>First match</strong> — only the first matching rule fires per hop.</li>
+					</ul>
+					<p>Order rules from most specific to most general. Broad rules placed first shadow the narrow ones below them.</p>
+					<p>When no rule matches, the current path returns unchanged, which makes the function safe to call unconditionally.</p>
+
+					<h2 id="guards">Guards</h2>
+					<p><code>createGuards</code> returns an isolated guard list so routers and tests never share state. Each call creates a fresh list.</p>
+					<p><code>addGuard</code> appends a guard and returns a remover. Calling the remover unregisters exactly that guard.</p>
+					<p><code>runGuards</code> runs guards in order against the to and from paths and resolves to true, a redirect string, or false.</p>
+					<div class="codeblock" data-code="guards" data-lang="js"></div>
+					<p>Guards run sequentially and short-circuit: the first false or string decides the outcome and later guards never run.</p>
+					<p>Use the remover to unregister one-off guards such as unsaved-changes prompts when their scope ends.</p>
+
+					<h2 id="outcomes">Guard outcomes</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Result</th><th>Meaning</th></tr></thead>
+							<tbody>
+								<tr><td>true or void</td><td>Allow. Continue to the next guard or navigate.</td></tr>
+								<tr><td>false</td><td>Block. Navigation is cancelled and later guards are skipped.</td></tr>
+								<tr><td>string</td><td>Redirect. Navigate to the returned path instead.</td></tr>
+								<tr><td>throw</td><td>Block. A throwing guard denies navigation like false.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Guards may be async. Each result is awaited before the next guard runs, so ordering stays deterministic across sync and async mixes.</p>
+					<p>Order authentication before feature checks: a redirect to login should win over a feature denial.</p>
+
+					<h2 id="lazy">Lazy routes and scrolling</h2>
+					<p><code>lazyRoute</code> wraps an async loader so the import runs once and every caller shares the cached promise.</p>
+					<p>A failed load clears the cache so the next call retries instead of serving a permanently rejected promise.</p>
+					<p>The optional timeout in milliseconds races the loader and rejects with a route-load timed-out error when the loader is too slow.</p>
+					<div class="codeblock" data-code="lazy-scroll" data-lang="js"></div>
+					<p>Synchronous loader throws become rejections, so miswired imports surface through the same failure path as network errors.</p>
+					<p><code>scrollToId</code> looks up the element by id and calls its scrollIntoView. It returns false with no document or no matching element.</p>
+
+					<h2 id="timeouts">Timeouts and retries</h2>
+					<p>Timeouts exist for slow networks, not for cancelling work. A timed-out loader keeps running in the background while callers receive the error.</p>
+					<ul>
+						<li><strong>No timeout</strong> — callers wait as long as the loader takes.</li>
+						<li><strong>With timeout</strong> — callers reject after the given milliseconds.</li>
+						<li><strong>Failure</strong> — the cache clears and the next call starts a fresh load.</li>
+						<li><strong>Success</strong> — the resolved value is shared with every caller.</li>
+					</ul>
+					<p>Pick timeouts per route weight: shells deserve short ones, heavy admin panels can wait longer.</p>
+					<p>Combine lazy routes with placeholders at the call site so waiting never shows a blank region.</p>
+
+					<h2 id="scrolling">Scrolling details</h2>
+					<p>scrollToId performs a plain scrollIntoView with no options, which keeps behavior identical across call sites.</p>
+					<p>Call it after the target renders. Scrolling before mount finds no element and returns false without side effects.</p>
+					<p>Hash navigation in the file router uses the same primitive, so manual calls behave exactly like hash links.</p>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/router">Router</a> page covers file-based routing, link interception, and hash scrolling.</p>
+					<p>The <a href="/docs/runtime">Runtime API</a> page covers navigate, back, forward, and params for programmatic moves.</p>
+					<p>The <a href="/docs/components">Components</a> page covers lazyComponent for component-level splitting alongside route-level splitting.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>Optional syntax needs the question mark.</strong> A colon parameter without it requires the segment.</li>
+						<li><strong>Star swallows slashes.</strong> The star key holds the joined remainder, so put it last and validate it before use.</li>
+						<li><strong>Query and hash never match.</strong> Patterns see the stripped path only; read filters with parseQuery instead.</li>
+						<li><strong>First redirect rule wins.</strong> Order rules from most specific to most general or broad rules shadow narrow ones.</li>
+						<li><strong>Chains stop at ten hops.</strong> Keep redirect graphs acyclic; loops return mid-chain output.</li>
+						<li><strong>Guards short-circuit.</strong> Later guards do not run after a block or redirect, so order authentication first.</li>
+						<li><strong>Throwing blocks.</strong> A guard that throws denies navigation; handle expected failures explicitly instead.</li>
+						<li><strong>Lazy failures retry.</strong> The cache clears on rejection, so a flaky network re-attempts on the next navigation.</li>
+						<li><strong>Timeouts do not cancel.</strong> The loader keeps running after a timeout rejection; only the callers stop waiting.</li>
+						<li><strong>Missing params stringify empty.</strong> Redirect targets with uncaptured names render empty segments, not errors.</li>
+						<li><strong>joinPaths is textual.</strong> It never resolves dot segments, so clean those before joining.</li>
+						<li><strong>Scroll after mount.</strong> scrollToId before render finds nothing and returns false.</li>
+						<li><strong>Empty stringify is empty.</strong> An empty record yields no question mark, so concatenation stays clean.</li>
+					</ul>
+
+					<DocsPager prev="/docs/components" prevLabel="Components" next="/docs/transition" nextLabel="Transitions" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			query: "import { parseQuery, stringifyQuery } from \"tardisjs/runtime\"\n\nconst filters = parseQuery(\"?tag=a&tag=b&page=2\")\nconsole.log(filters)\nconst next = stringifyQuery({ tag: [\"a\", \"b\"], page: 3 })\n$navigate(\"/blog\" + next)",
+			join: "import { joinPaths } from \"tardisjs/runtime\"\n\nconst post = joinPaths(\"/blog\", state.slug)\nconst asset = joinPaths(\"/static\", \"img\", \"logo.png\")\nconsole.log(post, asset)",
+			match: "import { matchPath } from \"tardisjs/runtime\"\n\nconsole.log(matchPath(\"/blog/:id\", \"/blog/42\"))\nconsole.log(matchPath(\"/docs/:slug?\", \"/docs\"))\nconsole.log(matchPath(\"/files/*\", \"/files/a/b/c\"))",
+			redirects: "import { resolveRedirect } from \"tardisjs/runtime\"\n\nconst rules = [\n  { from: \"/blog/:id\", to: \"/posts/:id\" },\n  { from: \"/old/*\", to: \"/archive/*\" }\n]\nconsole.log(resolveRedirect(\"/blog/42\", rules))\nconsole.log(resolveRedirect(\"/old/2020/x\", rules))",
+			guards: "import { createGuards } from \"tardisjs/runtime\"\n\nconst guards = createGuards()\nconst remove = guards.addGuard(async (to, from) => {\n  if (to === \"/admin\" && !state.user) return \"/login\"\n  if (state.dirty) return false\n})\nconst outcome = await guards.runGuards(\"/admin\", \"/home\")\nremove()",
+			lazy-scroll: "import { lazyRoute, scrollToId } from \"tardisjs/runtime\"\n\nconst loadAdmin = lazyRoute(() => import(\"./Admin.js\"), { timeout: 5000 })\nmethods {\n  openAdmin: async () => {\n    const page = await loadAdmin()\n    mount.appendChild(page.render())\n  }\n  jumpToFaq: () => scrollToId(\"faq\")\n}"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

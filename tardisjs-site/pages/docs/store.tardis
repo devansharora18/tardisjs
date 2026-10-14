@@ -1,0 +1,205 @@
+blueprint DocsStore {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Store" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>A store is a shared, reactive state container built on the same primitives as blueprint state. Create one with <code>createStore</code>, read derived values through getters, change state through actions, and observe every change with subscribers. The live state is a reactive proxy, so bindings that read it re-run like any other state read.</p>
+					<p>Everything here is exported from <code>tardisjs/runtime</code>: the <code>createStore</code> factory plus the <code>Getter</code>, <code>Action</code>, <code>ActionContext</code>, <code>PersistOptions</code>, <code>StoreOptions</code>, <code>Mutation</code>, and <code>Store</code> types.</p>
+					<p>Import the factory from the runtime barrel. Types import from the same place:</p>
+					<div class="codeblock" data-code="imports" data-lang="js"></div>
+
+					<h2 id="when">When to use a store</h2>
+					<p>Blueprint state is local: it mounts and unmounts with the page. A store is for state with a wider audience or a longer life: the shopping cart read by the header badge and the checkout page, the session touched by login and logout flows, the preferences panel that must survive a reload.</p>
+					<p>Stores also centralize change discipline. Every mutation flows through a named action, every action notifies the same subscriber list, and persistence hooks into the same path, so logging, syncing, and storage stay consistent by construction.</p>
+					<ul>
+						<li>State read by two or more blueprints at once.</li>
+						<li>State that must survive navigation or page reloads.</li>
+						<li>Mutations worth naming, logging, or auditing.</li>
+						<li>Derived values shared across pages, such as totals and counts.</li>
+						<li>Session, settings, and feature-flag state owned by nobody in particular.</li>
+					</ul>
+
+					<h2 id="creating">Creating a store</h2>
+					<p>Pass the initial state plus optional getters, actions, and persistence. The options object is cloned on creation: the live state and the reset baseline never share references with the object you passed in, so later mutations of your input cannot corrupt the store.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Option</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>state</td><td>state: S</td><td>Initial state. Required. Cloned twice: once for live state, once as the reset baseline.</td></tr>
+								<tr><td>getters</td><td>getters?: Record&lt;string, Getter&lt;S&gt;&gt;</td><td>Named derivations over live state. Read via store.get.</td></tr>
+								<tr><td>actions</td><td>actions?: Record&lt;string, Action&lt;S&gt;&gt;</td><td>Named mutations receiving an action context. Invoked via store.call.</td></tr>
+								<tr><td>persist</td><td>persist?: PersistOptions</td><td>Opt-in persistence. Requires key; storage defaults to localStorage.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+					<p>Getters receive the live reactive state and are evaluated on each call with no caching, so reads inside a tracked context subscribe to the underlying keys. There is deliberately no separate computed cache: getters stay correct even when state changes between reads.</p>
+
+					<h2 id="api">Store API</h2>
+					<p>The object returned by <code>createStore</code> has exactly five members.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>state</td><td>state: S</td><td>The live reactive state proxy. Read it in bindings; do not replace it.</td></tr>
+								<tr><td>get</td><td>get(name: string): unknown</td><td>Evaluate the named getter. Throws Unknown getter/action for anything else.</td></tr>
+								<tr><td>call</td><td>call(name: string, ...args: unknown[]): unknown</td><td>Run the named action, then notify subscribers and persist. Throws for unknown names.</td></tr>
+								<tr><td>subscribe</td><td>subscribe(listener: (mutation: Mutation) =&gt; void): () =&gt; void</td><td>Observe every mutation. Returns an unsubscribe function.</td></tr>
+								<tr><td>reset</td><td>reset(): void</td><td>Restore every baseline key, notify with type reset, and persist.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="actions" data-lang="tardis"></div>
+					<p>Note the split: <code>get</code> resolves getters only and <code>call</code> resolves actions only. Calling <code>get</code> with an action name, or <code>call</code> with a getter name, throws the same <code>Unknown getter/action</code> error as a fully unknown name.</p>
+
+					<h2 id="lifecycle">The call lifecycle</h2>
+					<p>Every successful <code>call</code> runs four phases in order. Understanding the order explains when subscribers fire, when storage writes, and what a throwing action leaves behind.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Resolve and run</h3>
+							<p><code>call</code> looks up the action by name, throwing for unknown names, then invokes it with the context plus the call arguments.</p>
+						</div>
+						<div class="step-row">
+							<h3>Actions write state</h3>
+							<p>Inside the action, <code>ctx.set</code> merges patches key by key. These writes are visible immediately but notify nobody yet.</p>
+						</div>
+						<div class="step-row">
+							<h3>Notify on success</h3>
+							<p>When the action returns, every subscriber receives <code>{`{`} type: name, payload: args {`}`}</code>. A throwing action skips this phase entirely.</p>
+						</div>
+						<div class="step-row">
+							<h3>Persist on success</h3>
+							<p>Finally the live state is serialized to storage. Like notification, this step runs only when the action did not throw.</p>
+						</div>
+					</div>
+
+					<h2 id="context">Action context</h2>
+					<p>Every action receives a context object as its first argument, followed by whatever arguments were passed to <code>call</code>. The context is the only way an action should touch the store.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>ctx.state</td><td>state: S</td><td>Live state. Read it directly; write it via ctx.set.</td></tr>
+								<tr><td>ctx.get</td><td>get(name: string): unknown</td><td>Evaluate another getter from inside an action.</td></tr>
+								<tr><td>ctx.set</td><td>set(patch: Partial&lt;S&gt;): void</td><td>Merge a patch into state key by key. Does not notify on its own.</td></tr>
+								<tr><td>ctx.reset</td><td>reset(): void</td><td>Restore the baseline from inside an action.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Notification and persistence happen once per successful <code>call</code>, not once per <code>ctx.set</code>. An action that sets three keys still produces exactly one mutation of shape <code>{`{`} type: name, payload: args {`}`}</code>. If the action throws, the error propagates to the caller with no notification and no persistence write.</p>
+					<div class="codeblock" data-code="subscribe" data-lang="tardis"></div>
+					<p>Subscribers are isolated from each other: a listener that throws cannot prevent the remaining listeners from running. Unsubscribe by calling the function <code>subscribe</code> returned.</p>
+
+					<h2 id="reactivity">Reactivity</h2>
+					<p>Store state is a reactive proxy, so a binding that reads <code>cart.state.items.length</code> subscribes to the <code>items</code> key exactly as if it read blueprint state. Writes through <code>ctx.set</code> use the same notification path as <code>$update</code>, so markup stays in sync with no manual refresh.</p>
+					<p>Getters participate in this automatically. Because a getter body reads live state, evaluating it inside a tracked context registers the underlying keys. Move the getter call out of the tracked context and the subscription disappears with it.</p>
+					<p>Subscriber callbacks, by contrast, are plain listeners, not effects. Reading state inside a subscriber does not create a subscription; it is a one-shot observation of the mutation that just happened.</p>
+
+					<h2 id="persist">Persistence</h2>
+					<p>Persistence serializes the live state with <code>JSON.stringify</code> after every successful action and every reset. On creation, stored JSON is shallow-merged over the initial state so a returning visitor resumes where they left off.</p>
+					<p>Need somewhere other than localStorage? Pass any object with <code>getItem</code> and <code>setItem</code>: session storage, an in-memory map in tests, or a namespaced wrapper. The store never touches storage methods beyond those two, so adapters stay trivial.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Option</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>key</td><td>key: string</td><td>Storage key. Required when persist is used.</td></tr>
+								<tr><td>storage</td><td>storage?: {`{`} getItem, setItem {`}`}</td><td>Custom storage. Defaults to global localStorage when available.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="persist" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Fail-safe by design</div>
+							<p>Corrupt stored JSON is ignored, non-object payloads are skipped, and quota or serialization failures on write are swallowed. Persistence never throws: the worst case is starting from the initial state.</p>
+						</div>
+					</div>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A theme store combines every feature: a getter for the derived flag, an action for the toggle, persistence across reloads, and a subscriber syncing the document attribute outside the reactive system.</p>
+					<div class="codeblock" data-code="together" data-lang="tardis"></div>
+					<p>The subscriber bridges into the non-reactive world. Reactive markup reads <code>theme.state.mode</code> directly, while the DOM attribute for CSS hooks updates through the subscription, keeping both in sync from the single <code>toggle</code> action.</p>
+
+					<h2 id="types">Types</h2>
+					<p>Use these annotations for stores shared across modules.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>Getter&lt;S&gt;</td><td>(state: S) =&gt; unknown</td><td>A named derivation over live state.</td></tr>
+								<tr><td>Action&lt;S&gt;</td><td>(ctx: ActionContext&lt;S&gt;, ...args: unknown[]) =&gt; unknown</td><td>A named mutation with context plus call arguments.</td></tr>
+								<tr><td>ActionContext&lt;S&gt;</td><td>{`{`} state, get, set, reset {`}`}</td><td>What an action receives: live state and the four helpers above.</td></tr>
+								<tr><td>Mutation</td><td>{`{`} type: string, payload: unknown[] {`}`}</td><td>What subscribers receive: the action name (or reset) plus the call arguments.</td></tr>
+								<tr><td>Store&lt;S&gt;</td><td>{`{`} state, get, call, subscribe, reset {`}`}</td><td>The object createStore returns.</td></tr>
+								<tr><td>StoreOptions&lt;S&gt;</td><td>{`{`} state, getters?, actions?, persist? {`}`}</td><td>The createStore argument.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="testing">Testing</h2>
+					<p>Stores are plain objects with no DOM dependency, so unit tests create a store, call actions, and assert on state and getter output directly.</p>
+					<p>Record subscriber notifications in an array to assert the exact mutation sequence, and pass an in-memory storage object to exercise persistence without touching localStorage.</p>
+					<ul>
+						<li>Assert unknown getter and action names throw <code>Unknown getter/action</code>.</li>
+						<li>Assert a throwing action notifies nobody and writes no storage.</li>
+						<li>Seed corrupt JSON in the fake storage to cover the hydration fallback.</li>
+						<li>Call the unsubscribe function and assert later mutations stay unobserved.</li>
+					</ul>
+
+					<h2 id="typescript">TypeScript tips</h2>
+					<p>State type <code>S</code> is inferred from the <code>state</code> option, so annotate collections at creation: <code>items: [] as Array&lt;Item&gt;</code> rather than a bare <code>[]</code>, which would infer <code>never[]</code> and reject later writes.</p>
+					<p><code>get</code> and <code>call</code> return <code>unknown</code>, so narrow at the boundary with a cast or a type guard. Annotate shared stores with <code>Store&lt;State&gt;</code> and actions with <code>Action&lt;State&gt;</code> to keep cross-module imports honest.</p>
+					<ul>
+						<li>Export the state interface alongside the store instance.</li>
+						<li>Prefer narrow action arguments over open-ended payloads.</li>
+						<li>Keep getters total: they must handle every state the actions can produce.</li>
+					</ul>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Mutate through actions</div>
+							<p>Nothing stops you from writing <code>store.state.count = 5</code> directly, but direct writes skip subscribers and skip persistence. Always go through <code>call</code> so observers and storage stay consistent.</p>
+						</div>
+					</div>
+					<ul>
+						<li>Getters are uncached. Code that reads an expensive getter in a tight loop should memoize the result itself.</li>
+						<li>A throwing action leaves partial <code>ctx.set</code> writes in place but notifies nobody. Keep actions small or validate before writing.</li>
+						<li>Reset re-applies every baseline key. It does not delete keys that were added after creation.</li>
+						<li>Hydration is a shallow merge: nested objects from storage replace top-level keys wholesale rather than merging field by field.</li>
+						<li>State must survive <code>structuredClone</code> or a JSON round-trip at creation. Functions, class instances, and circular references in the initial state will not survive cloning.</li>
+						<li>Without a <code>persist</code> option there is no storage access at all, so server-side rendering without localStorage is safe.</li>
+						<li>Mutations deliver the live arguments array. Treat <code>payload</code> as read-only; mutating it corrupts nothing but confuses later listeners.</li>
+						<li><code>ctx.get</code> inside an action evaluates the getter immediately. It does not create a lasting subscription for the caller.</li>
+						<li>Two stores with the same persist key share one storage slot. Namespace keys per store to avoid cross-talk.</li>
+						<li>Cloning at creation means class instances and functions in the initial state do not survive. Keep initial state plain data.</li>
+					</ul>
+
+					<DocsPager prev="/docs/signals" prevLabel="Signals" next="/docs/forms" nextLabel="Forms" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			imports: 'import { createStore } from "tardisjs/runtime"\nimport type { Store, Action, Getter } from "tardisjs/runtime"',
+			basic: 'blueprint CartPage {\n  script {\n    import { createStore } from "tardisjs/runtime"\n    const cart = createStore({\n      state: {\n        items: [] as Array<{ name: string, price: number }>,\n        discount: 0\n      },\n      getters: {\n        count: (s) => s.items.length,\n        total: (s) => s.items.reduce((n, i) => n + i.price, 0) - s.discount\n      },\n      actions: {\n        add: (ctx, item) => ctx.set({ items: [...ctx.state.items, item] })\n      }\n    })\n  }\n  methods {\n    addItem: (item) => cart.call("add", item)\n    checkout: () => console.log(cart.get("total"))\n  }\n  ui {\n    <p>Cart page</p>\n  }\n}',
+			actions: 'blueprint Checkout {\n  script {\n    import { createStore } from "tardisjs/runtime"\n    const order = createStore({\n      state: { coupon: "", pct: 0 },\n      getters: {\n        label: (s) => s.coupon === "" ? "no coupon" : s.coupon\n      },\n      actions: {\n        apply: (ctx, code) => {\n          ctx.set({ coupon: code as string, pct: 10 })\n          return ctx.get("label")\n        },\n        clear: (ctx) => ctx.reset()\n      }\n    })\n  }\n  methods {\n    applyCoupon: (code) => order.call("apply", code)\n    clearCoupon: () => order.call("clear")\n  }\n  ui {\n    <p>Coupon applied</p>\n  }\n}',
+			subscribe: 'blueprint Audit {\n  script {\n    import { createStore } from "tardisjs/runtime"\n    const log = createStore({\n      state: { entries: [] as string[] },\n      actions: {\n        add: (ctx, entry) => ctx.set({ entries: [...ctx.state.entries, entry as string] })\n      }\n    })\n    const off = log.subscribe((m) => console.log(m.type + " got " + m.payload.length + " args"))\n  }\n  methods {\n    addEntry: (e) => log.call("add", e)\n    stopAudit: () => off()\n  }\n  ui {\n    <p>Audited store</p>\n  }\n}',
+			persist: 'blueprint Prefs {\n  script {\n    import { createStore } from "tardisjs/runtime"\n    const prefs = createStore({\n      state: { theme: "light", locale: "en" },\n      actions: {\n        setTheme: (ctx, theme) => ctx.set({ theme: theme as string })\n      },\n      persist: { key: "prefs-v1" }\n    })\n  }\n  methods {\n    useDark: () => prefs.call("setTheme", "dark")\n    resetPrefs: () => prefs.reset()\n  }\n  ui {\n    <p>Theme persists across reloads</p>\n  }\n}',
+			together: 'blueprint Theme {\n  script {\n    import { createStore } from "tardisjs/runtime"\n    const theme = createStore({\n      state: { mode: "light" },\n      getters: {\n        dark: (s) => s.mode === "dark"\n      },\n      actions: {\n        toggle: (ctx) => ctx.set({ mode: ctx.state.mode === "dark" ? "light" : "dark" })\n      },\n      persist: { key: "theme-v1" }\n    })\n    theme.subscribe(() => {\n      document.body.dataset.theme = String(theme.state.mode)\n    })\n  }\n  methods {\n    toggleTheme: () => theme.call("toggle")\n  }\n  ui {\n    <button onClick={toggleTheme}>Toggle theme</button>\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

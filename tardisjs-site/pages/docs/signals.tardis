@@ -1,0 +1,205 @@
+blueprint DocsSignals {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Signals" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>Signals are fine-grained reactive primitives for values that change over time. A signal holds one value; a computed derives a value from other signals; an effect re-runs when the signals it reads change. Reads inside a tracked context register a dependency automatically, so there is no dependency array to maintain.</p>
+					<p>All of these helpers are exported from <code>tardisjs/runtime</code>. They work anywhere: inside a blueprint <code>script</code> block, inside <code>methods</code>, or in plain TypeScript modules outside the compiler.</p>
+					<p>Import from the runtime barrel. Every helper on this page comes from the same module:</p>
+					<div class="codeblock" data-code="imports" data-lang="js"></div>
+
+					<h2 id="model">Mental model</h2>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Read registers a dependency</h3>
+							<p>When a computed or effect calls <code>count.get()</code>, the read records that observer against the signal.</p>
+						</div>
+						<div class="step-row">
+							<h3>Write notifies dependents</h3>
+							<p><code>count.set(2)</code> marks downstream computeds dirty and re-runs the effects that depend on them.</p>
+						</div>
+						<div class="step-row">
+							<h3>Only dependents re-run</h3>
+							<p>Observers that never read the changed signal are untouched. Diamond-shaped graphs notify each downstream effect once.</p>
+						</div>
+					</div>
+
+					<h2 id="when">When to reach for signals</h2>
+					<p>Blueprint <code>state</code> with <code>$update</code> covers most UI state: form fields, toggles, lists. Signals fit the cases around it: shared values owned outside any single blueprint, derived numbers that several effects need, and logic in plain modules that cannot see blueprint state.</p>
+					<p>A good rule is ownership. When exactly one blueprint owns the value and only its markup reads it, prefer <code>state</code>. When the value outlives the blueprint, is imported by other modules, or feeds watchers and timers, prefer a signal.</p>
+					<ul>
+						<li>Cross-blueprint values such as the current user or a connection status flag.</li>
+						<li>Derived numbers such as totals and counts consumed by more than one effect.</li>
+						<li>Timers, subscriptions, and caches managed in plain TypeScript modules.</li>
+						<li>Inputs to watchers where you need both the next and the previous value.</li>
+						<li>Performance-sensitive hot paths where field-level updates beat full re-renders.</li>
+						<li>Bridges between blueprint markup and third-party libraries driven from <code>script</code>.</li>
+						<li>Feature flags and configuration that many unrelated parts read at once.</li>
+					</ul>
+
+					<h2 id="creating">Creating state</h2>
+					<p>Use <code>signal</code> for writable state, <code>computed</code> for derived state, and <code>toSignal</code> for a read-only view over an expression.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>signal</td><td>signal&lt;T&gt;(initial: T): Signal&lt;T&gt;</td><td>Create a writable reactive value.</td></tr>
+								<tr><td>computed</td><td>computed&lt;T&gt;(fn: () =&gt; T): Computed&lt;T&gt;</td><td>Create a lazily evaluated derived value.</td></tr>
+								<tr><td>toSignal</td><td>toSignal&lt;T&gt;(get: () =&gt; T): ReadonlySignal&lt;T&gt;</td><td>Wrap an expression in a read-only signal view.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+
+					<h2 id="handles">Signal and Computed handles</h2>
+					<p>A signal handle exposes <code>get</code>, <code>set</code>, <code>peek</code>, and <code>subscribe</code>. A computed handle exposes <code>get</code> and <code>dispose</code>. A read-only view exposes only <code>get</code>.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>Signal.get</td><td>get(): T</td><td>Read the value and track it as a dependency.</td></tr>
+								<tr><td>Signal.set</td><td>set(v: T): void</td><td>Write the value; no-op when Object.is-equal to the current value.</td></tr>
+								<tr><td>Signal.peek</td><td>peek(): T</td><td>Read the value without tracking.</td></tr>
+								<tr><td>Signal.subscribe</td><td>subscribe(fn: () =&gt; void): () =&gt; void</td><td>Run fn on every future change; returns an unsubscribe function.</td></tr>
+								<tr><td>Computed.get</td><td>get(): T</td><td>Evaluate on first read, then serve the cache until a dependency changes.</td></tr>
+								<tr><td>Computed.dispose</td><td>dispose(): void</td><td>Stop tracking and disconnect downstream observers.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="derived" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Computed is lazy</div>
+							<p>The computed function does not run at creation time. It runs on the first <code>get()</code>, caches the result, and re-evaluates only after a dependency signals a change. Side effects inside a computed will not happen until something reads it.</p>
+						</div>
+					</div>
+
+					<h2 id="effects">Effects and watchers</h2>
+					<p>Effects are the reactive sinks: logging, DOM writes, timers, and network calls. Watchers observe one source and report old and new values.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>effect</td><td>effect(fn: () =&gt; void | (() =&gt; void)): () =&gt; void</td><td>Run fn immediately, re-run on dependency change. A returned function is the cleanup.</td></tr>
+								<tr><td>watch</td><td>watch&lt;T&gt;(source: () =&gt; T, cb: (next: T, prev: T) =&gt; void, opts?: {`{`} immediate?: boolean {`}`}) : () =&gt; void</td><td>Call cb with next and prev values when source output changes.</td></tr>
+								<tr><td>watchEffect</td><td>watchEffect(fn: () =&gt; void | (() =&gt; void)): () =&gt; void</td><td>Alias for effect.</td></tr>
+								<tr><td>stop</td><td>stop(handle: () =&gt; void): void</td><td>Stop an effect or watcher via the handle it returned.</td></tr>
+								<tr><td>batch</td><td>batch(fn: () =&gt; void): void</td><td>Coalesce writes so downstream effects run once after fn returns. Batches nest.</td></tr>
+								<tr><td>untrack</td><td>untrack&lt;T&gt;(fn: () =&gt; T): T</td><td>Run fn without registering any dependencies.</td></tr>
+								<tr><td>isSignal</td><td>isSignal(v: unknown): boolean</td><td>Brand check; false for null, primitives, and plain objects.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="sideeffect" data-lang="tardis"></div>
+					<p>Cleanup functions run before the next re-run and when the effect is stopped. Stopping via <code>stop(handle)</code> also runs the latest cleanup.</p>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Cleanup runs on re-run too</div>
+							<p>When a dependency changes, the previous cleanup runs first, then the effect body runs again and may register a new cleanup. Stopping the effect runs the latest cleanup one final time.</p>
+						</div>
+					</div>
+					<div class="codeblock" data-code="batching" data-lang="tardis"></div>
+					<p>Without <code>batch</code>, each <code>set</code> flushes synchronously. With <code>batch</code>, dirty computeds are still marked synchronously but effect runs are deferred until the outermost batch exits, so the effect above logs twice total: once on creation, once after the batch.</p>
+					<div class="codeblock" data-code="watching" data-lang="tardis"></div>
+					<p>The first watcher run only records the previous value, so the callback does not fire on creation. Pass <code>{`{`} immediate: true {`}`}</code> to invoke the callback once right away with next equal to prev. The callback itself always runs untracked, so reads inside it never create new subscriptions.</p>
+
+					<h2 id="untracked">Reading without subscribing</h2>
+					<p>Three tools read without creating a dependency: <code>peek</code> on a single signal, <code>untrack</code> around any block of reads, and <code>subscribe</code> callbacks, which always run untracked. Use them when a value is needed for a decision but must not re-trigger the observer.</p>
+					<p>Logging the current value, comparing against a threshold for a one-shot action, and reading configuration inside an effect are the classic cases. When in doubt, default to <code>get</code>: a missing subscription is a silent bug, while an extra subscription is at worst one redundant run.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>peek for one value</h3>
+							<p><code>count.peek()</code> returns the current value with no tracking. Ideal for event handlers and one-shot reads.</p>
+						</div>
+						<div class="step-row">
+							<h3>untrack for a block</h3>
+							<p><code>untrack(() =&gt; ...)</code> runs any number of reads with tracking suspended, then restores the previous observer.</p>
+						</div>
+						<div class="step-row">
+							<h3>subscribe is untracked by construction</h3>
+							<p>Callbacks passed to <code>subscribe</code> run outside tracking, so reading sibling signals there never widens the subscription.</p>
+						</div>
+					</div>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A small settings panel shows every primitive cooperating: a writable signal, two computeds, an effect syncing state for markup, a batch around related writes, and a watcher reacting to one source.</p>
+					<div class="codeblock" data-code="together" data-lang="tardis"></div>
+					<p>Notice the division of labor. Signals own the values, computeds own the derivations, the effect owns the side effect of mirroring into blueprint state, and the watcher owns the reaction with access to the previous value.</p>
+
+					<h2 id="types">Types</h2>
+					<p>The handle interfaces live in the signals module. The runtime barrel exports the factory and helper functions; use these interfaces for annotations.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Members</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>Signal&lt;T&gt;</td><td>get, set, peek, subscribe</td><td>Writable reactive value handle.</td></tr>
+								<tr><td>Computed&lt;T&gt;</td><td>get, dispose</td><td>Lazy derived value handle.</td></tr>
+								<tr><td>ReadonlySignal&lt;T&gt;</td><td>get</td><td>Read-only view returned by toSignal.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="testing">Testing</h2>
+					<p>Signals need no DOM and no test harness. Create them in a plain test file, drive them with <code>set</code>, and assert with <code>get</code> and <code>peek</code>.</p>
+					<p>Effects run synchronously outside batches, so assertions immediately after a <code>set</code> see the updated world. Inside <code>batch</code>, assert after the batch exits, not within it.</p>
+					<ul>
+						<li>Capture effect runs in an array to assert ordering and deduplication.</li>
+						<li>Use <code>subscribe</code> to observe a signal without disturbing computed caches.</li>
+						<li>Always stop effects created in tests; a leaked effect keeps reacting to later sets.</li>
+						<li>Assert lazy behavior by counting computed evaluations: creation alone must evaluate nothing.</li>
+					</ul>
+
+					<h2 id="organizing">Organizing signals</h2>
+					<p>Keep signals close to their owner: module-level signals for shared values, blueprint-local signals in <code>script</code> for page state, and derivations next to the signals they read. A module that exports a signal, its computeds, and its update functions together reads like a tiny store.</p>
+					<p>Name signals as nouns and computeds as derived nouns: <code>user</code> and <code>displayName</code>, not <code>fetchUser</code>. Reserve verbs for effect stop handles such as <code>stopClock</code> and for watcher teardowns.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">peek breaks tracking on purpose</div>
+							<p><code>peek()</code> never registers a dependency. Reading with <code>peek</code> inside a computed or effect means that computed or effect will silently stop updating when the signal changes. Use <code>get</code> unless you explicitly want an untracked read.</p>
+						</div>
+					</div>
+					<ul>
+						<li>Equal writes are ignored: <code>set</code> compares with <code>Object.is</code>, so setting the same value (including NaN over NaN) notifies nobody.</li>
+						<li>Subscribe does not fire immediately; it fires on the next change after subscribing. Unsubscribe with the returned function.</li>
+						<li>Subscribe callbacks run untracked, so reading other signals inside the callback does not subscribe to them.</li>
+						<li>An effect that writes a signal it also reads will loop. Guard the write or split the signals.</li>
+						<li>Errors thrown during change notification are reported via <code>console.error</code> and do not propagate to the <code>set</code> caller; errors on the initial run do propagate.</li>
+						<li>After <code>dispose()</code>, a computed keeps serving its last value but never updates again, and downstream observers are disconnected.</li>
+						<li>Async callbacks (such as <code>setInterval</code> or fetch handlers) read with an empty tracking context, so <code>get()</code> there does not subscribe. That is usually what you want.</li>
+						<li>Cleanup runs before every re-run, not only on stop. Expensive teardown in cleanup will execute on each dependency change.</li>
+						<li><code>batch</code> only defers effect runs; computed dirty-marking stays synchronous, so <code>get()</code> inside a batch always sees fresh values.</li>
+						<li>Nested batches coalesce into the outermost one. An inner batch exiting early flushes nothing.</li>
+					</ul>
+
+					<DocsPager prev="/docs/runtime" prevLabel="Runtime API" next="/docs/store" nextLabel="Store" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			imports: 'import { signal, computed, effect, batch, untrack, watch, watchEffect, isSignal, toSignal } from "tardisjs/runtime"',
+			basic: 'blueprint Counter {\n  state {\n    label: string = "0"\n  }\n  script {\n    import { signal } from "tardisjs/runtime"\n    const count = signal(0)\n  }\n  methods {\n    increment: () => {\n      count.set(count.get() + 1)\n      $update(state.label, String(count.peek()))\n    }\n  }\n  ui {\n    <button onClick={increment}>{state.label}</button>\n  }\n}',
+			derived: 'blueprint Cart {\n  script {\n    import { signal, computed, toSignal, isSignal } from "tardisjs/runtime"\n    const price = signal(5)\n    const qty = signal(2)\n    const total = computed(() => price.get() * qty.get())\n    const readonlyTotal = toSignal(() => total.get())\n    console.log(total.get())\n    console.log(readonlyTotal.get())\n    console.log(isSignal(price))\n    console.log(isSignal(42))\n  }\n  ui {\n    <p>Cart ready</p>\n  }\n}',
+			sideeffect: 'blueprint Clock {\n  script {\n    import { signal, effect, stop } from "tardisjs/runtime"\n    const tick = signal(0)\n    const stopClock = effect(() => {\n      const id = setInterval(() => tick.set(tick.get() + 1), 1000)\n      return () => clearInterval(id)\n    })\n  }\n  methods {\n    pause: () => stop(stopClock)\n  }\n  ui {\n    <button onClick={pause}>Pause</button>\n  }\n}',
+			batching: 'blueprint Coords {\n  script {\n    import { signal, computed, effect, batch } from "tardisjs/runtime"\n    const x = signal(0)\n    const y = signal(0)\n    const sum = computed(() => x.get() + y.get())\n    effect(() => console.log(sum.get()))\n    batch(() => {\n      x.set(3)\n      y.set(4)\n    })\n  }\n  ui {\n    <p>Check the console: 0 then 7</p>\n  }\n}',
+			watching: 'blueprint Search {\n  script {\n    import { signal, watch, watchEffect } from "tardisjs/runtime"\n    const query = signal("")\n    const stopWatch = watch(() => query.get(), (next, prev) => {\n      console.log(prev + " becomes " + next)\n    }, { immediate: true })\n    const stopFx = watchEffect(() => {\n      console.log("query is now: " + query.get())\n    })\n  }\n  methods {\n    typed: (v) => query.set(v)\n  }\n  ui {\n    <p>Type to trigger the watcher</p>\n  }\n}',
+			together: 'blueprint Settings {\n  state {\n    summary: string = ""\n  }\n  script {\n    import { signal, computed, effect, batch, watch } from "tardisjs/runtime"\n    const volume = signal(5)\n    const muted = signal(false)\n    const audible = computed(() => muted.get() ? 0 : volume.get())\n    const label = computed(() => "Volume " + audible.get())\n    effect(() => $update(state.summary, label.get()))\n    watch(() => muted.get(), (next, prev) => console.log(prev + " becomes " + next))\n  }\n  methods {\n    quiet: () => batch(() => {\n      volume.set(2)\n      muted.set(true)\n    })\n  }\n  ui {\n    <button onClick={quiet}>{state.summary}</button>\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

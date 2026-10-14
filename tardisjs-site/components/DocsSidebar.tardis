@@ -8,10 +8,11 @@ blueprint DocsSidebar {
 				<a href="/docs/structure">Project structure</a>
 			</div>
 			<div class="docs-group">
-				<div class="docs-group-title"><span>Core concepts</span><span class="count">3</span></div>
+				<div class="docs-group-title"><span>Core concepts</span><span class="count">4</span></div>
 				<a href="/docs/blueprints">Blueprint syntax</a>
 				<a href="/docs/templating">UI &amp; templating</a>
 				<a href="/docs/reactivity">Reactivity</a>
+				<a href="/docs/composition">Composition</a>
 			</div>
 			<div class="docs-group">
 				<div class="docs-group-title"><span>Reference</span><span class="count">6</span></div>
@@ -21,6 +22,18 @@ blueprint DocsSidebar {
 				<a href="/docs/styles">Styles</a>
 				<a href="/docs/events">Lifecycle events</a>
 				<a href="/docs/registry">Component registry</a>
+			</div>
+			<div class="docs-group">
+				<div class="docs-group-title"><span>Runtime modules</span><span class="count">9</span></div>
+				<a href="/docs/signals">Signals</a>
+				<a href="/docs/store">Store</a>
+				<a href="/docs/forms">Forms</a>
+				<a href="/docs/i18n">Internationalization</a>
+				<a href="/docs/reconcile">Keyed lists &amp; SVG</a>
+				<a href="/docs/components">Component model</a>
+				<a href="/docs/routing">Routing utilities</a>
+				<a href="/docs/transition">Transitions</a>
+				<a href="/docs/http">HTTP client</a>
 			</div>
 			<div class="docs-group">
 				<div class="docs-group-title"><span>Tooling</span><span class="count">4</span></div>

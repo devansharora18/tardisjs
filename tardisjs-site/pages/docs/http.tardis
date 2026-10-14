@@ -1,0 +1,92 @@
+blueprint DocsHttp {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="HTTP client" crumb="Reference" />
+
+					<p>The HTTP client wraps fetch with a base URL, timeouts, retries, interceptors, and a GET cache. The older <code>$fetch</code> chain still works; this client covers everything it cannot express.</p>
+					<p>Three ideas carry the whole client: requests are plain data, failures resolve instead of throwing wherever a response exists, and every side channel is guarded so observers never break a request.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>Create a client once with shared defaults, then issue typed requests. Convenience methods cover the five common verbs.</p>
+					<p>All options have defaults, so <code>createHttpClient()</code> with no arguments already performs plain JSON requests with no timeout and no retries.</p>
+					<div class="codeblock" data-code="basic" data-lang="js"></div>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>createHttpClient(opts?)</td><td>Build a client with base URL, headers, timeout, retries, and interceptors.</td></tr>
+								<tr><td>request(req)</td><td>Issue one request, returns a promise of the response.</td></tr>
+								<tr><td>get/post/put/patch/delete</td><td>Verb shortcuts taking a URL plus request fields.</td></tr>
+								<tr><td>addInterceptor(i)</td><td>Register an interceptor, returns an unsubscribe function.</td></tr>
+								<tr><td>clearCache()</td><td>Empty the GET memory cache.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="requests">Requests and responses</h2>
+					<p>A request names a URL plus optional method, headers, body, timeout, retries, and cache mode. The response reports status, parsed data, and headers.</p>
+					<p>Bodies are stringified as JSON with a default content type. An explicit content type always wins, and string bodies pass through untouched.</p>
+					<p>Non-2xx responses resolve normally with ok false. Only network failures, timeouts, and retries-exhausted reject the promise.</p>
+					<div class="codeblock" data-code="shapes" data-lang="js"></div>
+
+					<h2 id="timeout">Timeouts</h2>
+					<p>Set a per-request or per-client timeout in milliseconds. Expiry aborts the request and rejects with a timeout error.</p>
+					<p>Timeouts compose with retries: each attempt gets the full budget, and the error surfaces only after the last attempt.</p>
+					<div class="codeblock" data-code="timeout" data-lang="js"></div>
+
+					<h2 id="retries">Retries</h2>
+					<p>Failed requests retry with exponential backoff starting at 100 milliseconds and doubling per attempt. Only network errors and the configured retry statuses qualify.</p>
+					<p>The default retry set is 502, 503, and 504. A 400 never retries; only a matching status or a transport failure schedules another attempt.</p>
+					<div class="codeblock" data-code="retries" data-lang="js"></div>
+
+					<h2 id="interceptors">Interceptors</h2>
+					<p>Interceptors observe and transform traffic. Request interceptors run in registration order, response interceptors run in reverse, and error observers never break the chain.</p>
+					<p>Use them for auth headers, logging, and error reporting. Unsubscribe with the function addInterceptor returns.</p>
+					<div class="codeblock" data-code="interceptors" data-lang="js"></div>
+
+					<h2 id="cache">Caching</h2>
+					<p>GET requests can opt into a memory cache keyed by method, URL, and body. Repeats resolve from cache without touching the network.</p>
+					<p>Only GET is cached, and only when the request asks for it. Clear the cache when the underlying data changes out of band.</p>
+					<div class="codeblock" data-code="cache" data-lang="js"></div>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>Base URLs join cleanly.</strong> Trailing and leading slashes are normalized, and absolute URLs bypass the base entirely.</li>
+						<li><strong>Invalid JSON resolves null.</strong> A 200 with an unparseable body yields data null rather than throwing.</li>
+						<li><strong>Observers are isolated.</strong> A throwing error observer is caught and logged; the request still settles.</li>
+						<li><strong>Cache is GET-only.</strong> Mutating verbs never read or write the cache, even with cache mode set.</li>
+						<li><strong>Timeouts need AbortController.</strong> Environments without fetch or AbortController raise a clear error instead of hanging.</li>
+						<li><strong>Retries are bounded.</strong> Backoff grows per attempt, and the original error surfaces when attempts run out.</li>
+					</ul>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/runtime">Runtime API</a> page covers the <code>$fetch</code> chain this client extends.</p>
+					<p>The <a href="/docs/tasks">Tasks</a> page covers tracking request state once responses arrive.</p>
+
+					<DocsPager prev="/docs/transition" prevLabel="Transitions" next="/docs/composition" nextLabel="Composition" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			basic: 'import { createHttpClient } from "tardisjs/runtime/http"\n\nconst api = createHttpClient({ baseUrl: "https://api.example.com" })\nconst res = await api.get("/users")\nif (res.ok) console.log(res.data)',
+			shapes: 'const res = await api.post("/users", {\n  body: { name: "Ada" },\n  headers: { "X-Team": "web" }\n})\n// res: { ok, status, statusText, data, headers }',
+			timeout: 'const api = createHttpClient({ timeout: 5000 })\nawait api.get("/slow", { timeout: 1000 })',
+			retries: 'const api = createHttpClient({ retries: 3 })\nawait api.get("/flaky", { retryOn: [503] })',
+			interceptors: 'const off = api.addInterceptor({\n  onRequest: (req) => ({ ...req, headers: { ...req.headers, token } }),\n  onError: (err) => report(err)\n})',
+			cache: 'await api.get("/config", { cache: "memory" })\napi.clearCache()'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

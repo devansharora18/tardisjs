@@ -1,0 +1,201 @@
+blueprint DocsForms {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Forms" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>Forms pair small validator functions with a <code>useForm</code> helper that tracks values, errors, and touched state. Validators are plain functions returning an error message or <code>null</code>, so they compose, reuse, and test without any framework machinery.</p>
+					<p>Everything here is exported from <code>tardisjs/runtime</code>: ten validator factories plus <code>custom</code> and <code>validateField</code>, the <code>useForm</code> helper, the <code>bindModel</code> two-way binding, and the <code>Validator</code> and <code>FieldDef</code> types.</p>
+					<p>Import what the form needs from the runtime barrel:</p>
+					<div class="codeblock" data-code="imports" data-lang="js"></div>
+
+					<h2 id="flow">The flow</h2>
+					<p>A form moves through four stages. Declaration is static, wiring is per control, touching tracks interaction, and submission validates everything at once.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Declare fields</h3>
+							<p>Call <code>useForm</code> with one <code>FieldDef</code> per field: an initial value plus its validator list.</p>
+						</div>
+						<div class="step-row">
+							<h3>Wire controls</h3>
+							<p>Feed input events into <code>setField</code>, or attach controls with <code>bindModel</code> for automatic two-way sync.</p>
+						</div>
+						<div class="step-row">
+							<h3>Touch on blur</h3>
+							<p>Call <code>touch</code> when a control loses focus so errors appear for visited fields only.</p>
+						</div>
+						<div class="step-row">
+							<h3>Validate on submit</h3>
+							<p>Call <code>validateAll</code> (or <code>validate</code> with no argument) and proceed only when it returns true.</p>
+						</div>
+					</div>
+
+					<h2 id="validators">Validators</h2>
+					<p>A <code>Validator</code> has the signature <code>(value: unknown, values?: Record&lt;string, unknown&gt;) =&gt; string | null</code>. Return <code>null</code> for valid, or the message to show for invalid. The second argument is a snapshot of every field, which is how cross-field rules read their siblings.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>required</td><td>required(msg?: string): Validator</td><td>Fails only on undefined, null, and empty string. false and 0 count as present. Default message Required.</td></tr>
+								<tr><td>minLength</td><td>minLength(n: number, msg?: string): Validator</td><td>Strings of at least n characters. Non-strings fail.</td></tr>
+								<tr><td>maxLength</td><td>maxLength(n: number, msg?: string): Validator</td><td>Strings of at most n characters. Non-strings fail.</td></tr>
+								<tr><td>pattern</td><td>pattern(re: RegExp, msg?: string): Validator</td><td>Value matches re. Empty string passes; pair with required to reject it.</td></tr>
+								<tr><td>email</td><td>email(msg?: string): Validator</td><td>Simple user at host.tld check. Empty string passes; pair with required.</td></tr>
+								<tr><td>isNumber</td><td>isNumber(msg?: string): Validator</td><td>Strict typeof number and not NaN. Numeric strings fail.</td></tr>
+								<tr><td>min</td><td>min(n: number, msg?: string): Validator</td><td>Numbers greater than or equal to n. Non-numbers and NaN fail.</td></tr>
+								<tr><td>max</td><td>max(n: number, msg?: string): Validator</td><td>Numbers less than or equal to n. Non-numbers and NaN fail.</td></tr>
+								<tr><td>oneOf</td><td>oneOf(list: unknown[], msg?: string): Validator</td><td>Value is a member of list via includes.</td></tr>
+								<tr><td>custom</td><td>custom(fn: (v: unknown, values?) =&gt; string | null): Validator</td><td>Passthrough for user-defined checks, including cross-field rules.</td></tr>
+								<tr><td>validateField</td><td>validateField(value: unknown, validators: Validator[], values?): string[]</td><td>Run every validator and collect messages in order. No short-circuit.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+					<p>Each field runs its validators in order and every failing message is collected, but the form stores only the first message per field. Because <code>validateField</code> never short-circuits, reordering validators changes which message the user sees first.</p>
+					<div class="codeblock" data-code="crossfield" data-lang="tardis"></div>
+					<p>Cross-field validators read siblings from the second argument. The snapshot covers every field declared in <code>useForm</code>, taken at validation time, so the confirm rule above always compares against the current password.</p>
+					<div class="codeblock" data-code="numbers" data-lang="tardis"></div>
+					<p>Note the empty-string convention: <code>pattern</code> and <code>email</code> let <code>""</code> pass so optional fields stay simple, while <code>required</code> is the single gate for presence. Numeric validators are strict: a numeric string such as <code>"3"</code> fails <code>isNumber</code>, <code>min</code>, and <code>max</code>.</p>
+
+					<h2 id="authoring">Writing custom validators</h2>
+					<p>Reach for <code>custom</code> when no factory fits: confirmation fields, conditional requirements, async-shaped checks resolved synchronously, and rules over formatted input. The function receives the field value and the full snapshot, and returns a message or <code>null</code>.</p>
+					<p>Keep custom validators pure and synchronous. They run on every validation pass, so expensive work inside one slows each keystroke after touch. Normalize input (trimming, casing) in <code>setField</code> callers rather than inside the validator, so the stored value and the validated value never disagree.</p>
+					<ul>
+						<li>Return <code>null</code> early for values another validator owns, such as empty strings when the field is optional.</li>
+						<li>Read siblings only through the <code>values</code> argument, never through closed-over form state.</li>
+						<li>Give each rule its own validator so messages stay specific instead of one catch-all failure.</li>
+						<li>Reuse factories inside custom logic: <code>email()(v)</code> is a plain function call.</li>
+					</ul>
+
+					<h2 id="useform">useForm</h2>
+					<p>Declare fields with <code>FieldDef</code> entries of shape <code>{`{`} initial?: unknown, validate?: Validator[] {`}`}</code>. The helper returns reactive <code>values</code>, <code>errors</code>, and <code>touched</code> state objects plus control methods. Bindings over these objects re-run like any other state, so <code>{`{`}form.errors.email{`}`}</code> in markup updates as validation runs.</p>
+					<p>Both members of a field definition are optional. A field with no <code>initial</code> starts as <code>undefined</code>; a field with no <code>validate</code> list always passes. This makes free-form and display-only fields cheap to include.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>initial</td><td>initial?: unknown</td><td>Starting value, restored by reset. Defaults to undefined.</td></tr>
+								<tr><td>validate</td><td>validate?: Validator[]</td><td>Validators run in order on every validation pass. Defaults to empty.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>values</td><td>values: ReactiveState</td><td>Current value per field, keyed by field name.</td></tr>
+								<tr><td>errors</td><td>errors: ReactiveState</td><td>First failing message per field, or empty string when valid.</td></tr>
+								<tr><td>touched</td><td>touched: ReactiveState</td><td>Boolean per field; true once the field has been interacted with or validated.</td></tr>
+								<tr><td>setField</td><td>setField(name: string, value: unknown): void</td><td>Write a value. Revalidates only when the field is already touched.</td></tr>
+								<tr><td>touch</td><td>touch(name: string): void</td><td>Mark touched and validate that field immediately.</td></tr>
+								<tr><td>validate</td><td>validate(name?: string): boolean</td><td>With a name, marks it touched and returns its validity. Without, validates all.</td></tr>
+								<tr><td>validateAll</td><td>validateAll(): boolean</td><td>Mark every field touched, validate each, and return overall validity.</td></tr>
+								<tr><td>reset</td><td>reset(): void</td><td>Restore initial values and clear errors and touched flags.</td></tr>
+								<tr><td>isValid</td><td>isValid(): boolean</td><td>Pure read of current errors. Runs no validators; call validateAll first for a fresh verdict.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">No flashing errors</div>
+							<p><code>setField</code> skips validation until the field has been touched, so typing in one field never lights up errors on another. Call <code>touch</code> on blur and <code>validateAll</code> on submit for the standard flow.</p>
+						</div>
+					</div>
+
+					<h2 id="bindmodel">Two-way binding</h2>
+					<p><code>bindModel</code> wires a form control to <code>values[name]</code> in both directions. Text areas and single selects sync through <code>el.value</code>; checkboxes sync through <code>checked</code>. State-to-element updates flow through a reactive subscription; element-to-state updates flow through an <code>input</code> listener.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>bindModel</td><td>bindModel(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, values: Record&lt;string, unknown&gt;, name: string): () =&gt; void</td><td>Sync a control with values[name]. Returns an unbind function.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="binding" data-lang="tardis"></div>
+					<p>The returned unbind removes the <code>input</code> listener, stopping element-to-state sync. The state-to-element subscription stays active, because the underlying state layer exposes no unregister operation.</p>
+
+					<h2 id="errors">Reading errors</h2>
+					<p><code>errors[name]</code> is always a string: the first failing message, or <code>""</code> when the field currently passes. Render it directly beneath its control and let the empty string collapse the slot when valid.</p>
+					<p><code>touched[name]</code> tells you whether the user has visited the field or a validation pass has covered it. Pair the two in markup: show the error only when touched is true, so pristine fields stay quiet even after a partial validation.</p>
+					<ul>
+						<li>First message wins for display; the full list is available via <code>validateField</code>.</li>
+						<li>Errors update only when validation runs: <code>touch</code>, <code>validate</code>, or a touched <code>setField</code>.</li>
+						<li><code>reset</code> clears every error back to <code>""</code> alongside values and touched flags.</li>
+						<li>Unknown field names read as <code>undefined</code> from these objects, which renders as blank rather than throwing.</li>
+					</ul>
+
+					<h2 id="ux">UX patterns</h2>
+					<p>Validate on blur, submit on click, reset on success. That trio covers nearly every form: <code>touch</code> in blur handlers, <code>validateAll</code> in the submit handler, and <code>reset</code> after the server accepts the data.</p>
+					<p>Disable the submit control from a binding over errors only when the form has been validated at least once; otherwise a pristine form looks submittable and a partially typed one looks broken. A common shape is enabling submit always, then validating all on click so every problem surfaces together.</p>
+					<ul>
+						<li>Blur per field for early feedback without flashing.</li>
+						<li>Full validation on submit so untouched fields report too.</li>
+						<li>Reset after success so resubmission starts clean.</li>
+						<li>Single-field <code>validate(name)</code> for wizard steps that advance field by field.</li>
+						<li>Server errors map onto fields with <code>setField</code> plus a custom message validator, or render beside the form as summary text.</li>
+					</ul>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A registration form combines validators, per-field blur handling, whole-form submit validation, and reset. Calling <code>validate</code> with no argument validates every field, exactly like <code>validateAll</code>.</p>
+					<div class="codeblock" data-code="together" data-lang="tardis"></div>
+					<p>Generic <code>field</code> and <code>blur</code> handlers scale to any field count: pass the name from markup and the logic stays in one place. The submit gate is a single boolean, and success clears the form for the next registration.</p>
+
+					<h2 id="testing">Testing</h2>
+					<p>Forms test without rendering. Build the form, drive it with <code>setField</code> and <code>touch</code>, and assert on <code>errors</code> strings and boolean verdicts.</p>
+					<p>Test validators in isolation with <code>validateField</code>: it is pure, synchronous, and returns the full message list, making table-driven cases trivial.</p>
+					<ul>
+						<li>Cover the empty-string boundary for every optional field.</li>
+						<li>Cover type boundaries: non-strings for length rules, numeric strings for number rules.</li>
+						<li>Assert cross-field rules against both matching and mismatched snapshots.</li>
+						<li>Assert <code>reset</code> restores initials and clears touched flags.</li>
+					</ul>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">isValid does not validate</div>
+							<p><code>isValid()</code> only reads the current <code>errors</code> object. On a fresh form every error is <code>""</code>, so <code>isValid()</code> returns true before anything has been checked. Gate submits on <code>validateAll()</code>, and treat <code>isValid()</code> as a cheap re-read afterwards.</p>
+						</div>
+					</div>
+					<ul>
+						<li>Validating an undeclared field name is a silent no-op that returns true. Typos in field names will not throw.</li>
+						<li><code>errors[name]</code> holds one string: the first failing message. Inspect <code>validateField</code> directly when you need the full list.</li>
+						<li>Optional fields need no <code>required</code>: <code>pattern</code> and <code>email</code> pass on <code>""</code>, while length and numeric validators still fail on it. Check the table before combining.</li>
+						<li><code>minLength</code> and <code>maxLength</code> reject non-strings outright, so a missing value fails them even without <code>required</code>.</li>
+						<li><code>reset()</code> restores the <code>initial</code> captured at creation. Mutating the original fields object afterwards changes nothing.</li>
+						<li>Checkbox binding coerces with <code>Boolean(values[name])</code>; other controls stringify with <code>undefined</code> and <code>null</code> becoming <code>""</code>.</li>
+						<li><code>validate(name)</code> marks the field touched as a side effect. Calling it speculatively will light up that field's error.</li>
+						<li><code>validateField</code> collects every message but <code>useForm</code> stores only the first. Validator order is display order.</li>
+						<li>Select controls sync through <code>el.value</code>, so the bound value must match an option value exactly or the control shows blank.</li>
+						<li>Number inputs still deliver strings from the DOM. Convert to a number before <code>setField</code> when numeric validators apply.</li>
+						<li>Cross-field snapshots are taken per validation run. Two fields validated in one pass each see pre-pass values, not each other's fresh errors.</li>
+					</ul>
+
+					<DocsPager prev="/docs/store" prevLabel="Store" next="/docs/i18n" nextLabel="I18n" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			imports: 'import { useForm, required, email, minLength, bindModel } from "tardisjs/runtime"',
+			basic: 'blueprint Login {\n  script {\n    import { useForm, required, email, minLength } from "tardisjs/runtime"\n    const form = useForm({\n      email: { initial: "", validate: [required(), email()] },\n      password: { initial: "", validate: [required(), minLength(8)] }\n    })\n  }\n  methods {\n    updateEmail: (e) => form.setField("email", e.target.value)\n    blurEmail: () => form.touch("email")\n    submit: () => {\n      if (form.validateAll()) console.log(form.values)\n    }\n  }\n  ui {\n    <p>{form.errors.email}</p>\n    <button onClick={submit}>Log in</button>\n  }\n}',
+			crossfield: 'blueprint Signup {\n  script {\n    import { useForm, required, minLength, custom } from "tardisjs/runtime"\n    const sameAs = (other: string) => custom((v, values) => v === values?.[other] ? null : "Must match")\n    const form = useForm({\n      password: { initial: "", validate: [required(), minLength(8)] },\n      confirm: { initial: "", validate: [required(), sameAs("password")] }\n    })\n  }\n  methods {\n    submit: () => form.validate()\n    clear: () => form.reset()\n  }\n  ui {\n    <p>{form.errors.confirm}</p>\n    <button onClick={submit}>Sign up</button>\n  }\n}',
+			numbers: 'blueprint Ticket {\n  script {\n    import { useForm, required, isNumber, min, max, oneOf, pattern, validateField } from "tardisjs/runtime"\n    const form = useForm({\n      qty: { initial: 1, validate: [isNumber(), min(1), max(10)] },\n      zone: { initial: "a", validate: [oneOf(["a", "b", "c"])] },\n      code: { initial: "", validate: [required(), pattern(/^[A-Z]{3}-[0-9]{3}$/, "Use ABC-123")] }\n    })\n    const quick = validateField(3, [isNumber(), min(1)])\n  }\n  methods {\n    submit: () => form.validateAll()\n  }\n  ui {\n    <p>{form.errors.qty}</p>\n    <button onClick={submit}>Buy</button>\n  }\n}',
+			binding: 'blueprint Profile {\n  script {\n    import { useForm, required, bindModel } from "tardisjs/runtime"\n    const form = useForm({\n      name: { initial: "", validate: [required()] },\n      admin: { initial: false }\n    })\n    const el = document.querySelector("input") as HTMLInputElement\n    const unbind = bindModel(el, form.values, "name")\n  }\n  methods {\n    stop: () => unbind()\n    valid: () => form.isValid()\n  }\n  ui {\n    <p>Two-way bound input</p>\n  }\n}',
+			together: 'blueprint Register {\n  script {\n    import { useForm, required, email, minLength, oneOf } from "tardisjs/runtime"\n    const form = useForm({\n      name: { initial: "", validate: [required(), minLength(2)] },\n      email: { initial: "", validate: [required(), email()] },\n      plan: { initial: "free", validate: [oneOf(["free", "pro"])] }\n    })\n  }\n  methods {\n    field: (name, e) => form.setField(name, e.target.value)\n    blur: (name) => form.touch(name)\n    submit: () => {\n      if (form.validate()) console.log("ok")\n    }\n    clear: () => form.reset()\n  }\n  ui {\n    <p>{form.errors.email}</p>\n    <button onClick={submit}>Register</button>\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

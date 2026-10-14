@@ -1,0 +1,212 @@
+blueprint DocsComposition {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Composition" crumb="Reference" />
+
+					<p>Composition is how blueprints use other blueprints. You import a blueprint file, render it as a tag with props and children, fill named slots, spread shared attributes, and rely on the registry fallback for tags you never imported.</p>
+					<p>The compiler turns each of these into direct calls or runtime lookups. This page documents both sides: the template syntax you write and the code it emits.</p>
+					<p>Five ideas carry the whole model: imports rewrite to output paths, imported tags become direct calls, children become slot builders, outlets render those builders, and un-imported tags fall back to the registry.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>A blueprint file imports other blueprint files with a normal import line pointing at the tardis source. At build time the CLI mirrors the import into the output layout.</p>
+					<p>Importing dot-tardis resolves to dot-js in the emitted module, and bundlers can tree-shake every component independently through the plain ES import.</p>
+					<p>Rendering a component passes props plus an optional children object of slot builders. Top-level children land in the default slot by default.</p>
+					<p>A child carrying a static slot attribute is routed to that named slot with the attribute stripped from the emitted markup.</p>
+					<p>Inside the child blueprint, slot outlets render the matching builder, an inline fallback, or a comment anchor when neither exists.</p>
+					<p>Tags fall into two groups. Imported names compile to direct factory calls; anything else compiles to a global-registry lookup with a placeholder fallback.</p>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>compileFile(file)</td><td>Compile a file: imports become ES imports, the blueprint compiles with the import set.</td></tr>
+								<tr><td>resolveImportPath(path)</td><td>Rewrite a tardis import path to its JS output path.</td></tr>
+								<tr><td>$runtime.component(name, props)</td><td>Look up a global factory and call it, or render a placeholder div.</td></tr>
+								<tr><td>$runtime.slot(slots, name, fallback?)</td><td>Render a named children builder, the fallback, or a comment anchor.</td></tr>
+								<tr><td>$runtime.placeholder(name)</td><td>Render a bare div marked with the component name for pre-wire output.</td></tr>
+								<tr><td>renderSlot(slots, name, fallback?)</td><td>Programmatic slot render used by hand-written factories.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="pipeline">Compilation pipeline</h2>
+					<p>compileFile drives the whole file. It emits one ES import per blueprint import with the path rewritten, then compiles the blueprint with the set of imported names.</p>
+					<p>resolveImportPath performs the rewrite alone: a trailing dot-tardis becomes dot-js and every other path passes through unchanged.</p>
+					<p>The imported-names set travels into component emission. Tags in the set become direct calls; tags outside it keep the registry path for backward compatibility.</p>
+					<ul>
+						<li><strong>Imports</strong> — one emitted ES import per blueprint import, paths rewritten.</li>
+						<li><strong>Direct calls</strong> — imported tags compile to plain factory invocations.</li>
+						<li><strong>Registry calls</strong> — other capitalized tags compile to runtime lookups.</li>
+						<li><strong>Elements</strong> — lowercase tags always emit plain element creation.</li>
+					</ul>
+					<p>Because direct calls are ordinary calls of imported bindings, bundlers trace and shake them with no plugin support.</p>
+
+					<h2 id="imports">Blueprint imports</h2>
+					<p>Import a sibling blueprint with an import line at the top of the file. Relative paths resolve like normal modules from the importing file.</p>
+					<p>The path is rewritten from tardis to js in the emitted module, mirroring the CLI output layout where each blueprint compiles beside its source.</p>
+					<p>The imported name is recorded so later tags resolve to direct calls. Only exact name matches qualify; casing must agree.</p>
+					<div class="codeblock" data-code="imports" data-lang="tardis"></div>
+					<p>Direct-call resolution is what makes tree-shaking work: bundlers see a plain ES import and a plain call, so unused components drop out of the bundle.</p>
+					<p>Only names in the file import set take this path. Everything else keeps the global-registry path described below.</p>
+
+					<h2 id="usage">Using a component</h2>
+					<p>Render an imported component as a capitalized tag with attributes for props and nested markup for children.</p>
+					<p>Static attributes compile to string values. Braced attributes compile to reactive reader functions that re-evaluate on change.</p>
+					<p>Function-typed props are unwrapped once so handlers arrive callable instead of wrapped in an extra reader layer.</p>
+					<div class="codeblock" data-code="usage" data-lang="tardis"></div>
+					<p>The call passes a single props object. When the tag has children, a children field carries the slot builders object alongside the props.</p>
+					<p>The factory splits props from slots on entry, preferring an explicitly passed slots record and falling back to children builders.</p>
+
+					<h2 id="props-table">Props compilation</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Attribute form</th><th>Emitted prop</th></tr></thead>
+							<tbody>
+								<tr><td>title equals quoted text</td><td>Static string value in the props object.</td></tr>
+								<tr><td>count equals braced expression</td><td>Reactive reader function re-evaluated on change.</td></tr>
+								<tr><td>onAdd equals braced handler</td><td>Handler unwrapped once so clicks invoke it directly.</td></tr>
+								<tr><td>triple-dot spread expression</td><td>Spread entry merged into the props object.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Static values are JSON-encoded into the output, so quotes and special characters survive compilation exactly.</p>
+					<p>Reactive readers rewrite bare refs against current state and props, keeping template expressions short while staying live.</p>
+
+					<h2 id="slots">Children and named slots</h2>
+					<p>Children without a slot attribute collect into the default slot. Each top-level child compiles to its own builder in the children object.</p>
+					<p>A top-level child with a static slot attribute is routed to that named slot, and the attribute is removed from the emitted markup.</p>
+					<p>Only static names route, because builders are keyed at compile time. A reactive slot attribute stays in place and the child falls back to default.</p>
+					<div class="codeblock" data-code="named-slots" data-lang="tardis"></div>
+					<p>Grouping is by name: several children with the same slot attribute concatenate under one builder in source order.</p>
+					<p>Non-element children such as text and expressions cannot carry attributes, so they always land in the default slot.</p>
+
+					<h2 id="routing-rules">Slot routing rules</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Child form</th><th>Destination</th></tr></thead>
+							<tbody>
+								<tr><td>Plain element or text</td><td>Default slot builder.</td></tr>
+								<tr><td>Element with a static slot name</td><td>The named slot builder, attribute stripped.</td></tr>
+								<tr><td>Element with a reactive slot value</td><td>Default slot builder, attribute preserved.</td></tr>
+								<tr><td>Several children, same name</td><td>One builder concatenating them in order.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>The slot attribute is consumed at compile time. Outlets cannot re-read it at render time because it is already gone.</p>
+					<p>Self-closing component tags carry no children, so they emit props only with no children field at all.</p>
+
+					<h2 id="outlets">Slot outlets</h2>
+					<p>Inside the child blueprint, outlets declare where each slot renders. A bare outlet renders the builder for its name or a comment anchor.</p>
+					<p>An outlet with nested markup renders the builder or that fallback content, so components degrade gracefully when callers omit slots.</p>
+					<p>The default outlet needs no name attribute. Named outlets take a static name; reactive names are not routable for the same reason slot attributes must be static.</p>
+					<div class="codeblock" data-code="outlets" data-lang="tardis"></div>
+					<p>Outlets read from the children prop cast to a builders record. Missing builders yield the fallback or a comment shaped like slot colon name.</p>
+					<p>Comment anchors keep layout stable and give later renders a fixed point to replace when content arrives.</p>
+
+					<h2 id="outlet-forms">Outlet forms</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Outlet form</th><th>Renders</th></tr></thead>
+							<tbody>
+								<tr><td>Bare outlet with default name</td><td>Default builder or a default comment anchor.</td></tr>
+								<tr><td>Bare outlet with a static name</td><td>Named builder or a named comment anchor.</td></tr>
+								<tr><td>Outlet with nested markup</td><td>Named builder or the compiled fallback content.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Fallback markup compiles with the same pipeline as any template content, so bindings and nested components work inside it.</p>
+					<p>Prefer meaningful fallbacks over empty ones: an empty state message beats a silent gap when callers omit optional slots.</p>
+
+					<h2 id="spread">Spread attributes</h2>
+					<p>Shared attribute sets spread onto a component with the triple-dot form. The spread expression is rewritten against current refs and merged into the props object.</p>
+					<p>Common attributes like ids, labels, and handlers stay in one state object instead of repeating across every usage site.</p>
+					<p>Spreads compose with explicit attributes in the same tag. Explicit entries and the spread merge into one props record before the factory call.</p>
+					<div class="codeblock" data-code="spread" data-lang="tardis"></div>
+					<p>Merge order follows source order: later entries overwrite earlier ones, whether spread or explicit.</p>
+					<p>Keep spread objects flat and documented. A hidden key inside a spread silently overrides an explicit attribute and confuses readers.</p>
+
+					<h2 id="registry">Registry fallback</h2>
+					<p>A capitalized tag with no matching import keeps the global-registry path for backward compatibility. The compiler emits a runtime component call with the name and props.</p>
+					<p>At render time the runtime looks for a factory registered under the component name. Owner tracking pushes across the call so provide and inject keep working.</p>
+					<p>When no factory is registered, the runtime renders a div carrying the component name and the serialized props instead of throwing.</p>
+					<div class="codeblock" data-code="fallback" data-lang="js"></div>
+					<p>That placeholder keeps legacy pages rendering while you migrate tags to explicit imports one file at a time.</p>
+					<p>A typo in an un-imported tag produces a marked div rather than an error, so inspect output when a component renders empty.</p>
+
+					<h2 id="emitted">Emission shapes</h2>
+					<p>Putting it together, an import plus a component tag plus an outlet compiles to three recognizable shapes in the output module:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Source</th><th>Emitted shape</th></tr></thead>
+							<tbody>
+								<tr><td>Blueprint import of a tardis path</td><td>ES import of the same path with a js extension.</td></tr>
+								<tr><td>Imported tag with props and children</td><td>Direct factory call with a props object plus a children builders record.</td></tr>
+								<tr><td>Un-imported capitalized tag</td><td>Runtime component call with the tag name and props.</td></tr>
+								<tr><td>Bare outlet</td><td>Two-argument slot render yielding a builder result or a comment.</td></tr>
+								<tr><td>Outlet with nested markup</td><td>Three-argument slot render with a compiled fallback builder.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Direct calls pass builders shaped like default and named keys mapping to zero-argument functions returning elements.</p>
+					<p>Registry calls pass props through opaquely, which is why legacy factories receive children builders inside props dot children.</p>
+
+					<h2 id="migrating">Migrating to imports</h2>
+					<p>Legacy blueprints often rely on the registry path with globally registered factories. Migration is incremental by design.</p>
+					<p>Add one import line per component tag, confirm the tag casing matches the import name exactly, and the next build switches that tag to a direct call.</p>
+					<p>Placeholders in rendered output mark the tags still on the registry path. Search for the data-component marker to find the next file to migrate.</p>
+					<ul>
+						<li><strong>Import</strong> — add the tardis import for the component file.</li>
+						<li><strong>Match</strong> — align tag casing with the imported name.</li>
+						<li><strong>Build</strong> — confirm the tag now emits a direct call.</li>
+						<li><strong>Repeat</strong> — migrate one component per change for easy review.</li>
+					</ul>
+					<p>Nothing else changes during migration: props, children, and slots behave identically on both paths.</p>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/components">Components</a> page covers the programmatic side: factories, validation, slots, and injection.</p>
+					<p>The <a href="/docs/blueprints">Blueprints</a> page covers file structure: props, state, ui, methods, and styles blocks.</p>
+					<p>The <a href="/docs/compiler">Compiler</a> page covers the wider pipeline these emission shapes plug into.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>Capitalization selects components.</strong> Only capitalized tags compile as components; lowercase tags always emit plain elements.</li>
+						<li><strong>Imports must match tags exactly.</strong> A differently cased import name does not resolve the tag, which then takes the registry path.</li>
+						<li><strong>Only static slot names route.</strong> Dynamic slot attributes are left in place and the child lands in default.</li>
+						<li><strong>The slot attribute is stripped.</strong> Routed children lose the slot marker, so outlets cannot re-read it at render time.</li>
+						<li><strong>Explicit slots beat children.</strong> Hand-written factories that pass both see the explicit record win over children builders.</li>
+						<li><strong>Registry misses render placeholders.</strong> A typo in an un-imported tag produces a marked div, not an error.</li>
+						<li><strong>Spread order matters.</strong> Later entries overwrite earlier ones in the merged props record.</li>
+						<li><strong>Self-closing tags have no children.</strong> They emit props only, so no default builder exists for outlets to render.</li>
+						<li><strong>Text always lands in default.</strong> Text nodes cannot carry slot attributes, so mixed content splits across builders.</li>
+						<li><strong>Fallbacks compile fully.</strong> Bindings inside outlet fallbacks are live, not static snapshots.</li>
+						<li><strong>Migration is per tag.</strong> One file can mix direct calls and registry calls until every tag has an import.</li>
+						<li><strong>Placeholders serialize props.</strong> Sensitive values in props of un-imported tags land in a readable attribute.</li>
+						<li><strong>Function props unwrap once.</strong> Double-wrapped handlers invoke the wrapper and discard the real handler.</li>
+					</ul>
+
+					<DocsPager prev="/docs/transition" prevLabel="Transitions" next="/docs/registry" nextLabel="Registry" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			imports: 'import Card from "./Card.tardis"\nimport Modal from "../shared/Modal.tardis"\n\nblueprint Shop {\n  ui {\n    <Card title="Sale" />\n  }\n}',
+			usage: 'blueprint Shop {\n  ui {\n    <Card title="Sale" count={state.items.length} onAdd={addItem}>\n      <p>Everything must go.</p>\n    </Card>\n  }\n}',
+			named-slots: 'blueprint Shop {\n  ui {\n    <Card title="Sale">\n      <p>Default body copy.</p>\n      <div slot="footer">Ships tomorrow.</div>\n    </Card>\n  }\n}',
+			outlets: 'blueprint Card {\n  ui {\n    <article>\n      <h2>{props.title}</h2>\n      <slot />\n      <slot name="footer">No footer yet.</slot>\n    </article>\n  }\n}',
+			spread: 'blueprint Shop {\n  ui {\n    <Card title="Sale" {...state.cardAttrs} />\n  }\n}',
+			fallback: "import { $runtime } from \"tardisjs/runtime\"\n\nconst node = $runtime.component(\"LegacyBadge\", { label: \"beta\" })\n// Registered: calls the factory with owner tracking.\n// Missing: renders a div with data-component and data-props."
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

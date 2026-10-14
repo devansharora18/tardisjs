@@ -1,0 +1,204 @@
+blueprint DocsI18n {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="I18n" crumb="Reference" />
+
+					<h2 id="overview">Overview</h2>
+					<p>Internationalization maps locale codes to nested message tables. Create a translator with <code>createI18n</code>, render strings with <code>t</code>, and switch languages at runtime with <code>setLocale</code>. The active locale lives in reactive state, so bindings that call <code>locale()</code> or <code>t()</code> re-run automatically when the language changes.</p>
+					<p>Everything here is exported from <code>tardisjs/runtime</code>: the <code>createI18n</code> and <code>plural</code> functions plus the <code>Messages</code>, <code>I18nOptions</code>, and <code>I18n</code> types.</p>
+					<p>Import the translator factory from the runtime barrel:</p>
+					<div class="codeblock" data-code="imports" data-lang="js"></div>
+
+					<h2 id="setup">Setup</h2>
+					<p>Messages is a nested dictionary where leaves are strings and intermediate nodes are further dictionaries. Keys use dot notation: <code>t("nav.home")</code> walks <code>messages[locale].nav.home</code>. A path that ends on a nested object instead of a string counts as missing.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Option</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>locale</td><td>locale: string</td><td>Starting locale. Required. Reads of it are reactive.</td></tr>
+								<tr><td>fallbackLocale</td><td>fallbackLocale?: string</td><td>Second locale consulted when the active one lacks a key.</td></tr>
+								<tr><td>messages</td><td>messages: Record&lt;string, Messages&gt;</td><td>One nested table per locale code.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="basic" data-lang="tardis"></div>
+					<p>Interpolation fills <code>{`{`}name{`}`}</code> placeholders from the vars object. Placeholders with no matching entry are left untouched, and calling <code>t</code> without vars returns the template as stored.</p>
+					<p>Locale codes are exact table keys with no viscoelastic matching: <code>"en-US"</code> does not fall back to <code>"en"</code>. Register every variant you ship, or normalize the code before calling <code>setLocale</code>.</p>
+
+					<h2 id="switching">Switching locales</h2>
+					<p>Language switching is a single reactive write. Call <code>setLocale</code> from any event handler; every binding that read <code>locale()</code> or <code>t()</code> re-runs with the new table.</p>
+					<div class="steps">
+						<div class="step-row">
+							<h3>Write the locale</h3>
+							<p><code>setLocale("es")</code> updates the reactive locale key. Unknown codes are accepted without throwing.</p>
+						</div>
+						<div class="step-row">
+							<h3>Dependents re-run</h3>
+							<p>Bindings that called <code>t</code> or <code>locale</code> re-evaluate against the new table and write their DOM nodes.</p>
+						</div>
+						<div class="step-row">
+							<h3>Missing keys fall back</h3>
+							<p>Keys absent from the new table resolve through the fallback locale, so partial translations degrade gracefully.</p>
+						</div>
+					</div>
+
+					<h2 id="lookup">Lookup and fallback</h2>
+					<p>Each <code>t</code> call resolves in three steps: the active locale first, then the fallback locale when one is configured and differs from the active locale, then the key itself as a last resort. Switching to a locale with no table at all still works: every key simply falls through to the fallback or echoes itself.</p>
+					<p>The matrix below shows what <code>t("nav.home")</code> returns for each situation, assuming a fallback of English:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Active table</th><th>Fallback table</th><th>Result</th></tr></thead>
+							<tbody>
+								<tr><td>Has nav.home</td><td>Anything</td><td>The active-locale string.</td></tr>
+								<tr><td>Missing nav.home</td><td>Has nav.home</td><td>The fallback string.</td></tr>
+								<tr><td>Missing everywhere</td><td>Missing everywhere</td><td>The key itself: nav.home.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Design fallback coverage deliberately: complete the fallback table first, then translate the highest-traffic keys per locale. Partial tables are safe exactly because the fallback fills the gaps.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Member</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>locale</td><td>locale(): string</td><td>Read the active locale. Reactive inside tracked contexts.</td></tr>
+								<tr><td>setLocale</td><td>setLocale(l: string): void</td><td>Switch locale and re-run dependent bindings. Unknown codes are accepted.</td></tr>
+								<tr><td>t</td><td>t(key: string, vars?: Record&lt;string, string | number&gt;): string</td><td>Translate with fallback chain and interpolation.</td></tr>
+								<tr><td>has</td><td>has(key: string, locale?: string): boolean</td><td>True when the key exists in the given locale, or the active one by default.</td></tr>
+								<tr><td>availableLocales</td><td>availableLocales(): string[]</td><td>Every locale code present in messages.</td></tr>
+								<tr><td>plural</td><td>plural(count: number, forms: {`{`} zero?: string, one: string, other: string {`}`}) : string</td><td>Pick a plural form for a count. Standalone helper, not tied to a translator.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="nested" data-lang="tardis"></div>
+					<p>In this example <code>nav.home</code> resolves from the Spanish table, <code>bye</code> is absent in Spanish and falls back to English, and the fully missing key echoes back as <code>"nope.nowhere"</code> so untranslated strings stay visible during development.</p>
+
+					<h2 id="interpolation">Interpolation reference</h2>
+					<p>Placeholders use single braces around a word: <code>{`{`}name{`}`}</code>, <code>{`{`}count{`}`}</code>. The matcher accepts letters, digits, and underscores; anything else stays literal. Values are stringified at replacement time.</p>
+					<p>Because interpolation is textual, word order lives in the template where translators can rearrange it. Never split a sentence across two <code>t</code> calls with concatenation in between.</p>
+					<ul>
+						<li><code>t("hello", {`{`} name: "Ada" {`}`})</code> fills one placeholder.</li>
+						<li><code>t("save", {`{`} count: 3 {`}`})</code> fills a numeric placeholder.</li>
+						<li>Missing entries leave the placeholder text in place, which surfaces mistakes visibly.</li>
+						<li>Extra entries are ignored, so one vars object can serve several keys.</li>
+						<li>Format dates and currency before passing them; only strings and numbers are accepted.</li>
+						<li>Escape-free templates: braces that are not word-shaped render untouched.</li>
+					</ul>
+					<div class="codeblock" data-code="inspect" data-lang="tardis"></div>
+					<p>Use <code>has</code> to probe a specific locale before switching, for example to disable a language option whose table is incomplete. Note that <code>has</code> checks exactly one table: it does not consult the fallback locale.</p>
+
+					<h2 id="reactivity">Reactivity</h2>
+					<p>The translator holds its locale in reactive state, created the same way as blueprint state. A binding that renders <code>i18n.t("title")</code> subscribes to the locale key and re-renders on every <code>setLocale</code>, with no manual refresh or page reload.</p>
+					<p>Only calls made inside a tracked context subscribe. A translated string captured into a plain variable at setup time stays frozen in the original language; call <code>t</code> inside the binding so the read is tracked.</p>
+					<p><code>has</code> and <code>availableLocales</code> are plain reads for control flow. They do not subscribe, so probing them in a loop or a guard never widens an effect's dependencies.</p>
+
+					<h2 id="plural">Plurals</h2>
+					<p><code>plural</code> selects among caller-provided forms without any locale data. The <code>zero</code> form applies only when the count is exactly zero and the form is provided; <code>one</code> applies when the count is exactly one; everything else, including negative numbers, uses <code>other</code>.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Count</th><th>Forms given</th><th>Result</th></tr></thead>
+							<tbody>
+								<tr><td>0</td><td>zero, one, other</td><td>The zero form.</td></tr>
+								<tr><td>0</td><td>one, other only</td><td>The other form. Zero without a zero form falls through.</td></tr>
+								<tr><td>1</td><td>Any set with one</td><td>The one form.</td></tr>
+								<tr><td>Any other number</td><td>Any set with other</td><td>The other form, including negatives.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="plurals" data-lang="tardis"></div>
+					<div class="callout callout-note">
+						<span class="callout-icon" data-icon="info"></span>
+						<div class="callout-body">
+							<div class="callout-title">Compose, do not concatenate blindly</div>
+							<p>Because word order differs across languages, prefer full-sentence templates with interpolation (for example <code>t("inbox", {`{`} n {`}`}</code>) over gluing <code>plural</code> output onto a count. <code>plural</code> shines for short labels and for languages whose rules you handle explicitly.</p>
+						</div>
+					</div>
+
+					<h2 id="organizing">Organizing messages</h2>
+					<p>Group keys by screen or feature with one nesting level: <code>nav.home</code>, <code>cart.total</code>, <code>checkout.submit</code>. One level keeps dot paths short and tables scannable; deeper nesting pays off only for large catalogs.</p>
+					<p>Keep the fallback table complete and treat it as the key registry. Every key exists in the fallback first, which guarantees the echo-back case never appears for a merely untranslated string.</p>
+					<ul>
+						<li>One top-level group per page or feature.</li>
+						<li>Full-sentence values with placeholders, never fragments joined in code.</li>
+						<li>Stable key names: renaming a key orphans every translation at once.</li>
+						<li>Shared words (save, cancel, back) live in one common group.</li>
+						<li>Counts pair a template with <code>plural</code> for the unit word.</li>
+						<li>Review untranslated echo-backs by grepping rendered output for dotted paths.</li>
+					</ul>
+
+					<h2 id="types">Types</h2>
+					<p>Use these annotations for translators shared across modules.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Type</th><th>Signature</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>Messages</td><td>{`{`} [key: string]: string | Messages {`}`}</td><td>Nested message table for one locale.</td></tr>
+								<tr><td>I18nOptions</td><td>{`{`} locale, fallbackLocale?, messages {`}`}</td><td>The createI18n argument.</td></tr>
+								<tr><td>I18n</td><td>{`{`} locale, setLocale, t, has, availableLocales {`}`}</td><td>The translator object createI18n returns.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="together">Putting it together</h2>
+					<p>A language switcher page combines translator setup, reactive switching mirrored into blueprint state, and a plural label. One action drives both the translator and the markup.</p>
+					<div class="codeblock" data-code="together" data-lang="tardis"></div>
+					<p>Mirroring the locale into <code>state.current</code> lets markup branch on the active language directly, while <code>t</code> calls handle the translated strings. Both update from the single <code>pick</code> method.</p>
+
+					<h2 id="testing">Testing</h2>
+					<p>Translators test as pure lookup tables. Build one per test with small message objects and assert <code>t</code> output for each locale, fallback, and missing-key case.</p>
+					<p>Drive locale switches with <code>setLocale</code> and assert the new output, including switches to codes with no table. Cover interpolation with complete, partial, and empty vars objects.</p>
+					<ul>
+						<li>Assert every user-facing key exists in the fallback table.</li>
+						<li>Assert partial locales fall back per key, not per page.</li>
+						<li>Assert missing keys echo the key path for visibility.</li>
+						<li>Assert <code>has</code> ignores the fallback when probing a specific locale.</li>
+						<li>Assert plural boundaries: 0 with and without a zero form, 1, 2, and negatives.</li>
+					</ul>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<div class="callout callout-warning">
+						<span class="callout-icon" data-icon="warn"></span>
+						<div class="callout-body">
+							<div class="callout-title">Missing keys echo back</div>
+							<p><code>t</code> returns the key itself when neither the active nor the fallback locale has it. This keeps the UI readable during development but means a typo renders as a dotted path in production. Lint message keys or assert with <code>has</code> in tests to catch missing entries.</p>
+						</div>
+					</div>
+					<ul>
+						<li>Interpolation only replaces <code>{`{`}word{`}`}</code> shapes matched by <code>{`{`}\w+{`}`}</code>. Dotted or dashed placeholder names are left as written.</li>
+						<li>Vars values are limited to strings and numbers. Format dates and other objects before passing them in.</li>
+						<li><code>has</code> ignores the fallback locale. A key present only in the fallback reports false for the active locale.</li>
+						<li><code>setLocale</code> accepts any string, including codes with no table. Reads then fall back per key rather than throwing.</li>
+						<li>Only reads of <code>locale()</code> and <code>t()</code> inside a tracked context re-run on switch. A string captured earlier into a plain variable stays frozen.</li>
+						<li><code>plural</code> has no locale rules built in. Languages with more than two plural forms need explicit branching around it.</li>
+						<li>Message tables are read, never written, after creation. Mutating a table at runtime affects future lookups but bypasses reactivity, so prefer <code>setLocale</code> over table edits.</li>
+						<li>Region codes never collapse: <code>"en-US"</code> will not use the <code>"en"</code> table. Register the variant or normalize the code yourself.</li>
+						<li>Templates are plain strings with no nested lookups. Compose translated pieces in the blueprint rather than embedding keys in values.</li>
+						<li>Adding a locale table after creation works for lookups, but existing bindings re-run only on <code>setLocale</code>, not on table edits.</li>
+						<li>A zero count without a zero form renders the other form. Provide zero explicitly when the wording differs, as with no messages.</li>
+						<li><code>has</code> with an explicit locale argument checks that table only; the no-argument form checks the active locale only. Neither consults the fallback.</li>
+					</ul>
+
+					<DocsPager prev="/docs/forms" prevLabel="Forms" next="/docs/router" nextLabel="Router" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			imports: 'import { createI18n, plural } from "tardisjs/runtime"\nimport type { I18n, I18nOptions, Messages } from "tardisjs/runtime"',
+			basic: 'blueprint Hello {\n  script {\n    import { createI18n } from "tardisjs/runtime"\n    const i18n = createI18n({\n      locale: "en",\n      fallbackLocale: "en",\n      messages: {\n        en: { hello: "Hello {name}", bye: "Goodbye" },\n        es: { hello: "Hola {name}" }\n      }\n    })\n  }\n  methods {\n    greet: (name) => i18n.t("hello", { name: name })\n    spanish: () => i18n.setLocale("es")\n  }\n  ui {\n    <p>{i18n.t("hello", { name: "Ada" })}</p>\n  }\n}',
+			nested: 'blueprint Nested {\n  script {\n    import { createI18n } from "tardisjs/runtime"\n    const i18n = createI18n({\n      locale: "es",\n      fallbackLocale: "en",\n      messages: {\n        en: { nav: { home: "Home", back: "Back" }, bye: "Goodbye" },\n        es: { nav: { home: "Inicio" } }\n      }\n    })\n    const home = i18n.t("nav.home")\n    const bye = i18n.t("bye")\n    const missing = i18n.t("nope.nowhere")\n  }\n  ui {\n    <p>Nested lookups with fallback</p>\n  }\n}',
+			inspect: 'blueprint LangPicker {\n  script {\n    import { createI18n } from "tardisjs/runtime"\n    const i18n = createI18n({\n      locale: "en",\n      messages: { en: { go: "Go" }, fr: { go: "Aller" } }\n    })\n    const langs = i18n.availableLocales()\n    const canFrench = i18n.has("go", "fr")\n  }\n  methods {\n    pick: (l) => i18n.setLocale(l)\n    current: () => i18n.locale()\n  }\n  ui {\n    <p>Pick a language</p>\n  }\n}',
+			plurals: 'blueprint Inbox {\n  script {\n    import { plural } from "tardisjs/runtime"\n    const line = (n: number) => n + " " + plural(n, { one: "message", other: "messages" })\n    const empty = plural(0, { zero: "no messages", one: "message", other: "messages" })\n  }\n  ui {\n    <p>Plural picks the form</p>\n  }\n}',
+			together: 'blueprint Switcher {\n  state {\n    current: string = "en"\n  }\n  script {\n    import { createI18n, plural } from "tardisjs/runtime"\n    const i18n = createI18n({\n      locale: "en",\n      fallbackLocale: "en",\n      messages: {\n        en: { title: "Settings", save: "Save {count} items" },\n        fr: { title: "Reglages", save: "Enregistrer {count} elements" }\n      }\n    })\n  }\n  methods {\n    pick: (l) => {\n      i18n.setLocale(l)\n      $update(state.current, i18n.locale())\n    }\n  }\n  ui {\n    <h1>{i18n.t("title")}</h1>\n    <button onClick={pick}>Switch</button>\n  }\n}'
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

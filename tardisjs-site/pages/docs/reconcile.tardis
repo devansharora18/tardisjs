@@ -1,0 +1,239 @@
+blueprint DocsReconcile {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Reconciliation" crumb="Reference" />
+
+					<p>The reconcile module is the low-level DOM reuse layer. It exports keyed list reconciliation, fragments, SVG element creation, refs, and a move helper for hand-managed ordering.</p>
+					<p>The compiler does not emit these functions for plain templates. You call them from <code>script</code> when you need fine-grained control over list updates, grouping, namespaced elements, or element handles.</p>
+					<p>All six functions are exported from the runtime entry point. Import them as named imports wherever you build DOM by hand: event handlers, lifecycle callbacks, lazily loaded panels, or tests with a minimal DOM.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>Plain <code>$each</code> clears and rebuilds its container on every change. That is simple and correct, but it destroys focus, selection, and scroll position inside the list on each update.</p>
+					<p>The <code>keyed</code> function instead tracks one DOM node per key. It reuses nodes across renders and moves them into order with <code>insertBefore</code>, so surviving rows keep their state.</p>
+					<p>Use <code>keyed</code> when list items hold local state such as input focus, when lists reorder often, or when rebuilding is measurably expensive.</p>
+					<p>Keep <code>$each</code> for short static lists where rebuild cost is negligible and the template form reads better.</p>
+					<p>The rest of the module fills the gaps around keyed rendering. <code>fragment</code> groups nodes without a wrapper element.</p>
+					<p><code>svg</code> creates namespaced SVG elements, <code>createRef</code> and <code>setRef</code> hold element handles across renders, and <code>moveChild</code> repositions a child with a null anchor meaning append.</p>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>keyed(arrayFn, keyFn, builderFn)</td><td>Render a keyed list into a container div. Returns the container element.</td></tr>
+								<tr><td>fragment(children)</td><td>Append each child into a DocumentFragment and return it.</td></tr>
+								<tr><td>svg(tag, attrs?)</td><td>Create an SVG element in the SVG namespace with optional attributes.</td></tr>
+								<tr><td>createRef()</td><td>Create a ref object shaped like current set to null.</td></tr>
+								<tr><td>setRef(ref, el)</td><td>Assign an element or null into a ref object. Returns nothing.</td></tr>
+								<tr><td>moveChild(container, child, before)</td><td>Insert child before the anchor, or append when the anchor is null.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="signatures">Signatures</h2>
+					<p>Full signatures as declared in the runtime source, with generics described in words:</p>
+					<ul>
+						<li><strong>keyed</strong> takes an array reader returning an array, a key reader of item and index returning a string or number, and a builder of item and index returning an element.</li>
+						<li><strong>fragment</strong> takes an array of element or comment nodes and returns a DocumentFragment.</li>
+						<li><strong>svg</strong> takes a tag name plus an optional record of string or number attributes and returns an SVGElement.</li>
+						<li><strong>createRef</strong> is generic over the element type, defaulting to HTMLElement, and returns an object holding current.</li>
+						<li><strong>setRef</strong> is generic over the element type and accepts an element or null so refs can be cleared.</li>
+						<li><strong>moveChild</strong> takes a container, a child, and an anchor element or null, and returns nothing.</li>
+						<li><strong>keyed</strong> is generic over the item type, which flows from the array reader into the key reader and the builder.</li>
+					</ul>
+
+					<h2 id="keyed">Keyed lists</h2>
+					<p>Pass a reader function over the array, a stable key per item, and a builder that creates the node for a new key. The reader runs inside a reactive effect, so state reads subscribe the list and state writes re-run the reconciliation.</p>
+					<p>On each run the reconciler resolves the current items into a key map, removes nodes whose keys vanished, builds nodes for new keys, and then walks the resolved order moving each node into position.</p>
+					<p>Nodes for surviving keys are never rebuilt. Bindings, listeners, and refs attached inside the builder persist for the life of the row.</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Parameter</th><th>Role</th></tr></thead>
+							<tbody>
+								<tr><td>arrayFn</td><td>Reader over the items. Reactive: its state reads subscribe the reconciliation.</td></tr>
+								<tr><td>keyFn</td><td>Pure projection of item and index to a stable string or number key.</td></tr>
+								<tr><td>builderFn</td><td>Construction for new keys only. Receives the winning item and its index.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="codeblock" data-code="keyed-list" data-lang="js"></div>
+					<p>Mount the returned container like any element. It is a plain div, so it participates in layout, flex, and grid normally.</p>
+					<p>The container carries an empty data-keyed attribute as a styling and debugging hook. It is not a behavior switch.</p>
+
+					<h2 id="ordering">Ordering</h2>
+					<p>After removals and builds, the reconciler enforces array order position by position. Each key in the resolved map is compared against the child currently at that position.</p>
+					<p>A node already in place is skipped. A node elsewhere moves with a single insertBefore against the positional anchor. A trailing node with nothing after it is left alone.</p>
+					<p>Reorders are therefore moves, never rebuilds, which is what preserves focus and selection while rows shuffle.</p>
+					<div class="codeblock" data-code="keyed-reorder" data-lang="js"></div>
+					<p>Prefer updating the underlying array and letting the reconciler move nodes over sorting DOM nodes yourself.</p>
+					<p>Manual moves inside a keyed container are overwritten on the next pass, so treat the array as the source of truth.</p>
+
+					<h2 id="duplicates">Duplicate keys</h2>
+					<p>Keys must be stable across renders. A database id is ideal; an array index is not, because every insert shifts every later index and defeats reuse.</p>
+					<p>When two items produce the same key, the last occurrence wins deterministically. Order follows the last occurrence position and earlier duplicates are discarded.</p>
+					<p>The winning item and index pair is what the builder receives for a new key, so output always reflects the latest data for that key.</p>
+					<p>Dedupe feeds upstream when collisions are frequent rather than relying on last-wins to hide data problems.</p>
+
+					<h2 id="reactivity">Reactivity wiring</h2>
+					<p>The array reader runs inside a reactive effect created with the shared state primitive. Every state field the reader touches becomes a dependency of the reconciliation.</p>
+					<p>Any write to those fields schedules a fresh pass. The key reader and the builder are not wrapped individually: keys recompute from current items and the builder runs only for unseen keys.</p>
+					<p>This split keeps renders cheap. Reading is reactive, keying is a pure projection, and building is construction work reserved for genuinely new rows.</p>
+					<ul>
+						<li><strong>Reader</strong> — reactive; re-runs reconciliation when its state changes.</li>
+						<li><strong>Key function</strong> — pure; maps each item and index to a string or number.</li>
+						<li><strong>Builder</strong> — runs once per new key; returns the row element.</li>
+						<li><strong>Removal</strong> — nodes whose keys vanish are removed from the DOM.</li>
+						<li><strong>Ordering</strong> — surviving and new nodes are walked into array order.</li>
+					</ul>
+					<p>Because the effect owns the whole container, unmounting the container disposes the subscription with it. No manual cleanup is needed.</p>
+
+					<h2 id="building">Building item nodes</h2>
+					<p>The builder receives the item and its index at build time. Use the item for content and the index only for presentation details like striping, never for identity.</p>
+					<p>Attach per-item bindings, listeners, and refs inside the builder so they persist for the life of the row across reorders and updates.</p>
+					<p>Builders must return a fresh element on each call. Returning a shared or already-mounted node would move it between keys and corrupt the key map.</p>
+					<ul>
+						<li><strong>Content</strong> — derive text and attributes from the item argument.</li>
+						<li><strong>Bindings</strong> — bind reactively inside the node so updates flow without rebuilds.</li>
+						<li><strong>Listeners</strong> — attach once; reuse keeps them alive across reorders.</li>
+						<li><strong>Index</strong> — presentation only; keys carry identity.</li>
+					</ul>
+
+					<h2 id="fragment">Fragments</h2>
+					<p>A fragment groups several nodes so they can be returned or inserted together without adding a wrapper element to the DOM.</p>
+					<p>This keeps markup flat when a builder must produce siblings, such as term and description pairs or table cells that cannot take an extra div.</p>
+					<p>Fragments accept comment nodes as well as elements, so anchors and slot placeholders can travel inside them.</p>
+					<div class="codeblock" data-code="fragment" data-lang="js"></div>
+					<p>Appending a fragment moves its children into the target. The fragment itself never appears in the document.</p>
+
+					<h2 id="svg">SVG elements</h2>
+					<p>Plain createElement creates HTML elements, which silently breaks SVG rendering. The svg helper uses the SVG namespace instead.</p>
+					<p>Each attribute is applied through setAttribute after string conversion, so numbers for coordinates and sizes work directly.</p>
+					<p>Build larger icons by creating nested svg elements and appending them: the helper creates one element per call and composes through normal DOM appends.</p>
+					<div class="codeblock" data-code="svg-icon" data-lang="js"></div>
+					<p>Pass only values that survive string conversion. Objects stringify poorly, so format path data and view boxes before calling.</p>
+
+					<h2 id="refs">Refs</h2>
+					<p>A ref is a small object holding the current element or null. Create one per element you need to touch imperatively.</p>
+					<p>Assign the ref when the element mounts and clear it when the element unmounts, so handlers never act on detached nodes.</p>
+					<p>Refs pair well with keyed lists: because surviving nodes are reused rather than rebuilt, a ref captured at build time stays valid across reorders and updates.</p>
+					<p>Refs go stale when their keyed node is removed, so guard every use with a null check or clear the ref on removal.</p>
+					<div class="codeblock" data-code="refs" data-lang="js"></div>
+					<p>One ref per element keeps ownership obvious. Sharing a single ref across rows means each build overwrites the last.</p>
+
+					<h2 id="moving">Moving nodes by hand</h2>
+					<p>Sometimes order is decided outside the reconciler, for example in a drag-and-drop handler or a pin-to-top action. The moveChild helper covers those cases.</p>
+					<p>It repositions one child before an anchor element, or appends it when the anchor is null. It is a thin wrapper over insertBefore with the null case spelled out.</p>
+					<p>Use it on containers you own. Inside a keyed container the next reconciliation pass reasserts array order.</p>
+					<div class="codeblock" data-code="move" data-lang="js"></div>
+					<p>For keyed lists, prefer updating the array. The reconciler then produces the same move with bookkeeping intact.</p>
+
+					<h2 id="returns">Return values</h2>
+					<p>Every function returns something the caller owns, except the two setters that return nothing:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Returns</th></tr></thead>
+							<tbody>
+								<tr><td>keyed</td><td>The container div, already filled with the first render.</td></tr>
+								<tr><td>fragment</td><td>A DocumentFragment holding the given children in order.</td></tr>
+								<tr><td>svg</td><td>An SVGElement of the requested tag with attributes applied.</td></tr>
+								<tr><td>createRef</td><td>A fresh ref object with current set to null.</td></tr>
+								<tr><td>setRef</td><td>Nothing. The ref object is mutated in place.</td></tr>
+								<tr><td>moveChild</td><td>Nothing. The container child order is mutated in place.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="patterns">Common patterns</h2>
+					<h3 id="pattern-filter">Filterable lists</h3>
+					<p>Derive the reader from a filter plus the source array. Typing in the filter re-runs the pass, removes non-matching rows, and keeps matching rows with their state.</p>
+					<p>Because removal is by key, clearing the filter restores rows as new builds while untouched rows never flicker.</p>
+					<h3 id="pattern-focus">Focus-preserving inputs</h3>
+					<p>Build each row with an input bound to the item. Reorders move the row element, so the focused input keeps focus and caret position.</p>
+					<p>Store the active key before bulk updates when you also need to restore focus after a removal.</p>
+					<h3 id="pattern-icon">Icon systems</h3>
+					<p>Wrap the svg helper in one function per icon that returns a composed tree. Callers append the result wherever an icon belongs.</p>
+					<p>Shared builders keep attribute values consistent and give every icon a single place to change sizes or fills.</p>
+
+					<h2 id="versus">keyed versus $each</h2>
+					<p>Both render lists, but they make opposite trade-offs between simplicity and state preservation:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Aspect</th><th>keyed</th><th>$each</th></tr></thead>
+							<tbody>
+								<tr><td>Update strategy</td><td>Reuse and move nodes by key</td><td>Clear and rebuild the container</td></tr>
+								<tr><td>Local state</td><td>Preserved for surviving keys</td><td>Destroyed on every change</td></tr>
+								<tr><td>Ordering</td><td>Enforced position by position</td><td>Follows array order trivially</td></tr>
+								<tr><td>Container</td><td>Div with a data-keyed attribute</td><td>Managed by the compiler</td></tr>
+								<tr><td>Call site</td><td>Manual call from script</td><td>Emitted by the compiler</td></tr>
+								<tr><td>Best for</td><td>Long, stateful, reordering lists</td><td>Short lists and simple mappings</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Default to <code>$each</code> in templates. Reach for <code>keyed</code> when rows are stateful or counts reach the hundreds.</p>
+					<p>The two compose freely: a keyed list can live inside an <code>$if</code> branch or a component slot without special handling.</p>
+
+					<h2 id="performance">Performance notes</h2>
+					<p>Reconciliation is linear in the number of items plus the number of removed keys. The common case of appending one row builds one node and walks the order once.</p>
+					<p>Keep key readers cheap. They run once per item per pass, so a key that formats strings or walks objects taxes every update.</p>
+					<p>Builders run for new keys only, which makes construction cost proportional to change size rather than list size.</p>
+					<ul>
+						<li><strong>Append</strong> — one build plus one ordered walk.</li>
+						<li><strong>Remove</strong> — one DOM removal per vanished key.</li>
+						<li><strong>Reorder</strong> — one insertBefore per misplaced node.</li>
+						<li><strong>Key read</strong> — one call per item per pass; keep it cheap.</li>
+						<li><strong>Builder</strong> — runs for new keys only; keep construction local.</li>
+					</ul>
+					<p>Measure before optimizing. For lists under a few dozen rows the difference from <code>$each</code> is rarely visible.</p>
+
+					<h2 id="testing">Testing</h2>
+					<p>Keyed lists work in any test runner with a DOM, real or faked. Drive the array reader from local state and assert on container children order.</p>
+					<p>The svg, fragment, and move helpers need only element creation and appends, so small fakes cover unit tests without a browser.</p>
+					<p>Assert reuse explicitly when it matters: capture a row node, reorder the array, and check the same node moved rather than a lookalike replacing it.</p>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/runtime">Runtime API</a> page covers <code>$each</code>, the compiler-driven counterpart to keyed lists.</p>
+					<p>The <a href="/docs/components">Components</a> page shows how to combine keyed lists with component factories and slots.</p>
+					<p>The <a href="/docs/reactivity">Reactivity</a> page explains the effect primitive behind the reconciliation subscription.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>Index keys defeat reuse.</strong> Key by a stable id. Index keys make every insert look like a full reorder.</li>
+						<li><strong>Do not hand-edit the container.</strong> Appending your own children into the keyed container corrupts the position walk.</li>
+						<li><strong>Builders run once per key.</strong> Put per-item reactive bindings inside the built node so updates flow without rebuilding.</li>
+						<li><strong>Duplicate keys drop items silently.</strong> Only the last item per key renders; dedupe upstream when that surprises you.</li>
+						<li><strong>Builders must return fresh nodes.</strong> Reusing one element across keys moves it and corrupts the key map.</li>
+						<li><strong>Refs go stale on key removal.</strong> Clear the ref when its keyed node is removed or guard every use with a null check.</li>
+						<li><strong>One ref per element.</strong> Sharing a ref across rows means each build overwrites the previous handle.</li>
+						<li><strong>Attributes are strings.</strong> The svg helper stringifies numbers, so pass values that survive string conversion.</li>
+						<li><strong>Manual moves are temporary.</strong> Hand moves inside a keyed container are overwritten by the next pass.</li>
+						<li><strong>Key readers run hot.</strong> Keep them pure and cheap; they execute per item on every pass.</li>
+						<li><strong>Foreign nodes shift anchors.</strong> Anything you insert by hand changes positional indexing for the whole walk.</li>
+						<li><strong>Unmounting disposes the effect.</strong> Keep the container mounted while its data is live; remounting rebuilds every row.</li>
+						<li><strong>Comments count as children.</strong> Anchors and placeholders inside fragments occupy positions, so account for them in tests.</li>
+					</ul>
+
+					<DocsPager prev="/docs/runtime" prevLabel="Runtime API" next="/docs/components" nextLabel="Components" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			keyed-list: "import { keyed } from \"tardisjs/runtime\"\n\nconst list = keyed(\n  () => state.items,\n  (item) => item.id,\n  (item) => {\n    const li = document.createElement(\"li\")\n    li.textContent = item.name\n    return li\n  }\n)\nmount.appendChild(list)",
+			keyed-reorder: "import { keyed } from \"tardisjs/runtime\"\n\nconst board = keyed(\n  () => state.tasks,\n  (task) => task.id,\n  (task) => {\n    const row = document.createElement(\"div\")\n    row.className = \"task-row\"\n    row.textContent = task.title\n    return row\n  }\n)\n// Reordering state.tasks moves rows; focus inside a row survives.",
+			fragment: "import { fragment } from \"tardisjs/runtime\"\n\nconst group = fragment([\n  document.createElement(\"dt\"),\n  document.createElement(\"dd\")\n])\nlist.appendChild(group)",
+			svg-icon: "import { svg } from \"tardisjs/runtime\"\n\nconst dot = svg(\"circle\", { cx: 8, cy: 8, r: 6, fill: \"currentColor\" })\nconst icon = svg(\"svg\", { width: 16, height: 16, viewBox: \"0 0 16 16\" })\nicon.appendChild(dot)\ntoolbar.appendChild(icon)",
+			refs: "import { createRef, setRef } from \"tardisjs/runtime\"\n\nconst inputRef = createRef()\nmethods {\n  mountInput: (el) => setRef(inputRef, el)\n  focusInput: () => inputRef.current && inputRef.current.focus()\n  clearInput: () => setRef(inputRef, null)\n}",
+			move: "import { moveChild } from \"tardisjs/runtime\"\n\nmethods {\n  pinToTop: (row) => moveChild(listEl, row, listEl.firstElementChild)\n  sendToEnd: (row) => moveChild(listEl, row, null)\n}"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}

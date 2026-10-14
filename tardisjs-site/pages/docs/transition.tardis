@@ -1,0 +1,210 @@
+blueprint DocsTransition {
+	ui {
+		<div class="docs-page">
+			<Navbar />
+			<DocsRuntime />
+			<div class="docs-shell">
+				<DocsSidebar />
+				<main class="docs-content">
+					<DocsHead title="Transitions" crumb="Reference" />
+
+					<p>The transition module holds four small helpers for showing and hiding elements. Fade and slide write inline styles directly, cssTransition toggles visibility classes under your own stylesheet, and prefersReducedMotion reports the user motion preference.</p>
+					<p>Transitions here are imperative on purpose. Helpers take an element, a boolean direction, and a duration, then apply the end state immediately while CSS animates between states.</p>
+					<p>The module has no DOM globals except inside prefersReducedMotion, so importing it is safe in server rendering and node test runners.</p>
+
+					<h2 id="overview">Overview</h2>
+					<p>All three transition helpers share one calling convention: the element first, the direction second, and an optional duration defaulting to 200 milliseconds.</p>
+					<p>Every helper writes style dot transitionDuration, so the timing travels with the element even when no stylesheet targets it.</p>
+					<p>Fade suits overlays, toasts, and tooltips where the element keeps its layout size while it appears.</p>
+					<p>Slide suits accordions, disclosures, and expanding panels where the page should reflow as content opens.</p>
+					<p>Custom class transitions suit transforms and multi-property motion where inline styles are not expressive enough.</p>
+					<p>The reduced-motion helper gates any of the above so users who asked for less motion get instant state changes.</p>
+
+					<h2 id="api">API reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Function</th><th>Description</th></tr></thead>
+							<tbody>
+								<tr><td>fade(el, show, ms?)</td><td>Fade an element in or out through opacity and display.</td></tr>
+								<tr><td>slide(el, show, ms?)</td><td>Collapse or expand an element through max height and display.</td></tr>
+								<tr><td>cssTransition(el, base, show, ms?)</td><td>Toggle base-visible and base-hidden classes for custom CSS.</td></tr>
+								<tr><td>prefersReducedMotion()</td><td>Report whether the user prefers reduced motion. Safe without a window.</td></tr>
+							</tbody>
+						</table>
+					</div>
+
+					<h2 id="el">The El type</h2>
+					<p>El is a structural type, not a DOM class. Any object with a classList supporting add and remove plus a string style record qualifies.</p>
+					<p>Real elements satisfy it automatically, and tests can pass small fakes that record what the helpers wrote.</p>
+					<p>Helpers only touch the two members they need: fade and slide write styles, while cssTransition writes one style and swaps two classes.</p>
+					<div class="codeblock" data-code="el-fake" data-lang="js"></div>
+					<p>Because nothing else is read, fakes stay tiny: an object literal with two classList functions and a style record is enough.</p>
+					<p>Assert on the recorded calls to verify direction, class names, and durations without a browser.</p>
+
+					<h2 id="timing">How timing works</h2>
+					<p>Helpers set final styles synchronously. The animation the user sees comes from CSS transitions on those properties between the old and new values.</p>
+					<p>The duration parameter defaults to 200 milliseconds and is written as the transition duration style on every call.</p>
+					<p>That inline write overwrites any stylesheet transition duration on the element, so the passed value always wins.</p>
+					<ul>
+						<li><strong>Default</strong> — omit the duration for the standard 200 millisecond motion.</li>
+						<li><strong>Faster</strong> — pass 100 to 150 for hover feedback and toasts.</li>
+						<li><strong>Slower</strong> — pass 250 to 350 for drawers and large panels.</li>
+						<li><strong>Instant</strong> — branch on reduced motion and set end styles directly.</li>
+					</ul>
+					<p>Keep durations consistent per surface. Mixed timings on one page feel broken even when each value is reasonable alone.</p>
+
+					<h2 id="fade">Fade</h2>
+					<p>Showing clears the display and sets opacity to one. Hiding sets opacity to zero and display to none.</p>
+					<p>The duration defaults to 200 milliseconds and is written as the transition duration style so CSS animates the opacity change.</p>
+					<p>Fade keeps layout size while appearing, which suits overlays, toasts, and tooltips that should not reflow the page.</p>
+					<div class="codeblock" data-code="fade" data-lang="js"></div>
+					<p>Hidden elements leave layout and tab order because display none removes them from both.</p>
+					<p>Guard decorative fades with prefersReducedMotion so sensitive users get an instant swap instead of motion.</p>
+
+					<h2 id="slide">Slide</h2>
+					<p>Showing clears display, max height, and overflow so the element returns to its natural size.</p>
+					<p>Hiding clamps max height to zero pixels, hides overflow, and sets display to none. As with fade, the duration defaults to 200 milliseconds.</p>
+					<p>Content taller than any fixed max height needs no special handling on show, because the helper clears the clamp entirely.</p>
+					<div class="codeblock" data-code="slide" data-lang="js"></div>
+					<p>Slide suits accordions, disclosures, and expanding panels where the page should reflow as content opens and closes.</p>
+					<p>Any custom max height you set is wiped on show, so express persistent constraints through a wrapper element instead.</p>
+
+					<h2 id="css">Custom class transitions</h2>
+					<p>When inline styles are not expressive enough, cssTransition implements a deterministic class protocol under a base name you choose.</p>
+					<p>Showing removes base-hidden and adds base-visible. Hiding removes base-visible and adds base-hidden.</p>
+					<p>The duration is still written to the transition duration style, so timing travels with the element like the other helpers.</p>
+					<div class="codeblock" data-code="css" data-lang="js"></div>
+					<p>The helper never reads layout and never forces reflow. It only swaps classes, so animation behavior stays fully in CSS where it belongs.</p>
+					<p>Define both classes in your stylesheet with matching transition properties. A missing base-hidden leaves the first show with nothing to remove.</p>
+					<div class="codeblock" data-code="css-sheet" data-lang="js"></div>
+					<p>Keep the stylesheet duration in sync with the passed milliseconds. The inline style wins on timing, but matching values avoid confusion.</p>
+
+					<h2 id="protocol">Class protocol reference</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Direction</th><th>Removed</th><th>Added</th></tr></thead>
+							<tbody>
+								<tr><td>show is true</td><td>base-hidden</td><td>base-visible</td></tr>
+								<tr><td>show is false</td><td>base-visible</td><td>base-hidden</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Class names are plain string concatenations of the base, a dash, and the suffix. Any base without dashes or spaces works.</p>
+					<p>The protocol is deterministic: repeated shows without an intervening hide converge on the same class set with no accumulation.</p>
+
+					<h2 id="motion">Reduced motion</h2>
+					<p>prefersReducedMotion returns true when the user asked the operating system to reduce motion.</p>
+					<p>It returns false when there is no window or no matchMedia, which keeps server rendering and unit tests on the animated path unless you decide otherwise.</p>
+					<p>The helpers never check the preference themselves. Your call site branches and either animates or applies end styles instantly.</p>
+					<div class="codeblock" data-code="reduced" data-lang="js"></div>
+					<p>Check the preference at the interaction site rather than once at startup, so changes the user makes mid-session take effect on the next toggle.</p>
+					<p>Apply the same gate to class transitions: swap classes instantly by setting the end state without a duration-dependent animation.</p>
+
+					<h2 id="combine">Combining with show blocks</h2>
+					<p>Template show blocks toggle display without unmounting, which makes them natural partners for transitions on the same element.</p>
+					<p>Order matters: update state first so bindings settle, then call the helper on the mounted element for the matching direction.</p>
+					<p>For enter animations, ensure the element is displayed before fading or sliding in; for exits, animate first only when you can delay the state flip.</p>
+					<ul>
+						<li><strong>Enter</strong> — set state visible, then fade or slide in.</li>
+						<li><strong>Exit</strong> — fade or slide out, then set state hidden on completion.</li>
+						<li><strong>Instant</strong> — under reduced motion, flip state with no helper call.</li>
+					</ul>
+					<p>Keep element handles in refs so handlers reach the node without querying the document each time.</p>
+
+					<h2 id="compare">Choosing a helper</h2>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Helper</th><th>Mechanism</th><th>Best for</th></tr></thead>
+							<tbody>
+								<tr><td>fade</td><td>Inline opacity plus display</td><td>Overlays, toasts, tooltips</td></tr>
+								<tr><td>slide</td><td>Inline max height plus display</td><td>Accordions, disclosures, panels</td></tr>
+								<tr><td>cssTransition</td><td>Class swap under your stylesheet</td><td>Transforms, multi-property motion</td></tr>
+								<tr><td>prefersReducedMotion</td><td>Media query read</td><td>Gating any of the above</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Start with fade or slide and graduate to class transitions when motion needs transforms, staggered properties, or keyframe-adjacent control.</p>
+					<p>Every path respects the same duration convention, so switching helpers never changes call-site timing code.</p>
+
+					<h2 id="sequences">Enter and exit sequences</h2>
+					<p>Exits need the animation to finish before the element leaves layout, while enters need the element in layout before the animation starts. The two directions therefore order state and helper calls oppositely.</p>
+					<p>Enter sequence for a hidden panel:</p>
+					<ul>
+						<li><strong>Display</strong> — set state visible so the element mounts or unhides.</li>
+						<li><strong>Settle</strong> — let bindings apply before touching styles.</li>
+						<li><strong>Animate</strong> — call the helper with direction set to show.</li>
+						<li><strong>Focus</strong> — move focus into the panel when it takes over the view.</li>
+					</ul>
+					<p>Exit sequence for a visible panel:</p>
+					<ul>
+						<li><strong>Animate</strong> — call the helper with direction set to hide.</li>
+						<li><strong>Wait</strong> — hold the state flip until the duration elapses.</li>
+						<li><strong>Hide</strong> — set state hidden so the element leaves layout.</li>
+						<li><strong>Restore</strong> — return focus to the control that opened the panel.</li>
+					</ul>
+					<p>Under reduced motion both sequences collapse to a single state flip with no helper call and no waiting.</p>
+					<p>Timers for the exit wait belong to the closing handler. Clear them when the component unmounts so a torn-down panel cannot flip state late.</p>
+
+					<h2 id="durations">Durations per surface</h2>
+					<p>One duration per surface keeps motion coherent. The table below is a starting point; adjust to taste and keep the values in one shared module:</p>
+					<div class="docs-table-wrap">
+						<table class="docs-table">
+							<thead><tr><th>Surface</th><th>Suggested duration</th></tr></thead>
+							<tbody>
+								<tr><td>Hover feedback and tooltips</td><td>100 to 150 milliseconds with fade.</td></tr>
+								<tr><td>Toasts and inline reveals</td><td>150 to 200 milliseconds with fade.</td></tr>
+								<tr><td>Accordions and disclosures</td><td>200 to 250 milliseconds with slide.</td></tr>
+								<tr><td>Drawers and large panels</td><td>250 to 350 milliseconds with class transitions.</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p>Longer than 350 milliseconds feels sluggish for interface motion. Reserve slow transitions for full-screen moments.</p>
+					<p>Shorter than 100 milliseconds reads as instant for most users, which is fine for hover states and wasteful to animate deliberately.</p>
+
+					<h2 id="testing">Testing</h2>
+					<p>Pass fakes shaped like the El type and assert on style writes and classList calls. No DOM is required for any helper.</p>
+					<p>Verify both directions per helper: show and hide write different end states and must both be covered.</p>
+					<p>Stub matchMedia on the window fake to test both branches of prefersReducedMotion, plus the no-window branch where applicable.</p>
+
+					<h2 id="also">See also</h2>
+					<p>The <a href="/docs/runtime">Runtime API</a> page covers show blocks, the template primitive that pairs with these helpers.</p>
+					<p>The <a href="/docs/components">Components</a> page covers lifecycle callbacks, a natural place to trigger enter transitions.</p>
+					<p>The <a href="/docs/selector">Selector</a> page covers the chainable fade and slide conveniences for selected elements.</p>
+
+					<h2 id="gotchas">Gotchas</h2>
+					<ul>
+						<li><strong>End states apply instantly.</strong> Helpers set final styles synchronously; visible animation comes from CSS transitions on those properties.</li>
+						<li><strong>Hidden means display none.</strong> Fade and slide both remove the element from layout and tab order when hiding.</li>
+						<li><strong>Slide clears on show.</strong> Custom max heights are wiped when showing, so reapply constraints through a wrapper.</li>
+						<li><strong>Class protocol needs both classes.</strong> Forgetting base-hidden leaves the first show with nothing to remove and can skip the opening animation.</li>
+						<li><strong>Duration writes inline.</strong> Each call overwrites any stylesheet transition duration on the element.</li>
+						<li><strong>Repeated calls converge.</strong> Showing twice in a row is idempotent; no duplicate classes accumulate.</li>
+						<li><strong>No reduced-motion short-circuit built in.</strong> Helpers always animate; call sites must branch on prefersReducedMotion.</li>
+						<li><strong>SSR returns false.</strong> Without a window, prefersReducedMotion reports false, so gate server markup accordingly.</li>
+						<li><strong>No matchMedia means false.</strong> Older environments without the function take the animated path.</li>
+						<li><strong>Fakes need two members only.</strong> Anything beyond classList add and remove plus a style record is unused by the helpers.</li>
+						<li><strong>Keep timings consistent.</strong> Mixed durations on one surface feel broken even when each value is reasonable.</li>
+						<li><strong>Animate mounted nodes.</strong> Calling a helper on a detached element writes styles nobody sees.</li>
+						<li><strong>Display none drops focus.</strong> Hiding a focused element moves focus to the body; restore it explicitly on show.</li>
+					</ul>
+
+					<DocsPager prev="/docs/routing" prevLabel="Routing utils" next="/docs/composition" nextLabel="Composition" />
+				</main>
+				<DocsToc />
+			</div>
+			<Footer />
+		</div>
+	}
+	script {
+		const SN = {
+			el-fake: "import { fade } from \"tardisjs/runtime\"\n\nconst seen = []\nconst fake = {\n  classList: {\n    add: (...c) => seen.push([\"add\", ...c]),\n    remove: (...c) => seen.push([\"remove\", ...c])\n  },\n  style: {}\n}\nfade(fake, true, 150)\nconsole.log(fake.style, seen)",
+			fade: "import { fade } from \"tardisjs/runtime\"\n\nmethods {\n  toggleToast: () => {\n    state.open = !state.open\n    fade(toastEl, state.open, 200)\n  }\n}\n// Showing sets display empty and opacity 1; hiding sets opacity 0 and display none.",
+			slide: "import { slide } from \"tardisjs/runtime\"\n\nmethods {\n  toggleSection: () => {\n    state.expanded = !state.expanded\n    slide(panelEl, state.expanded, 250)\n  }\n}",
+			css: "import { cssTransition } from \"tardisjs/runtime\"\n\nmethods {\n  toggleDrawer: () => {\n    state.open = !state.open\n    cssTransition(drawerEl, \"drawer\", state.open, 300)\n  }\n}\n// Show: remove drawer-hidden, add drawer-visible. Hide: the reverse.",
+			css-sheet: ".drawer { transition-property: transform, opacity; transition-duration: 300ms }\n.drawer-hidden { transform: translateX(-100%); opacity: 0 }\n.drawer-visible { transform: translateX(0); opacity: 1 }",
+			reduced: "import { fade, prefersReducedMotion } from \"tardisjs/runtime\"\n\nmethods {\n  reveal: () => {\n    state.open = true\n    if (prefersReducedMotion()) {\n      panelEl.style.display = \"\"\n    } else {\n      fade(panelEl, true, 200)\n    }\n  }\n}"
+		}
+		const run = () => window.__tardisDocs ? window.__tardisDocs.renderCodeblocks(SN) : setTimeout(run, 16)
+		run()
+	}
+}
