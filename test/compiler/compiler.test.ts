@@ -967,6 +967,27 @@ describe('ui compiler', () => {
       expect(out).toContain('if (typeof _props.onClick === "function") _props.onClick = _props.onClick();')
     })
 
+    it('separates the last default from the props spread with a comma', () => {
+      const out = compileSource(`
+        blueprint Button {
+          props {
+            label: string = "Action"
+          }
+          ui { <button>{props.label}</button> }
+        }
+      `)
+      expect(out).toContain('label: "Action",')
+    })
+
+    it('emits a default export for file imports', () => {
+      const out = compileSource(`
+        blueprint Button {
+          ui { <button>go</button> }
+        }
+      `)
+      expect(out).toContain('export default Button;')
+    })
+
     it('keeps braced attributes on self-closing component tags', () => {
       const out = compileSource(`
         blueprint Page {

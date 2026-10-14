@@ -67,6 +67,11 @@ export function compile(ast: BlueprintNode, imported?: Set<string>): string {
 	const hasEvents = !!(ast.events.onMount || ast.events.onDestroy || ast.events.onUpdate);
 	lines.push(compileUI(ast.ui.raw, ast.name, scriptCode, hasCompiledStyles, hasEvents, imported));
 	lines.push(`}`);
+	// Default export powers `import Name from "./x.tardis"` (compiled to
+	// `import Name from "./x.js"` by compileFile). Named export stays for
+	// the CLI's route/component registration.
+	lines.push(``);
+	lines.push(`export default ${ast.name};`);
 
 	return lines.join("\n");
 }
@@ -145,7 +150,7 @@ function compilePropsDefaults(props: PropNode[]): string {
 		? [`  const _props = { ...props }`]
 		: [
 			`  const _props = {`,
-			defaults.join(",\n"),
+			defaults.join(",\n") + ",",
 			`    ...props`,
 			`  }`,
 		];
