@@ -1,0 +1,231 @@
+blueprint Property {
+	state {
+		name: string = ""
+		email: string = ""
+		sent: boolean = false
+	}
+	methods {
+		tour: () => $batch(() => ($update(state.sent, state.name !== "" && state.email.includes("@")), $update(state.name, state.name !== "" && state.email.includes("@") ? "" : state.name), $update(state.email, state.name !== "" && state.email.includes("@") ? "" : state.email)))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 680px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.back {
+			display: inline-block;
+			margin: 40px 0 28px;
+			font-size: 14px;
+			color: #a1a1a1;
+		}
+		.back:hover {
+			color: #ededed;
+			text-decoration: none;
+		}
+		.meta {
+			font-size: 12.5px;
+			font-weight: 600;
+			color: #7ee787;
+			margin-bottom: 12px;
+		}
+		.detail h1 {
+			font-size: 36px;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+			margin-bottom: 8px;
+		}
+		.price {
+			font-size: 24px;
+			font-weight: 800;
+			color: #7ee787;
+			margin-bottom: 16px;
+		}
+		.detail p {
+			font-size: 16px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 12px;
+		}
+		.detail h2 {
+			font-size: 19px;
+			font-weight: 800;
+			margin: 26px 0 10px;
+		}
+		.detail ul {
+			margin: 0 0 8px 20px;
+			padding: 0;
+		}
+		.detail li {
+			font-size: 15px;
+			line-height: 1.7;
+			color: #c9c9c9;
+			margin-bottom: 6px;
+		}
+		.tour {
+			margin-top: 28px;
+			background: #111111;
+			border: 1px solid #262626;
+			border-radius: 12px;
+			padding: 24px;
+		}
+		.tour h2 {
+			font-size: 18px;
+			font-weight: 800;
+			margin: 0 0 14px;
+		}
+		.tour input {
+			width: 100%;
+			box-sizing: border-box;
+			background: #0a0a0a;
+			border: 1px solid #404040;
+			border-radius: 8px;
+			color: #ededed;
+			font-size: 14px;
+			padding: 10px 12px;
+			font-family: inherit;
+			margin-bottom: 10px;
+		}
+		.tour button {
+			width: 100%;
+			background: #ededed;
+			color: #0a0a0a;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 12px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.booked {
+			font-size: 15px;
+			color: #7ee787;
+		}
+		.missing {
+			text-align: center;
+			padding: 80px 0;
+		}
+		.missing h1 {
+			font-size: 30px;
+			font-weight: 800;
+			margin-bottom: 12px;
+		}
+		.missing p {
+			color: #a1a1a1;
+			margin-bottom: 24px;
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<a class="back" href="/">← All homes</a>
+				$if($params.id === "maple-house") {
+					<div class="detail">
+						<div class="meta">4 bd · 2 ba · House · $450,000</div>
+						<h1>Maple Street House</h1>
+						<p>A 1920s colonial with a wraparound porch, updated kitchen, and original oak floors throughout. The maples out front are older than the town charter.</p>
+						<h2>Details</h2>
+						<ul>
+							<li>2,140 sq ft on a quarter acre</li>
+							<li>Detached two-car garage, finished basement</li>
+							<li>Walk Score 82 — schools, shops, station</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "hilltop") {
+					<div class="detail">
+						<div class="meta">5 bd · 4 ba · House · $825,000</div>
+						<h1>Hilltop Modern</h1>
+						<p>Glass walls over the valley, heated bathroom floors, and a kitchen built for people who actually cook. Built 2019, architect-owned.</p>
+						<h2>Details</h2>
+						<ul>
+							<li>3,800 sq ft, walls of glass on two sides</li>
+							<li>Heated floors, heat pump, solar array</li>
+							<li>20 minutes to downtown, zero traffic lights</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "loft-9") {
+					<div class="detail">
+						<div class="meta">2 bd · 2 ba · Condo · $310,000</div>
+						<h1>Loft No. 9</h1>
+						<p>Fourteen-foot ceilings, brick walls, and a freight elevator straight to your door. HOA covers water, heat, and the roof deck.</p>
+						<h2>Details</h2>
+						<ul>
+							<li>1,450 sq ft open plan, two full baths</li>
+							<li>In-unit laundry, one garage space</li>
+							<li>Pet friendly, rentals allowed after a year</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "lakefront") {
+					<div class="detail">
+						<div class="meta">6 bd · 5 ba · House · $1,200,000</div>
+						<h1>Lakefront Estate</h1>
+						<p>Private dock, guest cottage, and sunsets included in the price. Main house sleeps twelve without anyone sharing a bathroom.</p>
+						<h2>Details</h2>
+						<ul>
+							<li>5,200 sq ft plus 900 sq ft guest cottage</li>
+							<li>120 ft of private waterfront</li>
+							<li>Generator, geothermal, new roof 2023</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "garden-flat") {
+					<div class="detail">
+						<div class="meta">3 bd · 2 ba · Condo · $540,000</div>
+						<h1>Garden Flat</h1>
+						<p>Ground-floor corner unit opening onto a walled garden you will actually use. Quiet street, loud birds, fast internet.</p>
+						<h2>Details</h2>
+						<ul>
+							<li>1,680 sq ft plus 400 sq ft private garden</li>
+							<li>Storage unit and bike room included</li>
+							<li>Five minutes to the park, ten to the train</li>
+						</ul>
+					</div>
+				}
+				$if($params.id === "pine-cabin") {
+					<div class="detail">
+						<div class="meta">2 bd · 1 ba · Cabin · $275,000</div>
+						<h1>Pine Cabin</h1>
+						<p>Off-grid solar, a wood stove, and forty pines between you and the nearest email. Bears are neighbors; they keep to themselves.</p>
+						<h2>Details</h2>
+						<ul>
+							<li>980 sq ft, sleeping loft, screened porch</li>
+							<li>Well plus rainwater backup, septic 2021</li>
+							<li>Snowmobile access December through March</li>
+						</ul>
+					</div>
+				}
+				$if($params.id !== "maple-house" && $params.id !== "hilltop" && $params.id !== "loft-9" && $params.id !== "lakefront" && $params.id !== "garden-flat" && $params.id !== "pine-cabin") {
+					<div class="missing">
+						<h1>Off the market</h1>
+						<p>No home with that listing. Back to browsing.</p>
+					</div>
+				}
+				$show($params.id === "maple-house" || $params.id === "hilltop" || $params.id === "loft-9" || $params.id === "lakefront" || $params.id === "garden-flat" || $params.id === "pine-cabin") {
+					<div class="tour">
+						$show(!state.sent) {
+							<div>
+								<h2>Book a tour</h2>
+								<input value={state.name} @input={(e) => $update(state.name, e.target.value)} placeholder="Your name" />
+								<input value={state.email} @input={(e) => $update(state.email, e.target.value)} placeholder="you@example.com" />
+								<button @click={methods.tour}>Request tour</button>
+							</div>
+						}
+						$show(state.sent) {
+							<p class="booked">Tour requested! The agent replies within a day.</p>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

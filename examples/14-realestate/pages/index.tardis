@@ -1,0 +1,175 @@
+blueprint Home {
+	state {
+		maxPrice: number = 0
+		kind: string = "all"
+	}
+	computed {
+		visible: ((state.maxPrice === 0 || 450000 <= state.maxPrice) && (state.kind === "all" || state.kind === "house") ? 1 : 0) + ((state.maxPrice === 0 || 825000 <= state.maxPrice) && (state.kind === "all" || state.kind === "house") ? 1 : 0) + ((state.maxPrice === 0 || 310000 <= state.maxPrice) && (state.kind === "all" || state.kind === "condo") ? 1 : 0) + ((state.maxPrice === 0 || 1200000 <= state.maxPrice) && (state.kind === "all" || state.kind === "house") ? 1 : 0) + ((state.maxPrice === 0 || 540000 <= state.maxPrice) && (state.kind === "all" || state.kind === "condo") ? 1 : 0) + ((state.maxPrice === 0 || 275000 <= state.maxPrice) && (state.kind === "all" || state.kind === "cabin") ? 1 : 0)
+	}
+	methods {
+		setMax: (v) => $update(state.maxPrice, v)
+		setKind: (k) => $update(state.kind, k)
+		reset: () => $batch(() => ($update(state.maxPrice, 0), $update(state.kind, "all")))
+	}
+	style {
+		.page {
+			background: #0a0a0a;
+			color: #ededed;
+			min-height: 100vh;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		}
+		.wrap {
+			max-width: 960px;
+			margin: 0 auto;
+			padding: 0 24px 96px;
+		}
+		.hero {
+			text-align: center;
+			padding: 64px 0 12px;
+		}
+		.hero-name {
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: #7ee787;
+			margin-bottom: 12px;
+		}
+		.hero h1 {
+			font-size: 42px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			margin-bottom: 10px;
+		}
+		.hero p {
+			font-size: 16px;
+			color: #a1a1a1;
+		}
+		.filters {
+			margin: 32px 0 8px;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+		.frow {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+		.flabel {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: #666666;
+			width: 88px;
+		}
+		.frow button {
+			background: transparent;
+			border: 1px solid #404040;
+			color: #a1a1a1;
+			border-radius: 999px;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 7px 16px;
+			cursor: pointer;
+			font-family: inherit;
+		}
+		.frow button.on {
+			background: #ededed;
+			border-color: #ededed;
+			color: #0a0a0a;
+		}
+		.count {
+			font-size: 13px;
+			color: #666666;
+			margin: 18px 0;
+		}
+		.count button {
+			background: none;
+			border: none;
+			color: #7ee787;
+			font-size: 13px;
+			cursor: pointer;
+			padding: 0;
+			font-family: inherit;
+		}
+		.list {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 14px;
+		}
+		.empty {
+			border: 1px dashed #404040;
+			border-radius: 10px;
+			padding: 32px;
+			text-align: center;
+			font-size: 14px;
+			color: #888888;
+			margin-top: 8px;
+		}
+		.foot {
+			text-align: center;
+			margin-top: 64px;
+			font-size: 13px;
+			color: #666666;
+		}
+		@media (max-width: 700px) {
+			.list { grid-template-columns: 1fr; }
+			.hero h1 { font-size: 32px; }
+		}
+	}
+	ui {
+		<div class="page">
+			<div class="wrap">
+				<header class="hero">
+					<div class="hero-name">Hearthside</div>
+					<h1>Find home.</h1>
+					<p>Six honest listings. No bidding wars on this page.</p>
+				</header>
+				<div class="filters">
+					<div class="frow">
+						<span class="flabel">Max price</span>
+						<button class={state.maxPrice === 0 ? "on" : ""} @click={() => methods.setMax(0)}>Any</button>
+						<button class={state.maxPrice === 350000 ? "on" : ""} @click={() => methods.setMax(350000)}>$350k</button>
+						<button class={state.maxPrice === 600000 ? "on" : ""} @click={() => methods.setMax(600000)}>$600k</button>
+						<button class={state.maxPrice === 1500000 ? "on" : ""} @click={() => methods.setMax(1500000)}>$1.5M</button>
+					</div>
+					<div class="frow">
+						<span class="flabel">Type</span>
+						<button class={state.kind === "all" ? "on" : ""} @click={() => methods.setKind("all")}>All</button>
+						<button class={state.kind === "house" ? "on" : ""} @click={() => methods.setKind("house")}>House</button>
+						<button class={state.kind === "condo" ? "on" : ""} @click={() => methods.setKind("condo")}>Condo</button>
+						<button class={state.kind === "cabin" ? "on" : ""} @click={() => methods.setKind("cabin")}>Cabin</button>
+					</div>
+				</div>
+				<p class="count">{computed.visible} of 6 homes <button @click={methods.reset}>reset</button></p>
+				<div class="list">
+					$show((state.maxPrice === 0 || 450000 <= state.maxPrice) && (state.kind === "all" || state.kind === "house")) {
+						<ListingCard id="maple-house" title="Maple Street House" price="$450,000" meta="4 bd · 2 ba · House" blurb="Porch swings and old maples. Updated kitchen, original floors." />
+					}
+					$show((state.maxPrice === 0 || 825000 <= state.maxPrice) && (state.kind === "all" || state.kind === "house")) {
+						<ListingCard id="hilltop" title="Hilltop Modern" price="$825,000" meta="5 bd · 4 ba · House" blurb="Glass walls over the valley. Heated floors, cold plunge." />
+					}
+					$show((state.maxPrice === 0 || 310000 <= state.maxPrice) && (state.kind === "all" || state.kind === "condo")) {
+						<ListingCard id="loft-9" title="Loft No. 9" price="$310,000" meta="2 bd · 2 ba · Condo" blurb="Brick, beams, and a freight elevator. HOA covers everything dull." />
+					}
+					$show((state.maxPrice === 0 || 1200000 <= state.maxPrice) && (state.kind === "all" || state.kind === "house")) {
+						<ListingCard id="lakefront" title="Lakefront Estate" price="$1,200,000" meta="6 bd · 5 ba · House" blurb="Private dock, guest cottage, sunsets included in the price." />
+					}
+					$show((state.maxPrice === 0 || 540000 <= state.maxPrice) && (state.kind === "all" || state.kind === "condo")) {
+						<ListingCard id="garden-flat" title="Garden Flat" price="$540,000" meta="3 bd · 2 ba · Condo" blurb="Ground floor with a walled garden. Quiet street, loud birds." />
+					}
+					$show((state.maxPrice === 0 || 275000 <= state.maxPrice) && (state.kind === "all" || state.kind === "cabin")) {
+						<ListingCard id="pine-cabin" title="Pine Cabin" price="$275,000" meta="2 bd · 1 ba · Cabin" blurb="Off-grid solar, wood stove, forty pines. Bears are neighbors." />
+					}
+				</div>
+				$show(computed.visible === 0) {
+					<div class="empty">Nothing matches both filters. Loosen one to keep looking.</div>
+				}
+				<p class="foot">© 2026 Hearthside · Built with TardisJS blueprints</p>
+			</div>
+		</div>
+	}
+}

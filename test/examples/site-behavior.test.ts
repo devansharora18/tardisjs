@@ -206,6 +206,67 @@ describe('05-dashboard behaves', () => {
   })
 })
 
+describe('14-realestate behaves', () => {
+  async function mountIndex() {
+    buildFile('examples/14-realestate/components/ListingCard.tardis', 'ListingCard.mjs')
+    buildFile('examples/14-realestate/pages/index.tardis', 'EstateHome.mjs')
+    const card = await import('./gen/ListingCard.mjs')
+    ;(dom.window as unknown as Record<string, unknown>).__tardis_ListingCard = card.ListingCard
+    const home = await import('./gen/EstateHome.mjs')
+    dom.window.document.getElementById('app')!.appendChild(home.Home())
+  }
+
+  function visibleCards(): number {
+    return qa('.list .card').filter((c) => {
+      let el: HTMLElement | null = c as HTMLElement
+      while (el) {
+        if (el.style && el.style.display === 'none') return false
+        el = el.parentElement
+      }
+      return true
+    }).length
+  }
+
+  it('filters by price and type with live count', async () => {
+    await mountIndex()
+    expect(qa('.list .card').length).toBe(6)
+    expect(q('.count')?.textContent).toContain('6 of 6')
+    click(qa('.frow')[0].querySelectorAll('button')[1])
+    expect(visibleCards()).toBe(2)
+    expect(q('.count')?.textContent).toContain('2 of 6')
+    click(qa('.frow')[1].querySelectorAll('button')[1])
+    expect(visibleCards()).toBe(0)
+    expect(q('.empty')?.style.display).toBe('')
+    click(q('.count button'))
+    expect(visibleCards()).toBe(6)
+  })
+
+  it('links cards to property pages', async () => {
+    await mountIndex()
+    expect(qa('.list .card')[0].getAttribute('href')).toBe('/property/maple-house')
+  })
+
+  it('renders property detail with tour booking', async () => {
+    buildFile('examples/14-realestate/pages/property/[id].tardis', 'EstatePage.mjs')
+    const { createRouter, $navigate } = await import('../../src/runtime/router')
+    const page = await import('./gen/EstatePage.mjs')
+    const router = createRouter([
+      { path: '/', component: () => dom.window.document.createElement('div') },
+      { path: '/property/:id', component: page.Property },
+    ])
+    router.start()
+    $navigate('/property/loft-9')
+    expect(q('.detail h1')?.textContent).toContain('Loft No. 9')
+    type(qa('.tour input')[0] as HTMLInputElement, 'Ada')
+    type(qa('.tour input')[1] as HTMLInputElement, 'ada@example.com')
+    click(q('.tour button'))
+    expect(q('.booked')?.textContent).toContain('Tour requested')
+    $navigate('/property/nope')
+    expect(q('.missing h1')?.textContent).toContain('Off the market')
+    expect(q('.tour')?.style.display).toBe('none')
+  })
+})
+
 describe('13-jobs behaves', () => {
   async function mountIndex() {
     buildFile('examples/13-jobs/components/JobCard.tardis', 'JobCard.mjs')
