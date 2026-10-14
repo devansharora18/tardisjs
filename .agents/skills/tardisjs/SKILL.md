@@ -71,6 +71,12 @@ Rules:
 - `tardisjs/runtime/transition` — `fade`, `slide`, `cssTransition`, `prefersReducedMotion`
 - Everything above is also re-exported from `tardisjs/runtime`.
 
+## Testing (tardisjs/testing)
+
+- `renderBlueprint(source, { props? })` — compile + mount a blueprint in jsdom, returns `{ root, document, window, cleanup }`
+- `mountHtml(html)` / `flushAll()` / `fireClick` / `fireInput` / `fireKey` / `tick`
+- `isVisible` / `textOf` / `queryAll`
+
 ## Routing
 
 `pages/index.tardis` -> `/`, `pages/about.tardis` -> `/about`, `pages/blog/[id].tardis` -> `/blog/:id`. Components live in `components/`.
